@@ -10,6 +10,7 @@
 
 
 #include <stdint.h>
+#include <stdio.h>
 
 // Any speed information is given in percent from 0 to 100.
 typedef int8_t T_Speed;

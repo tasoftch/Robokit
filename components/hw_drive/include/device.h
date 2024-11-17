@@ -9,6 +9,7 @@
 #define device_h
 
 #include <stdint.h>
+#include <stdio.h>
 #include "led_command.h"
 #include "values.h"
 

@@ -5,7 +5,7 @@
 //  Created by Thomas Abplanalp on 07.11.24.
 //
 
-#include "commands.h"
+#include "main_commands.h"
 
 
 void _robokit_command_init(S_command *cmd) {
