@@ -22,7 +22,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 
-#define ROBOKIT_MAX_SCHEDULED_COMMANDS 32
+
 
 static F_command_callback _callback_fn_list[ROBOKIT_MAX_SCHEDULED_COMMANDS] = {0};
 static QueueHandle_t commandQueue;
@@ -68,6 +68,9 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 		return E_PUSH_STATUS_STACK_FULL;
 	}
 
+	// Pseudo, just perform for now.
+
+	_callback_fn_list[tcmd](cmd, E_SCHEDULE_MODE_PERFORM, &flags);
 
 	return 0;
 }

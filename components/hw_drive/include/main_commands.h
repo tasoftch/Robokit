@@ -23,6 +23,8 @@ enum {
 	/* LED COMMANDS */
 	E_COMMAND_LED_SETUP,						// Choose a LED number and set its color
 	E_COMMAND_LED_FLUSH,						// Sends all LED setups to strip
+
+	E_COMMAND_TEST = ROBOKIT_MAX_SCHEDULED_COMMANDS - 1
 };
 
 enum {
@@ -39,28 +41,7 @@ enum {
 
 typedef struct {
 	uint8_t cmd;                // Eindeutige Kennung des Kommandos
-	uint8_t flags;              // Eventuelle Optionen mit E_COMMAND_FLAG_* Konstanten
-	uint8_t reserved_1;         // Nicht gebraucht, aber vorhanden
-	uint8_t reserved_2;         // Nicht gebraucht, aber vorhanden
-	union {                     // Speicherung von 4 Bytes in verschiedenen Varianten.
-		uint32_t uint32;        // Variante 1: 32 Bit vorzeichenlose Zahl
-		int32_t int32;          // Variante 2: 32 Bit Zahl mit Vorzeichen
-		struct {                // Variante 3: 4 x 8 Bit Zahlen ohne Vorzeichen
-			uint8_t a;
-			uint8_t b;
-			uint8_t c;
-			uint8_t d;
-		} uint8;
-		struct {                // Variante 4: 4 x 8 Bit Zahlen mit Vorzeichen
-			int8_t a;
-			int8_t b;
-			int8_t c;
-			int8_t d;
-		} int8;
-#if defined(__i386__) || defined(_M_IX86)
-		void *ptr;              // Variante 5: Pointer      (nur für 32bit Systeme)
-#endif
-	} dta;
+	uint8_t data[7];			// Datencontainer
 } S_command;
 
 

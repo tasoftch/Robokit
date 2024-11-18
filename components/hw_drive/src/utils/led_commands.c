@@ -3,21 +3,13 @@
 //
 
 #include "led_command.h"
-
+#include "command_data_containers.h"
 
 extern void _robokit_command_init(S_command *cmd);
 
-typedef struct {
-	T_cmd cmd;
-	uint32_t LEDs;
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
-} _S_Command_LED;
-
 
 void _led_commands_init(void) {
-	printf("LED init\n");
+	printf("LED Size %d\n", sizeof(_S_Command_LED));
 }
 
 

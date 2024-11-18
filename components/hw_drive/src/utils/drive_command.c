@@ -18,11 +18,12 @@
 //
 
 #include "drive_command.h"
+#include "command_data_containers.h"
 
 extern void _robokit_command_init(S_command *cmd);
 
 void _drive_commands_init(void) {
-	printf("LED init\n");
+	printf("CMD Size %d\n", sizeof(_S_command_drive));
 }
 
 uint8_t robokit_make_drive_command_fwd(S_command *cmd, T_Speed speed) {
@@ -42,14 +43,14 @@ uint8_t robokit_make_drive_command_bwd(S_command *cmd, T_Speed speed) {
 uint8_t robokit_drive_command_enable_imu(S_command *cmd) {
 	if(!cmd)
 		return 0;
-	cmd->flags |= E_COMMAND_FLAG_IMU;
+	_ROBOKIT_CMD_CAST(_S_command_drive *, cmd)->flags |= E_COMMAND_FLAG_IMU;
 	return 1;
 }
 
 uint8_t robokit_drive_command_disable_imu(S_command *cmd) {
 	if(!cmd)
 		return 0;
-	cmd->flags &= ~E_COMMAND_FLAG_IMU;
+	_ROBOKIT_CMD_CAST(_S_command_drive *, cmd)->flags &= ~E_COMMAND_FLAG_IMU;
 	return 1;
 }
 
@@ -59,8 +60,7 @@ uint8_t robokit_make_drive_command_vector(S_command *cmd, S_vector vector) {
 
 	_robokit_command_init(cmd);
 	cmd->cmd = E_COMMAND_VECTOR;
-	cmd->dta.int8.a = vector.angle;
-	cmd->dta.int8.b = vector.speed;
-
+	_ROBOKIT_CMD_CAST(_S_command_drive *, cmd)->angle = vector.angle;
+	_ROBOKIT_CMD_CAST(_S_command_drive *, cmd)->speed = vector.speed;
 	return 1;
 }

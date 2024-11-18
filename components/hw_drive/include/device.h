@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "led_command.h"
+#include "test_commands.h"
 #include "values.h"
 
 // Bitte diese Funktion in main aufrufen.

@@ -11,6 +11,7 @@ extern void _commands_init(void);
 extern void _led_commands_init(void);
 extern void _drive_commands_init(void);
 extern void _scheduler_init(void);
+extern void _test_commands_init(void);
 
 void device_init(void) {
     printf("device init\n");
