@@ -17,11 +17,11 @@ extern void _test_commands_init(void);
 
 
 void device_init(void) {
-    ROBOKIT_DEBUG("Initializing device...");
+    ROBOKIT_LOGI("Initializing device...");
     _scheduler_init();
     _commands_init();
     _drive_commands_init();
     _led_commands_init();
-    ROBOKIT_DEBUG("Device initialized");
+    ROBOKIT_LOGI("Device initialized");
 }
 

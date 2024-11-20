@@ -6,6 +6,7 @@
 #define ROBOKIT_LOG_H
 
 #include "config.h"
+#include <esp_log.h>
 
 static const char *_ROBOKIT_TAG = "HW";
 
@@ -22,7 +23,5 @@ static const char *_ROBOKIT_TAG = "HW";
 #define ROBOKIT_LOGD( ... )
 #define ROBOKIT_LOGV( ... )
 #endif
-
-#define ROBOKIT_LOGI()
 
 #endif //ROBOKIT_LOG_H
