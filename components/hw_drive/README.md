@@ -85,3 +85,16 @@ void _what_ever_function(void) {
 }
 
 ```
+
+### Debug und Logging
+
+Die HW Komponente verfügt über eine Direktive im ```hw_drive/types.h``` File.
+
+```c++
+#define ROBOKIT_DEBUG 1
+// Debugging ist eingeschaltet.
+// Komponente schreibt die HW Aktionen in die Konsole.
+
+#define ROBOKIT_DEBUG 0
+// Schaltet alle Logging-Funktionen aus.
+```
