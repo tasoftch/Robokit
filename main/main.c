@@ -16,9 +16,8 @@
 #include <dirent.h>       // For opendir(), readdir(), closedir()
 #include "esp_vfs.h"
 
-
-
 #include "connect_wifi.h"
+#include <device.h>
 
 #define LED_PIN 2
 httpd_handle_t server = NULL;
@@ -180,7 +179,9 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
 
     ESP_LOGW(TAG,"payload:%s",ws_pkt.payload);
-    
+    S_command cmd;
+    robokit_make_test_command(&cmd);
+    robokit_push_command(&cmd, 0);
     if(strcmp((char *)ws_pkt.payload, "toggle") == 0)
     {
         led_state = !led_state;
@@ -228,6 +229,8 @@ httpd_handle_t setup_websocket_server(void)
 
 void app_main()
 {
+    device_init();
+
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
