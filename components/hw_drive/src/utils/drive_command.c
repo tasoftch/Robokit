@@ -19,11 +19,12 @@
 
 #include "drive_command.h"
 #include "command_data_containers.h"
+#include "robokit_log.h"
 
 extern void _robokit_command_init(S_command *cmd);
 
 void _drive_commands_init(void) {
-	printf("CMD Size %d\n", sizeof(_S_command_drive));
+	ROBOKIT_LOGI("drive_commands_init");
 }
 
 uint8_t robokit_make_drive_command_fwd(S_command *cmd, T_Speed speed) {

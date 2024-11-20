@@ -4,12 +4,13 @@
 
 #include "led_command.h"
 #include "command_data_containers.h"
+#include "robokit_log.h"
 
 extern void _robokit_command_init(S_command *cmd);
 
 
 void _led_commands_init(void) {
-	printf("LED Size %d\n", sizeof(_S_Command_LED));
+	ROBOKIT_LOGI("led_commands_init");
 }
 
 

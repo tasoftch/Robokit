@@ -6,7 +6,7 @@
 //
 
 #include "main_commands.h"
-
+#include "robokit_log.h"
 
 void _robokit_command_init(S_command *cmd) {
     if(cmd) {
@@ -15,7 +15,7 @@ void _robokit_command_init(S_command *cmd) {
 }
 
 void _commands_init(void) {
-
+    ROBOKIT_LOGI("Commands init");
 }
 
 

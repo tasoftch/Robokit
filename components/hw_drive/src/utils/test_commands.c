@@ -10,6 +10,7 @@
 #include "test_commands.h"
 #include "scheduler.h"
 #include "driver/gpio.h"
+#include "robokit_log.h"
 
 extern void _robokit_command_init(S_command *cmd);
 
@@ -29,6 +30,7 @@ void __robokit_my_callback(S_command *cmd, uint8_t mode, uint8_t *flags) {
 
 
 void _test_commands_init(void) {
+	ROBOKIT_LOGI("_test_commands_init");
 	printf("Test Size %d with LED Pin %d\n", sizeof(_S_Command_test), LED_PIN);
 
 	robokit_register_command_fn(E_COMMAND_TEST, __robokit_my_callback);

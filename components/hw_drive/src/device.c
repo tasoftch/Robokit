@@ -6,6 +6,8 @@
 //
 
 #include "device.h"
+#include "robokit_log.h"
+
 
 extern void _commands_init(void);
 extern void _led_commands_init(void);
@@ -13,11 +15,13 @@ extern void _drive_commands_init(void);
 extern void _scheduler_init(void);
 extern void _test_commands_init(void);
 
+
 void device_init(void) {
-    printf("device init\n");
+    ROBOKIT_DEBUG("Initializing device...");
     _scheduler_init();
     _commands_init();
     _drive_commands_init();
     _led_commands_init();
+    ROBOKIT_DEBUG("Device initialized");
 }
 
