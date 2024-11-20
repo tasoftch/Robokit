@@ -22,7 +22,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 
-
+static volatile S_command command_stack[ROBOKIT_COMMAND_STACK_SIZE];
+static volatile uint8_t command_stack_head = 0;
 
 static F_command_callback _callback_fn_list[ROBOKIT_MAX_SCHEDULED_COMMANDS] = {0};
 static QueueHandle_t commandQueue;
@@ -38,7 +39,7 @@ void hal_error_handler() {
 
 
 void _scheduler_init(void) {
-	commandQueue = xQueueCreate(8, sizeof(S_command));
+	commandQueue = xQueueCreate(8, 1);
 	if(!commandQueue) {
 		printf("** ERROR: Could not initialize Queue.");
 		hal_error_handler();
@@ -57,16 +58,20 @@ uint8_t robokit_register_command_fn(T_cmd cmd, F_command_callback cb) {
 
 uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	T_cmd tcmd = cmd->cmd;
+	uint8_t cmd_idx;
 
 	if(_callback_fn_list[tcmd] == NULL)
 		return E_PUSH_STATUS_UNKNOWN_COMMAND;
 
 	_callback_fn_list[tcmd](cmd, E_SCHEDULE_MODE_PRECHECK, &flags);
 
-	if( robokit_get_free_stack_count() < 1 ) {
-
+	if( robokit_get_free_stack_count() < 1 && !(flags & E_COMMAND_FLAG_BLOCK) ) {
 		return E_PUSH_STATUS_STACK_FULL;
 	}
+
+	taskDISABLE_INTERRUPTS();
+	cmd_idx = command_stack_head++;
+
 
 	// Pseudo, just perform for now.
 
