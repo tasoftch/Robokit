@@ -21,6 +21,7 @@
 #include <device.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+#include "freertos/task.h"
 
 static volatile S_command command_stack[ROBOKIT_COMMAND_STACK_SIZE];
 static volatile uint8_t command_stack_head = 0;
@@ -37,6 +38,23 @@ void hal_error_handler() {
 	}
 }
 
+void hal_task_handler(S_command *cmd) {
+	uint8_t flags=0;
+	_callback_fn_list[cmd->cmd](cmd, E_SCHEDULE_MODE_PERFORM, &flags);
+
+}
+
+void _robokit_task_handler(void *parameters) {
+	while (1) {
+		uint8_t cmd_idx=0;
+		xQueueReceive(commandQueue, &cmd_idx, portMAX_DELAY);
+		if(command_stack[cmd_idx].cmd != E_COMMAND_NONE) {
+			S_command *cmd = (S_command *) &(command_stack[cmd_idx]);
+			hal_task_handler(cmd);
+		}
+	}
+}
+
 
 void _scheduler_init(void) {
 	commandQueue = xQueueCreate(8, 1);
@@ -44,6 +62,15 @@ void _scheduler_init(void) {
 		printf("** ERROR: Could not initialize Queue.");
 		hal_error_handler();
 	}
+
+	xTaskCreate(
+		_robokit_task_handler,
+		"robokit_task_handler",
+		configMINIMAL_STACK_SIZE+30,
+		NULL,
+		tskIDLE_PRIORITY+5,
+		NULL
+		);
 }
 
 uint8_t robokit_register_command_fn(T_cmd cmd, F_command_callback cb) {
@@ -71,12 +98,14 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 
 	taskDISABLE_INTERRUPTS();
 	cmd_idx = command_stack_head++;
+	if(command_stack_head >= ROBOKIT_COMMAND_STACK_SIZE) {
+		command_stack_head = 0;
+	}
+	taskENABLE_INTERRUPTS();
 
+	xQueueSend(commandQueue, &cmd_idx, portMAX_DELAY);
 
 	// Pseudo, just perform for now.
-
-	_callback_fn_list[tcmd](cmd, E_SCHEDULE_MODE_PERFORM, &flags);
-
 	return 0;
 }
 
