@@ -28,9 +28,9 @@ enum {
 };
 
 enum {
-	E_COMMAND_FLAG_BLOCK                = 1<<0,
-	E_COMMAND_FLAG_WAIT_UNTIL_DONE      = 1<<1,
-	E_COMMAND_FLAG_IMU                  = 1<<2
+	E_COMMAND_FLAG_BLOCK                = 1<<0,		// Wait until command is enqueued
+	E_COMMAND_FLAG_WAIT_UNTIL_DONE      = 1<<1,		// Wait until command is done by hardware
+	E_COMMAND_FLAG_IMU                  = 1<<2		// Enables IMU
 };
 
 enum {
