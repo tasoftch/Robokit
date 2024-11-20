@@ -19,4 +19,6 @@ typedef int8_t T_Speed;
 
 #define ROBOKIT_MAX_SCHEDULED_COMMANDS 32
 
+#define ROBOKIT_DEBUG 1
+
 #endif /* types_h */

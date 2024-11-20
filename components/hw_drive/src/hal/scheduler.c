@@ -24,8 +24,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
-
-static const char *TAG = "HW"; // TAG for debug
+#include "robokit_log.h"
 
 static volatile S_command command_stack[ROBOKIT_COMMAND_STACK_SIZE];
 static volatile uint8_t command_stack_head = 0;
@@ -37,8 +36,7 @@ static QueueHandle_t commandQueue;
 void hal_error_handler() {
 	// If there is any problem in the HW, call this function.
 	// It contains an endless loop to holt cpu for debug.
-	ESP_LOGE(TAG, "Hard fault HW\n");
-
+	ROBOKIT_LOGE("Hard fault HW");
 	while (1) {
 		;
 	}
@@ -47,17 +45,17 @@ void hal_error_handler() {
 void hal_task_handler(S_command *cmd) {
 	uint8_t flags=0;
 	_callback_fn_list[cmd->cmd](cmd, E_SCHEDULE_MODE_PERFORM, &flags);
-
+	ROBOKIT_LOGI("Command performed: %d.", cmd->cmd);
 }
 
 void _robokit_task_handler(void *parameters) {
 	while (1) {
 		uint8_t cmd_idx=0;
-		ESP_LOGI(TAG, "Waiting for command ...\n");
+		ROBOKIT_LOGI("Waiting for command...");
 		xQueueReceive(commandQueue, &cmd_idx, portMAX_DELAY);
 		if(command_stack[cmd_idx].cmd != E_COMMAND_NONE) {
 			S_command *cmd = (S_command *) & command_stack[cmd_idx];
-			ESP_LOGI(TAG, "Command received: %d.\n", cmd->cmd);
+			ROBOKIT_LOGI("Command received: %d.", cmd->cmd);
 
 			hal_task_handler(cmd);
 		}
@@ -68,7 +66,7 @@ void _robokit_task_handler(void *parameters) {
 void _scheduler_init(void) {
 	commandQueue = xQueueCreate(8, 1);
 	if(!commandQueue) {
-		printf("** ERROR: Could not initialize Queue.");
+		ROBOKIT_LOGE("Could not create command queue");
 		hal_error_handler();
 	}
 
@@ -84,6 +82,7 @@ void _scheduler_init(void) {
 
 uint8_t robokit_register_command_fn(T_cmd cmd, F_command_callback cb) {
 	if(cmd < ROBOKIT_MAX_SCHEDULED_COMMANDS) {
+		ROBOKIT_LOGV("Registering command %d", cmd);
 		if(_callback_fn_list[cmd] != NULL)
 			return 0;
 		_callback_fn_list[cmd] = cb;
@@ -96,10 +95,10 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	T_cmd tcmd = cmd->cmd;
 	uint8_t cmd_idx;
 
-	ESP_LOGI(TAG, "Enqueuing command ...\n");
+	ROBOKIT_LOGI( "Enqueuing command ");
 
 	if(_callback_fn_list[tcmd] == NULL) {
-		ESP_LOGE(TAG, "No command found %d.\n", cmd->cmd);
+		ROBOKIT_LOGE("No command found %d.", cmd->cmd);
 
 		return E_PUSH_STATUS_UNKNOWN_COMMAND;
 	}
@@ -108,7 +107,7 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	_callback_fn_list[tcmd](cmd, E_SCHEDULE_MODE_PRECHECK, &flags);
 
 	if( robokit_get_free_stack_count() < 1 && !(flags & E_COMMAND_FLAG_BLOCK) ) {
-		ESP_LOGE(TAG, "Stack is full\n");
+		ROBOKIT_LOGW("Stack is full");
 		return E_PUSH_STATUS_STACK_FULL;
 	}
 
@@ -121,9 +120,8 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 
 
 	xQueueSend(commandQueue, &cmd_idx, portMAX_DELAY);
-	ESP_LOGI(TAG, "Command %d enqueued.\n", cmd->cmd);
-	// Pseudo, just perform for now.
-	return 0;
+	ROBOKIT_LOGI("Command %d enqueued.", cmd->cmd);
+	return 1;
 }
 
 /* Returns how many commands can be added set. */
