@@ -22,7 +22,6 @@
 
 #include "main_commands.h"
 
-#define ROBOKIT_COMMAND_STACK_SIZE 8
 
 enum {
 	E_SCHEDULE_MODE_PRECHECK = 1,

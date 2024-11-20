@@ -88,7 +88,7 @@ void _what_ever_function(void) {
 
 ### Debug und Logging
 
-Die HW Komponente verfügt über eine Direktive im ```hw_drive/types.h``` File.
+Die HW Komponente verfügt über eine Direktive im ```hw_drive/config.h``` File.
 
 ```c++
 #define ROBOKIT_DEBUG 1

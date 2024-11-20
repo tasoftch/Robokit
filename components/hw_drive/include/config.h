@@ -10,7 +10,6 @@
 
 
 #include <stdint.h>
-#include <stdio.h>
 
 // Any speed information is given in percent from 0 to 100.
 typedef int8_t T_Speed;
@@ -18,6 +17,7 @@ typedef int8_t T_Speed;
 #define ROBOKIT_MAX_SPEED 100
 
 #define ROBOKIT_MAX_SCHEDULED_COMMANDS 32
+#define ROBOKIT_COMMAND_STACK_SIZE 8
 
 #define ROBOKIT_DEBUG 1
 
