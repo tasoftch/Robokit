@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h> 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
-#include "esp_http_server.h"
+#include <esp_http_server.h>
 #include "nvs_flash.h"
 #include "esp_spiffs.h"
 #include "esp_log.h"
@@ -16,7 +16,6 @@
 #include <dirent.h>       // For opendir(), readdir(), closedir()
 #include "esp_vfs.h"
 
-#include "device.h"
 
 
 #include "connect_wifi.h"
@@ -59,11 +58,11 @@ static void initi_web_page_buffer(void)
     }
 
 
-
+    
 
     memset((void *)index_html, 0, sizeof(index_html));
     struct stat st;
-
+    
     if (stat(INDEX_HTML_PATH, &st))
     {
         ESP_LOGE(TAG, "index.html not found");
@@ -99,19 +98,20 @@ static void ws_async_send(void *arg)
     struct async_resp_arg *resp_arg = arg;
     httpd_handle_t hd = resp_arg->hd;
     int fd = resp_arg->fd;
+    ESP_LOGI(TAG, "joooo im in send");
 
-    led_state = !led_state;
-    gpio_set_level(LED_PIN, led_state);
-
+    //led_state = !led_state;
+    //gpio_set_level(LED_PIN, led_state);
+    
     char buff[4];
     memset(buff, 0, sizeof(buff));
     sprintf(buff, "%d",led_state);
-
+    
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
     ws_pkt.payload = (uint8_t *)buff;
     ws_pkt.len = strlen(buff);
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
-
+    
     static size_t max_clients = CONFIG_LWIP_MAX_LISTENING_TCP;
     size_t fds = max_clients;
     int client_fds[max_clients];
@@ -179,6 +179,14 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
 
+    ESP_LOGW(TAG,"payload:%s",ws_pkt.payload);
+    
+    if(strcmp((char *)ws_pkt.payload, "toggle") == 0)
+    {
+        led_state = !led_state;
+        gpio_set_level(LED_PIN, led_state);
+    }
+
     if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
         strcmp((char *)ws_pkt.payload, "toggle") == 0)
     {
@@ -216,13 +224,10 @@ httpd_handle_t setup_websocket_server(void)
 
 
 
-
+    
 
 void app_main()
 {
-    // Initialize Firmware HW Drive
-    device_init();
-
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
