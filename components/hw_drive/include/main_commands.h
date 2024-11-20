@@ -8,7 +8,7 @@
 #ifndef commands_h
 #define commands_h
 
-#include "types.h"
+#include "config.h"
 #include "vector.h"
 
 typedef uint8_t T_cmd;

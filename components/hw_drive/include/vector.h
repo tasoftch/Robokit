@@ -8,7 +8,7 @@
 #ifndef vector_h
 #define vector_h
 
-#include "types.h"
+#include "config.h"
 
 typedef struct {
     int8_t angle;          // In degree / 3

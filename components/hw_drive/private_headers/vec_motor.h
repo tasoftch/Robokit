@@ -8,7 +8,7 @@
 #ifndef vec_motor_h
 #define vec_motor_h
 
-#include "types.h"
+#include "config.h"
 #include "vector.h"
 #include "motor_logic.h"
 

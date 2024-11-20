@@ -5,7 +5,7 @@
 #ifndef ROBOKIT_LOG_H
 #define ROBOKIT_LOG_H
 
-#include "types.h"
+#include "config.h"
 
 static const char *_ROBOKIT_TAG = "HW";
 

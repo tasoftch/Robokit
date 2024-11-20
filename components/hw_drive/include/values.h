@@ -8,7 +8,7 @@
 #ifndef values_h
 #define values_h
 
-#include "types.h"
+#include "config.h"
 #include "vector.h"
 
 enum {

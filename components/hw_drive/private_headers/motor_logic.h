@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-#include "types.h"
+#include "config.h"
 #include "vector.h"
 
 // Strukturen dieser Art liegen der Motorsteuerung an.
