@@ -22,6 +22,7 @@ void device_init(void) {
     _commands_init();
     _drive_commands_init();
     _led_commands_init();
+    _test_commands_init();
     ROBOKIT_LOGI("Device initialized");
 }
 
