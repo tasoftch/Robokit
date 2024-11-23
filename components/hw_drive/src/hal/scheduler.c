@@ -36,7 +36,7 @@ static QueueHandle_t commandQueue;
 void hal_error_handler() {
 	// If there is any problem in the HW, call this function.
 	// It contains an endless loop to holt cpu for debug.
-	ROBOKIT_LOGE("Hard fault HW");
+	ROBOKIT_LOGE("!! Hard fault !!");
 	while (1) {
 		;
 	}
@@ -45,7 +45,6 @@ void hal_error_handler() {
 void hal_task_handler(S_command *cmd) {
 	uint8_t flags=0;
 	_callback_fn_list[cmd->cmd](cmd, E_SCHEDULE_MODE_PERFORM, &flags);
-	ROBOKIT_LOGI("Command performed: %d.", cmd->cmd);
 }
 
 void _robokit_task_handler(void *parameters) {
@@ -53,10 +52,10 @@ void _robokit_task_handler(void *parameters) {
 		uint8_t cmd_idx=0;
 		ROBOKIT_LOGI("Waiting for command...");
 		xQueueReceive(commandQueue, &cmd_idx, portMAX_DELAY);
+		ROBOKIT_LOGI("Command %d received at index %d", command_stack[cmd_idx].cmd, cmd_idx);
+
 		if(command_stack[cmd_idx].cmd != E_COMMAND_NONE) {
 			S_command *cmd = (S_command *) & command_stack[cmd_idx];
-			ROBOKIT_LOGI("Command received: %d.", cmd->cmd);
-
 			hal_task_handler(cmd);
 		}
 	}
@@ -82,7 +81,6 @@ void _scheduler_init(void) {
 
 uint8_t robokit_register_command_fn(T_cmd cmd, F_command_callback cb) {
 	if(cmd < ROBOKIT_MAX_SCHEDULED_COMMANDS) {
-		ROBOKIT_LOGV("Registering command %d", cmd);
 		if(_callback_fn_list[cmd] != NULL)
 			return 0;
 		_callback_fn_list[cmd] = cb;
@@ -95,11 +93,8 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	T_cmd tcmd = cmd->cmd;
 	uint8_t cmd_idx;
 
-	ROBOKIT_LOGI( "Enqueuing command ");
-
 	if(_callback_fn_list[tcmd] == NULL) {
 		ROBOKIT_LOGE("No command found %d.", cmd->cmd);
-
 		return E_PUSH_STATUS_UNKNOWN_COMMAND;
 	}
 
@@ -113,6 +108,7 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 
 	taskDISABLE_INTERRUPTS();
 	cmd_idx = command_stack_head++;
+	command_stack[cmd_idx] = *cmd;
 	if(command_stack_head >= ROBOKIT_COMMAND_STACK_SIZE) {
 		command_stack_head = 0;
 	}
@@ -120,7 +116,7 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 
 
 	xQueueSend(commandQueue, &cmd_idx, portMAX_DELAY);
-	ROBOKIT_LOGI("Command %d enqueued.", cmd->cmd);
+	ROBOKIT_LOGI("Command %d enqueued at index %d.", cmd->cmd, cmd_idx);
 	return 1;
 }
 
