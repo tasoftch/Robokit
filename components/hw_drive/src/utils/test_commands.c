@@ -29,11 +29,11 @@ void __robokit_my_callback(S_command *cmd, uint8_t mode, uint8_t *flags) {
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
 #if ROBOKIT_USE_BUILTIN_LED
 		if(_ROBOKIT_CMD_CAST(_S_Command_test*, cmd)->reserved1) {
-			ROBOKIT_LOGW("Test LED ON");
+			ROBOKIT_LOGI("Test LED ON");
 			led_strip_set_pixel(_my_test_led_strip, 0, 16, 16, 16);
 			led_strip_refresh(_my_test_led_strip);
 		} else {
-			ROBOKIT_LOGW("Test LED OFF");
+			ROBOKIT_LOGI("Test LED OFF");
 			led_strip_clear(_my_test_led_strip);
 		}
 #else
@@ -50,10 +50,7 @@ void __robokit_my_callback(S_command *cmd, uint8_t mode, uint8_t *flags) {
 
 
 void _test_commands_init(void) {
-	ROBOKIT_LOGI("_test_commands_init");
-	printf("Test Size %d with LED Pin %d\n", sizeof(_S_Command_test), LED_PIN);
 	robokit_register_command_fn(E_COMMAND_TEST, __robokit_my_callback);
-
 
 #if ROBOKIT_USE_BUILTIN_LED
 	// DevkitC Board configuration
