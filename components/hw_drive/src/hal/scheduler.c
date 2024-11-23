@@ -69,12 +69,6 @@ void _scheduler_init(void) {
 		hal_error_handler();
 	}
 
-	ROBOKIT_LOGI("ROBOKIT_LOGI");
-	ROBOKIT_LOGD("ROBOKIT_LOGD");
-	ROBOKIT_LOGE("ROBOKIT_LOGE");
-	ROBOKIT_LOGW("ROBOKIT_LOGW");
-	ROBOKIT_LOGV("ROBOKIT_LOGV");
-
 	xTaskCreate(
 		_robokit_task_handler,
 		"rob_tahdl",
