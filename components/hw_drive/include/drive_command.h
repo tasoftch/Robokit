@@ -27,6 +27,27 @@ uint8_t robokit_make_drive_command_fwd(S_command *cmd, T_Speed speed);
 uint8_t robokit_make_drive_command_bwd(S_command *cmd, T_Speed speed);
 uint8_t robokit_make_drive_command_vector(S_command *cmd, S_vector vector);
 
+/**
+ * Motor configuration
+ * The motor configuration is required to assign motor left and motor right.
+ */
+
+typedef struct {
+	  uint8_t motor_1:1;
+	  uint8_t motor_2:1;
+	  uint8_t motor_3:1;
+	  uint8_t motor_4:1;
+	  uint8_t low_drive:1;
+} S_motor_config;
+
+// Without setting any configuration, the default is:
+// motor3 = left, motor4 = right, both low driven.
+void robokit_motor_left_set_config(S_motor_config config);
+void robokit_motor_right_set_config(S_motor_config config);
+
+S_motor_config robokit_motor_left_get_config(void);
+S_motor_config robokit_motor_right_get_config(void);
+
 uint8_t robokit_drive_command_enable_imu(S_command *cmd);
 uint8_t robokit_drive_command_disable_imu(S_command *cmd);
 
