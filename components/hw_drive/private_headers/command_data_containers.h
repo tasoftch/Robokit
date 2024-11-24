@@ -6,17 +6,18 @@
 #define COMMAND_DATA_CONTAINERS_H
 
 #include "main_commands.h"
-#include "vector.h"
+#include "drive_command.h"
+#include "motor_logic.h"
 
 typedef struct {
 	T_cmd command;
    	uint8_t flags;
 	T_Speed speed;
 	int8_t angle;
-    uint8_t reserved1;
-    uint8_t reserved2;
-    uint8_t reserved3;
-    uint8_t reserved4;
+    S_motor_config m_left;
+    S_motor_config m_right;
+    S_motor_ctl m_ctl_left;
+    S_motor_ctl m_ctl_right;
 } _S_command_drive;
 
 typedef struct {
