@@ -52,28 +52,6 @@ static void _robokit_task_handler(_S_command_drive *cmd, uint8_t mode, uint8_t *
 		flags |= cmd->m_left.low_drive ? E_DRIVE_MOTOR_DR_LOW_FLAG : E_DRIVE_MOTOR_DR_HIGH_FLAG;
 		flags |= cmd->m_ctl_left.direction ? E_DRIVE_MOTOR_FORWARD_FLAG : E_DRIVE_MOTOR_BACKWARD_FLAG;
 
-		ROBOKIT_LOGI("DRIVE <%d%% %d>", cmd->speed, cmd->angle);
-
-		ROBOKIT_LOGI("CMD L{%d,%d,%d,%d +%d} <%d, %d>",
-			cmd->m_left.motor_1,
-			cmd->m_left.motor_2,
-			cmd->m_left.motor_3,
-			cmd->m_left.motor_4,
-			cmd->m_left.low_drive,
-			cmd->m_ctl_left.speed,
-			cmd->m_ctl_left.direction
-			);
-
-		ROBOKIT_LOGI("CMD R{%d,%d,%d,%d +%d} <%d, %d>",
-					cmd->m_right.motor_1,
-					cmd->m_right.motor_2,
-					cmd->m_right.motor_3,
-					cmd->m_right.motor_4,
-					cmd->m_right.low_drive,
-					cmd->m_ctl_right.speed,
-					cmd->m_ctl_right.direction
-					);
-
 		if(cmd->m_left.motor_1) {
 			robokit_pwm_motor_1_speed(cmd->m_ctl_left.speed, flags);
 		}
