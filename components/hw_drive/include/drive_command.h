@@ -38,6 +38,7 @@ typedef struct {
 	  uint8_t motor_3:1;
 	  uint8_t motor_4:1;
 	  uint8_t low_drive:1;
+	  uint8_t switch_direction:1;
 } S_motor_config;
 
 // Without setting any configuration, the default is:
