@@ -98,3 +98,38 @@ Die HW Komponente verfügt über eine Direktive im ```hw_drive/config.h``` File.
 #define ROBOKIT_DEBUG 0
 // Schaltet alle Logging-Funktionen aus.
 ```
+
+### Drive Command
+Folgende Kommandos stehen zur Verfügung:
+```c++
+uint8_t robokit_make_drive_command_fwd(S_command *cmd, T_Speed speed);
+uint8_t robokit_make_drive_command_bwd(S_command *cmd, T_Speed speed);
+uint8_t robokit_make_drive_command_vector(S_command *cmd, S_vector vector);
+```
+
+Dabei bedienen sich die Kommandos ```robokit_make_drive_command_fwd``` und ```robokit_make_drive_command_bwd``` ebenfalls des Vektorkommandos.
+
+#### Drive Konfiguration
+Die Konfiguration beschreibt, wie die Motoren angesteuert werden sollen.
+```c++
+typedef struct {
+      // Wähle die Motoren aus.
+	  uint8_t motor_1:1;
+	  uint8_t motor_2:1;
+	  uint8_t motor_3:1;
+	  uint8_t motor_4:1;
+	  // Definiere, ob die Motoren im Low oder High Drive mode sind.
+	  // low_drive=0 hat sich bewährt.
+	  uint8_t low_drive:1;
+	  // Falls nötig kannst du die Kabel tauschen.
+	  uint8_t switch_direction:1;
+} S_motor_config;
+
+void robokit_motor_left_set_config(S_motor_config config);
+void robokit_motor_right_set_config(S_motor_config config);
+
+S_motor_config robokit_motor_left_get_config(void);
+S_motor_config robokit_motor_right_get_config(void);
+```
+Die Konfiguration muss bereit sein, bevor ein Kommando erstellt wird.  
+Die Konfiguration ist im Drive Command gespeichert.
