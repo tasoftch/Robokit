@@ -119,8 +119,8 @@ void robokit_pwm_motor_speed(E_motor motor, T_Speed speed, uint8_t flags) {
 		}
 
 		if(flags & E_DRIVE_MOTOR_DR_HIGH_FLAG) {
-			duty = 255 - duty;
-			nduty = 255;
+			nduty = 255 - duty;
+			duty = 255;
 		}
 
 		if(flags & E_DRIVE_MOTOR_FORWARD_FLAG) {
