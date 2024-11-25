@@ -33,6 +33,7 @@ enum {
 	E_DRIVE_MOTOR_BACKWARD_FLAG			= 1<<1,
 	E_DRIVE_MOTOR_DR_HIGH_FLAG			= 1<<2,
 	E_DRIVE_MOTOR_DR_LOW_FLAG			= 1<<3,
+	E_DRIVE_MOTOR_SWITCH_CONNECTORS		= 1<<4,
 };
 
 void robokit_pwm_motor_all_off(void);

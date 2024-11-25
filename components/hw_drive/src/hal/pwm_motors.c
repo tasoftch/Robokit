@@ -35,8 +35,6 @@ void _robokit_setup_pin(uint8_t i) {
 
 	if(ledc_channel_config(&ledc_channel) != ESP_OK) {
 		ROBOKIT_LOGE("SETUP %u %d failed",i,  pwmPins[i]);
-	} else {
-		ROBOKIT_LOGI("SETUP %u %d",i,  pwmPins[i]);
 	}
 }
 
@@ -80,7 +78,7 @@ static void _robokit_send_pwm(uint8_t pin, uint8_t duty) {
 	if(err == ESP_OK) {
 		err = ledc_update_duty(LEDC_MODE, pin);
 		if(err == ESP_OK) {
-			ROBOKIT_LOGI("PWM set %d on channel %d pin %d", duty, pin, pwmPins[pin]);
+			// ROBOKIT_LOGI("PWM set %d on channel %d pin %d", duty, pin, pwmPins[pin]);
 			return;
 		}
 	}
@@ -125,15 +123,24 @@ void robokit_pwm_motor_speed(E_motor motor, T_Speed speed, uint8_t flags) {
 			nduty = 255;
 		}
 
-
 		if(flags & E_DRIVE_MOTOR_FORWARD_FLAG) {
-			_robokit_send_pwm(mp, duty);
-			_robokit_send_pwm(mm, nduty);
+			if(flags & E_DRIVE_MOTOR_SWITCH_CONNECTORS) {
+				_robokit_send_pwm(mm, duty);
+				_robokit_send_pwm(mp, nduty);
+			} else {
+				_robokit_send_pwm(mp, duty);
+				_robokit_send_pwm(mm, nduty);
+			}
 		}
 
 		if(flags & E_DRIVE_MOTOR_BACKWARD_FLAG) {
-			_robokit_send_pwm(mp, nduty);
-			_robokit_send_pwm(mm, duty);
+			if(flags & E_DRIVE_MOTOR_SWITCH_CONNECTORS) {
+				_robokit_send_pwm(mm, nduty);
+				_robokit_send_pwm(mp, duty);
+			} else {
+				_robokit_send_pwm(mp, nduty);
+				_robokit_send_pwm(mm, duty);
+			}
 		}
 	}
 }
