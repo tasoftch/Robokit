@@ -28,8 +28,8 @@
 
 extern void _robokit_command_init(S_command *cmd);
 
-static S_motor_config left_config = {.motor_1 = 0, .motor_2 = 0, .motor_3 = 1, .motor_4 = 0, .low_drive = 0, .switch_direction = 0};
-static S_motor_config right_config = {.motor_1 = 0, .motor_2 = 0, .motor_3 = 0, .motor_4 = 1, .low_drive = 0, .switch_direction = 0};
+static S_motor_config left_config = {.motor_1 = 0, .motor_2 = 0, .motor_3 = 1, .motor_4 = 0, .fast_decay = 0, .switch_direction = 0};
+static S_motor_config right_config = {.motor_1 = 0, .motor_2 = 0, .motor_3 = 0, .motor_4 = 1, .fast_decay = 0, .switch_direction = 0};
 
 void robokit_motor_left_set_config(S_motor_config config) { left_config = config; }
 void robokit_motor_right_set_config(S_motor_config config) { right_config = config; }
@@ -49,7 +49,7 @@ static void _robokit_task_handler(_S_command_drive *cmd, uint8_t mode, uint8_t *
 		}
 
 		uint8_t flags = 0;
-		flags |= cmd->m_left.low_drive ? E_DRIVE_MOTOR_DR_LOW_FLAG : (E_DRIVE_MOTOR_DR_LOW_FLAG|E_DRIVE_MOTOR_DR_HIGH_FLAG);
+		flags |= cmd->m_left.fast_decay ? E_DRIVE_MOTOR_DR_LOW_FLAG : (E_DRIVE_MOTOR_DR_LOW_FLAG|E_DRIVE_MOTOR_DR_HIGH_FLAG);
 		flags |= cmd->m_ctl_left.direction ? E_DRIVE_MOTOR_FORWARD_FLAG : E_DRIVE_MOTOR_BACKWARD_FLAG;
 
 		if(cmd->m_left.switch_direction)
@@ -72,7 +72,7 @@ static void _robokit_task_handler(_S_command_drive *cmd, uint8_t mode, uint8_t *
 		}
 
 		flags = 0;
-		flags |= cmd->m_right.low_drive ? E_DRIVE_MOTOR_DR_LOW_FLAG : (E_DRIVE_MOTOR_DR_LOW_FLAG|E_DRIVE_MOTOR_DR_HIGH_FLAG);
+		flags |= cmd->m_right.fast_decay ? E_DRIVE_MOTOR_DR_LOW_FLAG : (E_DRIVE_MOTOR_DR_LOW_FLAG|E_DRIVE_MOTOR_DR_HIGH_FLAG);
 		flags |= cmd->m_ctl_right.direction ? E_DRIVE_MOTOR_FORWARD_FLAG : E_DRIVE_MOTOR_BACKWARD_FLAG;
 
 		if(cmd->m_right.switch_direction)
