@@ -7,7 +7,7 @@
 
 #include <config.h>
 
-#define PWM_FREQ       5000    // PWM-Frequenz in Hz
+#define PWM_FREQ       20000    // PWM-Frequenz in Hz
 #define PWM_RESOLUTION LEDC_TIMER_8_BIT // Auflösung: 8 Bit
 #define PWM_DUTY_CYCLE 64
 
