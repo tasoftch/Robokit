@@ -15,7 +15,8 @@
 #include "rom/gpio.h"
 #include <dirent.h>       // For opendir(), readdir(), closedir()
 #include "esp_vfs.h"
-
+#include "driver.h"
+#include "cJSON.h"
 #include "connect_wifi.h"
 #include <device.h>
 
@@ -179,16 +180,79 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
 
     ESP_LOGW(TAG,"payload:%s",ws_pkt.payload);
-    S_command cmd;
-    robokit_make_test_command(&cmd);
-    robokit_push_command(&cmd, 0);
-    if(strcmp((char *)ws_pkt.payload, "toggle") == 0)
-    {
-        led_state = !led_state;
-        gpio_set_level(LED_PIN, led_state);
-    }
 
-    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
+    //get first to char of the payload
+//_____________________________________________________________________________________
+
+
+ESP_LOGI(TAG, "Third character: %c", (char)ws_pkt.payload[0]);
+ 
+
+
+
+
+
+cJSON *json = cJSON_ParseWithLength((char*)ws_pkt.payload, ws_pkt.len);
+
+
+char *json_string = cJSON_Print(json);
+if (json_string) 
+{
+    ESP_LOGI("TAG", "Parsed JSON:\n%s", json_string);
+}
+ESP_LOGI(TAG, "1111111111");
+const char *key = cJSON_GetStringValue(cJSON_GetObjectItem(json, "key"));
+ ESP_LOGI(TAG, "222222222222");
+const char *value = cJSON_GetStringValue(cJSON_GetObjectItem(json, "value"));
+if(!value)
+{
+    ESP_LOGI(TAG,"isNULLLL");
+}
+ ESP_LOGI(TAG, "33333333333333333");
+S_command cmd;
+ESP_LOGW(TAG,"payload:%s",ws_pkt.payload);
+ESP_LOGW(TAG,"key:%s",key);
+ESP_LOGW(TAG,"value:%s", value);
+ESP_LOGI(TAG, "44444444444444");
+
+
+int num = atoi(key);
+switch (num) // Note: No cast is necessary here
+{
+    case 1: // Assuming you want to match 't' (a single character)
+        
+        robokit_make_test_command(&cmd);
+        robokit_push_command(&cmd, 0);
+        break;
+
+    case 2: // Assuming you want to match 'd' (a single character)
+        // Handle 'd'
+        //driver 100
+        createrampcmdf(100);
+       
+
+        
+        break;
+    case 3:
+
+    createrampcmdb(100);
+
+    break;
+    
+    case 4:
+
+    robokit_make_drive_command_fwd(&cmd,0);
+    robokit_push_command(&cmd,0);
+    break;
+
+    default:
+        // Handle unknown character
+        break;
+}
+ cJSON_Delete(json);
+
+//_____________________________________________________________________________________________________
+   if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
         strcmp((char *)ws_pkt.payload, "toggle") == 0)
     {
         free(buf);
@@ -244,12 +308,15 @@ void app_main()
 
     if (wifi_connect_status)
     {
-        gpio_pad_select_gpio(LED_PIN);
-        gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
+        //gpio_pad_select_gpio(LED_PIN);
+        //gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
 
-        led_state = 0;
+        //led_state = 0;
         ESP_LOGI(TAG, "ESP32 ESP-IDF WebSocket Web Server is running ... ...\n");
         initi_web_page_buffer();
         setup_websocket_server();
     }
+    ESP_LOGI(TAG, "in TEST cmd");
+
+    
 }
