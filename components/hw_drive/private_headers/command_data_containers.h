@@ -36,6 +36,17 @@ typedef struct {
 	uint32_t reseerved4;
 } _S_Command_test;
 
+typedef struct {
+	T_cmd cmd;
+	uint8_t flags;
+	uint8_t reserved2;
+	uint8_t reserved3;
+	uint8_t reserved4;
+	uint8_t reserved5;
+	uint8_t reserved6;
+	uint8_t reserved7;
+} _S_Command_Fal;
+
 #define _ROBOKIT_CMD_CAST(TYPE, CMD) ((TYPE)(CMD))
 
 #endif //COMMAND_DATA_CONTAINERS_H

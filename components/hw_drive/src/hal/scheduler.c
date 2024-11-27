@@ -20,6 +20,7 @@
 
 #include <device.h>
 #include <esp_log.h>
+#include <fal.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -68,9 +69,13 @@ void _robokit_task_handler(void *parameters) {
  * @param parameters void * Not used
  */
 void _robokit_task_handler_peripherals(void *parameters) {
-	while (1) {
+	const TickType_t period = pdMS_TO_TICKS(20);  // 20 ms = 50 Hz
+	TickType_t last_wake_time = xTaskGetTickCount();
 
-		vTaskDelay(20 / portTICK_PERIOD_MS);
+	while (1) {
+		fal_update();
+
+		vTaskDelayUntil(&last_wake_time, period);
 	}
 }
 
