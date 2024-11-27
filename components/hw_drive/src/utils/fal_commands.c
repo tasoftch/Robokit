@@ -15,11 +15,30 @@ uint8_t robokit_make_command_fal_enable(S_command *cmd) {
 	_robokit_command_init(cmd);
 	_S_Command_Fal *fal_cmd = (_S_Command_Fal *)cmd;
 	fal_cmd->cmd = E_COMMAND_FAL;
+	fal_cmd->flags = 2;
 
 	return 1;
 }
 
 uint8_t robokit_make_command_fal_disable(S_command *cmd) {
+	if(!cmd)
+		return 0;
 
-	return 0;
+	_robokit_command_init(cmd);
+	_S_Command_Fal *fal_cmd = (_S_Command_Fal *)cmd;
+	fal_cmd->cmd = E_COMMAND_FAL;
+
+	return 1;
+}
+
+uint8_t robokit_make_command_fal_calibrate(S_command *cmd) {
+	if(!cmd)
+		return 0;
+
+	_robokit_command_init(cmd);
+	_S_Command_Fal *fal_cmd = (_S_Command_Fal *)cmd;
+	fal_cmd->cmd = E_COMMAND_FAL;
+	fal_cmd->flags = 1;
+
+	return 1;
 }
