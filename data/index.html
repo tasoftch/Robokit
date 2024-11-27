@@ -10,6 +10,25 @@
             const data = { key: key, value: "1" };
             websocket.send(JSON.stringify(data));
         }
+
+        // Add event listeners for WebSocket
+        websocket.onopen = function() {
+            console.log("WebSocket connection established");
+        };
+
+        websocket.onmessage = function(event) {
+            const messageDiv = document.getElementById("messages");
+            const receivedData = event.data;
+            messageDiv.innerHTML += `<p>${receivedData}</p>`; // Append new message
+        };
+
+        websocket.onerror = function(error) {
+            console.error("WebSocket error:", error);
+        };
+
+        websocket.onclose = function() {
+            console.log("WebSocket connection closed");
+        };
     </script>
     <style>
         button {
@@ -18,6 +37,15 @@
             font-size: 18px;
             padding: 10px 20px;
             cursor: pointer;
+        }
+        #messages {
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            width: 90%;
+            height: 200px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
         }
     </style>
 </head>
@@ -28,5 +56,12 @@
     <button onclick="sendCommand('4')">Stop</button>
     <button onclick="sendCommand('5')">Left</button>
     <button onclick="sendCommand('6')">Right</button>
+    <button onclick="sendCommand('7')">45gradkruve</button>
+    <button onclick="sendCommand('8')">90gradkruve</button>
+    <button onclick="sendCommand('9')">drehen</button>
+
+    <div id="messages">
+        <!-- Feedback from WebSocket server will appear here -->
+    </div>
 </body>
 </html>

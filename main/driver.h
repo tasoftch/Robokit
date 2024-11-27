@@ -30,4 +30,6 @@ void do_45(void);
 
 void do_90(void);
 
+void do_180(void);
+
 #endif // DRIVER_H_

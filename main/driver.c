@@ -57,14 +57,93 @@ void createrampcmdb(uint8_t powe)
 void do_90(void)
 {
     S_command cmd;
+    uint8_t speed = 10;
     for (size_t i = 0; i < 90; i++)
+   
     {
         uint8_t b;
         //b = 90 - i
-      
-        //robokit_make_vector_polar(1,i);
-        //robokit_push_command(); //wheres the cmd?
+
+        if(speed > 100)
+        {
+            speed = 100;
+        }
+
+        S_vector vec = robokit_make_vector_polar(i,speed);
+        speed += 10;
+        
+        robokit_make_drive_command_vector(&cmd,vec);
+        robokit_push_command(&cmd, 0); //wheres the cmd?
+        vTaskDelay(50/ portTICK_PERIOD_MS);
+
+
     }
     ESP_LOGI(TAG,"Exiting...cmd");
+    robokit_make_test_command(&cmd);
+    robokit_push_command(&cmd,0);
+    robokit_make_drive_command_fwd(&cmd, 0);
+    robokit_push_command(&cmd,0);
 }
 
+
+void do_45(void)
+{
+    S_command cmd;
+    uint8_t speed = 10;
+    for (size_t i = 0; i < 45; i++)
+   
+    {
+        uint8_t b;
+        //b = 90 - i
+
+        if(speed > 100)
+        {
+            speed = 100;
+        }
+
+        S_vector vec = robokit_make_vector_polar(i,speed);
+        speed += 10;
+        
+        robokit_make_drive_command_vector(&cmd,vec);
+        robokit_push_command(&cmd, 0); //wheres the cmd?
+        vTaskDelay(50/ portTICK_PERIOD_MS);
+
+
+    }
+    ESP_LOGI(TAG,"Exiting...cmd");
+    robokit_make_test_command(&cmd);
+    robokit_push_command(&cmd,0);
+    robokit_make_drive_command_fwd(&cmd, 0);
+    robokit_push_command(&cmd,0);
+}
+
+void do_180(void)
+{
+    S_command cmd;
+    uint8_t speed = 10;
+    for (size_t i = 0; i < 90; i++)
+   
+    {
+        uint8_t b;
+        //b = 90 - i
+
+        if(speed > 100)
+        {
+            speed = 100;
+        }
+
+        S_vector vec = robokit_make_vector_polar(90,speed);
+        speed += 10;
+        
+        robokit_make_drive_command_vector(&cmd,vec);
+        robokit_push_command(&cmd, 0); //wheres the cmd?
+        vTaskDelay(50/ portTICK_PERIOD_MS);
+
+
+    }
+    ESP_LOGI(TAG,"Exiting...cmd");
+    robokit_make_test_command(&cmd);
+    robokit_push_command(&cmd,0);
+    robokit_make_drive_command_fwd(&cmd, 0);
+    robokit_push_command(&cmd,0);
+}
