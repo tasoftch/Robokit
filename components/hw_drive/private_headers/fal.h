@@ -9,24 +9,15 @@
 #define GPIO_GREEN 11  // GPIO_11 als Ausgang für Grün
 #define GPIO_BLUE  12  // GPIO_12 als Ausgang für Blau
 
-#define ROBOKIT_FAL_BLACK			0b000
-#define ROBOKIT_FAL_RED				0b100
-#define ROBOKIT_FAL_GREEN			0b010
-#define ROBOKIT_FAL_BLUE			0b001
-#define ROBOKIT_FAL_YELLOW			0b110
-#define ROBOKIT_FAL_MAGENTA			0b101
-#define ROBOKIT_FAL_CYAN			0b011
-#define ROBOKIT_FAL_WHITE			0b111
-
 #include <stdint.h>
 
 
 typedef struct {
-	uint16_t fb_1_left:3;
-	uint16_t fb_2_middle_left:3;
-	uint16_t fb_3_middle:3;
-	uint16_t fb_4_middle_right:3;
-	uint16_t fb_5_right:3;
+	uint8_t fb_1_left;
+	uint8_t fb_2_middle_left;
+	uint8_t fb_3_middle;
+	uint8_t fb_4_middle_right;
+	uint8_t fb_5_right;
 } S_Fal_Result;
 
 

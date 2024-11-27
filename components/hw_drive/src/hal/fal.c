@@ -23,22 +23,17 @@
 
 #define ROBOKIT_READ_INTERVAL_MS 3
 
-typedef struct {
-	uint16_t red;
-	uint16_t green;
-	uint16_t blue;
-} S_color;
 
-static volatile S_color my_colors[5];
-static volatile S_color my_colors_reference[5] = {0};
+static volatile uint16_t my_colors[3][5];
+static volatile uint16_t result_colors[5];
+static volatile uint16_t my_colors_reference[5] = {0};
 static volatile uint8_t my_status = 0;
 
-static S_Fal_Result fal_result = {0};
-
-static char my_color_refs[] = {'S', 'B', 'G', 'C', 'R', 'M', 'Y', 'W'};
+static uint8_t fal_calibration = 15;
+static int8_t fal_result[5] = {0};
 
 uint8_t fal_is_calibrated(void) {
-	return my_status & 128;
+	return fal_calibration < 1;
 }
 
 static uint16_t fal_get_sensor_left(void) {
@@ -77,6 +72,7 @@ static void _robokit_cmd_handler(_S_Command_Fal *cmd, uint8_t mode, uint8_t *fla
 		if(cmd->flags & 1) {
 			// Kalibrieren
 			my_status = 1;
+			fal_calibration = 15;
 		} else if(cmd->flags & 2) {
 			my_status |= 2;
 		} else {
@@ -107,52 +103,32 @@ void fal_init(void) {
 	robokit_register_command_fn(E_COMMAND_FAL, _robokit_cmd_handler);
 }
 
+static void calculate_fal_result(void) {
+	for(int e=0;e<5;e++) {
+		fal_result[e] = (my_colors_reference[e] > result_colors[e]) ? (my_colors_reference[e] - result_colors[e]) : 0;
+	}
+}
 
 static void fal_read_red(void) {
+	static uint8_t counter = 0;
+
 	gpio_set_level(GPIO_RED, 1);
-	gpio_set_level(GPIO_GREEN, 0);
-	gpio_set_level(GPIO_BLUE, 0);
-
-	vTaskDelay(ROBOKIT_READ_INTERVAL_MS / portTICK_PERIOD_MS);
-	my_colors[0].red = fal_get_sensor_left();
-	my_colors[1].red = fal_get_sensor_middle_left();
-	my_colors[2].red = fal_get_sensor_middle();
-	my_colors[3].red = fal_get_sensor_middle_right();
-	my_colors[4].red = fal_get_sensor_right();
-
-	gpio_set_level(GPIO_RED, 0);
-	gpio_set_level(GPIO_GREEN, 0);
-	gpio_set_level(GPIO_BLUE, 0);
-}
-
-static void fal_read_green(void) {
-	gpio_set_level(GPIO_RED, 0);
 	gpio_set_level(GPIO_GREEN, 1);
-	gpio_set_level(GPIO_BLUE, 0);
-
-	vTaskDelay(ROBOKIT_READ_INTERVAL_MS / portTICK_PERIOD_MS);
-	my_colors[0].green = fal_get_sensor_left();
-	my_colors[1].green = fal_get_sensor_middle_left();
-	my_colors[2].green = fal_get_sensor_middle();
-	my_colors[3].green = fal_get_sensor_middle_right();
-	my_colors[4].green = fal_get_sensor_right();
-
-	gpio_set_level(GPIO_RED, 0);
-	gpio_set_level(GPIO_GREEN, 0);
-	gpio_set_level(GPIO_BLUE, 0);
-}
-
-static void fal_read_blue(void) {
-	gpio_set_level(GPIO_RED, 0);
-	gpio_set_level(GPIO_GREEN, 0);
 	gpio_set_level(GPIO_BLUE, 1);
 
 	vTaskDelay(ROBOKIT_READ_INTERVAL_MS / portTICK_PERIOD_MS);
-	my_colors[0].blue = fal_get_sensor_left();
-	my_colors[1].blue = fal_get_sensor_middle_left();
-	my_colors[2].blue = fal_get_sensor_middle();
-	my_colors[3].blue = fal_get_sensor_middle_right();
-	my_colors[4].blue = fal_get_sensor_right();
+	my_colors[counter][0] = fal_get_sensor_left();
+	my_colors[counter][1] = fal_get_sensor_middle_left();
+	my_colors[counter][2] = fal_get_sensor_middle();
+	my_colors[counter][3] = fal_get_sensor_middle_right();
+	my_colors[counter][4] = fal_get_sensor_right();
+
+	if(++counter > 2) {
+		counter = 0;
+		for(int e=0;e<5;e++) {
+			result_colors[e] = (result_colors[e] + my_colors[0][e] + my_colors[1][e] + my_colors[2][e])/4;
+		}
+	}
 
 	gpio_set_level(GPIO_RED, 0);
 	gpio_set_level(GPIO_GREEN, 0);
@@ -160,86 +136,63 @@ static void fal_read_blue(void) {
 }
 
 static void print_fal(void) {
-	ROBOKIT_LOGI("CD | POS | RED  | GRN  | BLUE");
-	ROBOKIT_LOGI("----+------+------+------|");
-	ROBOKIT_LOGI("01 | LFT | %04d | %04d | %04d", my_colors[0].red, my_colors[0].green, my_colors[0].blue);
-	ROBOKIT_LOGI("02 | LFM | %04d | %04d | %04d", my_colors[1].red, my_colors[1].green, my_colors[1].blue);
-	ROBOKIT_LOGI("03 | MID | %04d | %04d | %04d", my_colors[2].red, my_colors[2].green, my_colors[2].blue);
-	ROBOKIT_LOGI("04 | RTM | %04d | %04d | %04d", my_colors[3].red, my_colors[3].green, my_colors[3].blue);
-	ROBOKIT_LOGI("05 | RGT | %04d | %04d | %04d", my_colors[4].red, my_colors[4].green, my_colors[4].blue);
-	ROBOKIT_LOGI("----+------+------+------|");
-}
-
-static uint8_t _calculate_color(uint8_t index) {
-	uint8_t color = ROBOKIT_FAL_WHITE;
-	if(my_colors[index].red < my_colors_reference[index].red *2 / 3) {
-		color &= ~ ROBOKIT_FAL_RED;
-	}
-	if(my_colors[index].green < my_colors_reference[index].green *2 / 3) {
-		color &= ~ ROBOKIT_FAL_GREEN;
-	}
-	if(my_colors[index].blue < my_colors_reference[index].blue *2 / 3) {
-		color &= ~ ROBOKIT_FAL_BLUE;
-	}
-	return color;
-}
-
-static void calculate_result() {
-	fal_result.fb_1_left = _calculate_color(0);
-	fal_result.fb_2_middle_left = _calculate_color(1);
-	fal_result.fb_3_middle = _calculate_color(2);
-	fal_result.fb_4_middle_right = _calculate_color(3);
-	fal_result.fb_5_right = _calculate_color(4);
-
-	ROBOKIT_LOGI("FAL[L-R, 1..5]: %c %c %c %c %c",
-		my_color_refs[ fal_result.fb_1_left ],
-		my_color_refs[ fal_result.fb_2_middle_left ],
-		my_color_refs[ fal_result.fb_3_middle ],
-		my_color_refs[ fal_result.fb_4_middle_right ],
-		my_color_refs[ fal_result.fb_5_right ]
+	ROBOKIT_LOGI("FAL[L-R, 1..5]: %04d %04d %04d %04d %04d",
+		fal_result[0],
+		fal_result[1],
+		fal_result[2],
+		fal_result[3],
+		fal_result[4]
 	);
 }
 
+static void _copy_reference(uint8_t abs) {
+	if(abs) {
+		my_colors_reference[0] = result_colors[0];
+		my_colors_reference[1] = result_colors[1];
+		my_colors_reference[2] = result_colors[2];
+		my_colors_reference[3] = result_colors[3];
+		my_colors_reference[4] = result_colors[4];
+	}
+}
+
 void fal_update(void) {
-	if(my_status & 1) {
-		fal_read_red();
-		fal_read_green();
-		fal_read_blue();
+	if(my_status < 1)
+		return;
 
-		my_colors_reference[0] = my_colors[0];
-		my_colors_reference[1] = my_colors[1];
-		my_colors_reference[2] = my_colors[2];
-		my_colors_reference[3] = my_colors[3];
-		my_colors_reference[4] = my_colors[4];
-		ROBOKIT_LOGI("KALIBRATION");
-		print_fal();
+	fal_read_red();
 
-		my_status |= 128;
-		my_status &= ~1;
+	static uint8_t counter = 0;
+
+	if(fal_calibration > 1) {
+		fal_calibration--;
+		ROBOKIT_LOGI("RUN_CAL[L-R, 1..5]: %04d %04d %04d %04d %04d",
+			result_colors[0],
+			result_colors[1],
+			result_colors[2],
+			result_colors[3],
+			result_colors[4]
+		);
 		return;
 	}
 
-	if(!fal_is_calibrated())
+	if(fal_calibration == 1) {
+		_copy_reference(1);
+		fal_calibration = 0;
+		ROBOKIT_LOGI("KALIBRATION[L-R, 1..5]: %04d %04d %04d %04d %04d",
+			my_colors_reference[0],
+			my_colors_reference[1],
+			my_colors_reference[2],
+			my_colors_reference[3],
+			my_colors_reference[4]
+		);
+		my_status = 0;
 		return;
+	}
 
-	if(!(my_status & 2))
-		return;
+	if(counter++>2) {
+		counter = 0;
+		calculate_fal_result();
 
-	static uint8_t status = 0;
-	switch (status) {
-		case 0:
-			status = 1;
-			fal_read_red();
-		break;
-		case 1:
-			status = 2;
-			fal_read_green();
-		break;
-		default:
-			status = 0;
-			fal_read_blue();
-
-		calculate_result();
-		break;
+		print_fal();
 	}
 }

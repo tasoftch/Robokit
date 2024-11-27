@@ -69,7 +69,7 @@ void _robokit_task_handler(void *parameters) {
  * @param parameters void * Not used
  */
 void _robokit_task_handler_peripherals(void *parameters) {
-	const TickType_t period = pdMS_TO_TICKS(100);  // 20 ms = 50 Hz
+	const TickType_t period = pdMS_TO_TICKS(20);  // 20 ms = 50 Hz
 	TickType_t last_wake_time = xTaskGetTickCount();
 
 	while (1) {
