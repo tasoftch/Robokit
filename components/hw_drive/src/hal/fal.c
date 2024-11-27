@@ -4,6 +4,7 @@
 
 #include "fal.h"
 
+#include <led_command.h>
 #include <portmacro.h>
 #include <robokit_log.h>
 #include <driver/gpio.h>
@@ -12,6 +13,7 @@
 #include <freertos/task.h>
 
 #include "scheduler.h"
+#include "command_data_containers.h"
 
 #define ROBOKIT_FB_LEFT ADC_CHANNEL_0
 #define ROBOKIT_FB_MIDDLE_LEFT ADC_CHANNEL_1
@@ -28,6 +30,16 @@ typedef struct {
 } S_color;
 
 static volatile S_color my_colors[5];
+static volatile S_color my_colors_reference[5] = {0};
+static volatile uint8_t my_status = 0;
+
+static S_Fal_Result fal_result = {0};
+
+static char my_color_refs[] = {'S', 'B', 'G', 'C', 'R', 'M', 'Y', 'W'};
+
+uint8_t fal_is_calibrated(void) {
+	return my_status & 128;
+}
 
 static uint16_t fal_get_sensor_left(void) {
 	return adc1_get_raw(ROBOKIT_FB_LEFT);
@@ -49,6 +61,30 @@ static uint16_t fal_get_sensor_right(void) {
 	return adc1_get_raw(ROBOKIT_FB_RIGHT);
 }
 
+static void _robokit_cmd_handler(_S_Command_Fal *cmd, uint8_t mode, uint8_t *flags) {
+	if (mode == E_SCHEDULE_MODE_PRECHECK) {
+		if(cmd->flags & 2) {
+			if(!fal_is_calibrated()) {
+				ROBOKIT_LOGE("Calibration not yet done.");
+				*flags = 0xFF;
+				return;
+			}
+		}
+		*flags = 0;
+	}
+
+	if(mode == E_SCHEDULE_MODE_PERFORM) {
+		if(cmd->flags & 1) {
+			// Kalibrieren
+			my_status = 1;
+		} else if(cmd->flags & 2) {
+			my_status |= 2;
+		} else {
+			my_status &= ~2;
+		}
+	}
+}
+
 void fal_init(void) {
 	gpio_config_t io_conf;
 	io_conf.intr_type = GPIO_INTR_DISABLE;          // Keine Interrupts
@@ -60,11 +96,6 @@ void fal_init(void) {
 	io_conf.pull_up_en = GPIO_PULLUP_DISABLE;       // Kein Pull-Up-Widerstand
 	gpio_config(&io_conf);
 
-	io_conf.mode = GPIO_MODE_INPUT;
-	io_conf.pin_bit_mask = (1ULL << 13);
-	io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-	gpio_config(&io_conf);
-
 	adc1_config_width(ADC_WIDTH_BIT_12);
 
 	adc1_config_channel_atten(ROBOKIT_FB_LEFT, ADC_ATTEN_DB_0);
@@ -72,6 +103,8 @@ void fal_init(void) {
 	adc1_config_channel_atten(ROBOKIT_FB_MIDDLE, ADC_ATTEN_DB_0);
 	adc1_config_channel_atten(ROBOKIT_FB_MIDDLE_RIGHT, ADC_ATTEN_DB_0);
 	adc1_config_channel_atten(ROBOKIT_FB_RIGHT, ADC_ATTEN_DB_0);
+
+	robokit_register_command_fn(E_COMMAND_FAL, _robokit_cmd_handler);
 }
 
 
@@ -137,23 +170,60 @@ static void print_fal(void) {
 	ROBOKIT_LOGI("----+------+------+------|");
 }
 
-void fal_update(void) {
-	static uint8_t tester = 1;
-	if(gpio_get_level(13) == 0) {
-		tester = 0;
-		return;
+static uint8_t _calculate_color(uint8_t index) {
+	uint8_t color = ROBOKIT_FAL_WHITE;
+	if(my_colors[index].red < my_colors_reference[index].red *2 / 3) {
+		color &= ~ ROBOKIT_FAL_RED;
 	}
+	if(my_colors[index].green < my_colors_reference[index].green *2 / 3) {
+		color &= ~ ROBOKIT_FAL_GREEN;
+	}
+	if(my_colors[index].blue < my_colors_reference[index].blue *2 / 3) {
+		color &= ~ ROBOKIT_FAL_BLUE;
+	}
+	return color;
+}
 
-	if(tester == 0) {
-		tester = 1;
+static void calculate_result() {
+	fal_result.fb_1_left = _calculate_color(0);
+	fal_result.fb_2_middle_left = _calculate_color(1);
+	fal_result.fb_3_middle = _calculate_color(2);
+	fal_result.fb_4_middle_right = _calculate_color(3);
+	fal_result.fb_5_right = _calculate_color(4);
+
+	ROBOKIT_LOGI("FAL[L-R, 1..5]: %c %c %c %c %c",
+		my_color_refs[ fal_result.fb_1_left ],
+		my_color_refs[ fal_result.fb_2_middle_left ],
+		my_color_refs[ fal_result.fb_3_middle ],
+		my_color_refs[ fal_result.fb_4_middle_right ],
+		my_color_refs[ fal_result.fb_5_right ]
+	);
+}
+
+void fal_update(void) {
+	if(my_status & 1) {
 		fal_read_red();
 		fal_read_green();
 		fal_read_blue();
-		print_fal();
-	}
-	return;
 
-	tester++;
+		my_colors_reference[0] = my_colors[0];
+		my_colors_reference[1] = my_colors[1];
+		my_colors_reference[2] = my_colors[2];
+		my_colors_reference[3] = my_colors[3];
+		my_colors_reference[4] = my_colors[4];
+		ROBOKIT_LOGI("KALIBRATION");
+		print_fal();
+
+		my_status |= 128;
+		my_status &= ~1;
+		return;
+	}
+
+	if(!fal_is_calibrated())
+		return;
+
+	if(!(my_status & 2))
+		return;
 
 	static uint8_t status = 0;
 	switch (status) {
@@ -169,7 +239,7 @@ void fal_update(void) {
 			status = 0;
 			fal_read_blue();
 
-		print_fal();
+		calculate_result();
 		break;
 	}
 }
