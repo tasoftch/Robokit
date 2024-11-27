@@ -60,6 +60,11 @@ void fal_init(void) {
 	io_conf.pull_up_en = GPIO_PULLUP_DISABLE;       // Kein Pull-Up-Widerstand
 	gpio_config(&io_conf);
 
+	io_conf.mode = GPIO_MODE_INPUT;
+	io_conf.pin_bit_mask = (1ULL << 13);
+	io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+	gpio_config(&io_conf);
+
 	adc1_config_width(ADC_WIDTH_BIT_12);
 
 	adc1_config_channel_atten(ROBOKIT_FB_LEFT, ADC_ATTEN_DB_0);
@@ -121,8 +126,35 @@ static void fal_read_blue(void) {
 	gpio_set_level(GPIO_BLUE, 0);
 }
 
+static void print_fal(void) {
+	ROBOKIT_LOGI("CD | POS | RED  | GRN  | BLUE");
+	ROBOKIT_LOGI("----+------+------+------|");
+	ROBOKIT_LOGI("01 | LFT | %04d | %04d | %04d", my_colors[0].red, my_colors[0].green, my_colors[0].blue);
+	ROBOKIT_LOGI("02 | LFM | %04d | %04d | %04d", my_colors[1].red, my_colors[1].green, my_colors[1].blue);
+	ROBOKIT_LOGI("03 | MID | %04d | %04d | %04d", my_colors[2].red, my_colors[2].green, my_colors[2].blue);
+	ROBOKIT_LOGI("04 | RTM | %04d | %04d | %04d", my_colors[3].red, my_colors[3].green, my_colors[3].blue);
+	ROBOKIT_LOGI("05 | RGT | %04d | %04d | %04d", my_colors[4].red, my_colors[4].green, my_colors[4].blue);
+	ROBOKIT_LOGI("----+------+------+------|");
+}
 
 void fal_update(void) {
+	static uint8_t tester = 1;
+	if(gpio_get_level(13) == 0) {
+		tester = 0;
+		return;
+	}
+
+	if(tester == 0) {
+		tester = 1;
+		fal_read_red();
+		fal_read_green();
+		fal_read_blue();
+		print_fal();
+	}
+	return;
+
+	tester++;
+
 	static uint8_t status = 0;
 	switch (status) {
 		case 0:
@@ -137,11 +169,7 @@ void fal_update(void) {
 			status = 0;
 			fal_read_blue();
 
-		ROBOKIT_LOGI("MID %04d %04d %04d",
-		my_colors[ROBOKIT_FB_MIDDLE].red,
-		my_colors[ROBOKIT_FB_MIDDLE].green,
-		my_colors[ROBOKIT_FB_MIDDLE].blue
-		);
+		print_fal();
 		break;
 	}
 }
