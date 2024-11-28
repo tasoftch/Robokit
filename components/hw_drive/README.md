@@ -98,3 +98,44 @@ Die HW Komponente verfügt über eine Direktive im ```hw_drive/config.h``` File.
 #define ROBOKIT_DEBUG 0
 // Schaltet alle Logging-Funktionen aus.
 ```
+
+### LEDS
+Die LEDs werden auf Pin 13, separat herausgeführt angeschlossen.  
+Es gilt, Ausgang auf Eingang. Das Testboard ist der erste Ausgang.  
+Es sind zurzeit maximal 32 LEDs verfügbar.
+
+#### Beispiel code
+```c++
+void app_main()
+{
+    device_init();
+
+    S_command cmd;
+
+    for(int e = 0; e < 5000;e++) {
+        // Alle LEDs ausschalten
+        robokit_make_led_command_clear(&cmd);
+        robokit_push_command(&cmd, 0);
+        
+        // Zufällig eine Farbe auswählen
+        switch(rand() % 3) {
+            case 0:
+                robokit_make_led_command_setup(&cmd, e % 8, ROBOKIT_LED_COLOR_RED);
+            break;
+            case 1:
+                robokit_make_led_command_setup(&cmd, e % 8, ROBOKIT_LED_COLOR_GREEN);
+            break;
+            default:
+                robokit_make_led_command_setup(&cmd, e % 8, ROBOKIT_LED_COLOR_BLUE);
+            break;
+        }
+
+        robokit_push_command(&cmd, 0);
+
+        robokit_make_led_command_flush(&cmd);
+        robokit_push_command(&cmd, 0);
+
+        vTaskDelay(50 / portTICK_PERIOD_MS);
+    }
+}
+```

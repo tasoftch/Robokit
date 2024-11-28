@@ -45,7 +45,7 @@ void _led_commands_init(void) {
 	robokit_register_command_fn(E_COMMAND_LED_FLUSH, _robokit_flush_led_callback);
 
 	led_strip_config_t strip_config = {
-		.strip_gpio_num = LED_PIN_ST,
+		 .strip_gpio_num = LED_PIN_ST,
 		.max_leds = LED_MAX_COUNT,
 	};
 
