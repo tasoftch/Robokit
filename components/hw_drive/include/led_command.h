@@ -42,14 +42,20 @@
 #define LED_31 30
 #define LED_32 31
 
+#define LED_MAX_COUNT 32
+
 /* LED HELPERS */
 #define ROBOKIT_LED_COLOR_RED 255, 0, 0
+#define ROBOKIT_LED_COLOR_GREEN 0, 255, 0
+#define ROBOKIT_LED_COLOR_BLUE 0, 0, 255
+
+
 
 #define ROBOKIT_MAKE_LED_LIST(VAR, ...) \
 ({\
 	int __leds[] = {__VA_ARGS__, -1};\
 	uint32_t __sum = 0;\
-	for(int e=0;e<32;e++) { if(__leds[e] == -1) break; __sum |= 1 << __leds[e]; }\
+	for(int e=0;e<LED_MAX_COUNT;e++) { if(__leds[e] == -1) break; __sum |= 1 << __leds[e]; }\
 	VAR = __sum;\
 })
 
@@ -59,5 +65,6 @@ uint8_t robokit_make_led_command_setup(S_command *cmd, uint8_t LED_number, uint8
 uint8_t robokit_make_led_command_setup_list(S_command *cmd, uint32_t LED_numbers, uint8_t red, uint8_t green, uint8_t blue);
 
 uint8_t robokit_make_led_command_flush(S_command *cmd);
+uint8_t robokit_make_led_command_clear(S_command *cmd);
 
 #endif //LED_COMMAND_H
