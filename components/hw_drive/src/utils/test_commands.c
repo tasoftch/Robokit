@@ -55,7 +55,7 @@ void _test_commands_init(void) {
 #if ROBOKIT_USE_BUILTIN_LED
 	// DevkitC Board configuration
 	led_strip_config_t strip_config = {
-		.strip_gpio_num = 8,
+		.strip_gpio_num = LED_PIN,
 		.max_leds = 1,
 	};
 
