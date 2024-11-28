@@ -21,7 +21,7 @@
 #define ROBOKIT_FB_MIDDLE_RIGHT ADC_CHANNEL_3
 #define ROBOKIT_FB_RIGHT ADC_CHANNEL_4
 
-#define ROBOKIT_READ_INTERVAL_MS 3
+#define ROBOKIT_READ_INTERVAL_MS 5
 
 
 static volatile uint16_t my_colors[3][5];
