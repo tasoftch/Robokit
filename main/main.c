@@ -15,12 +15,19 @@
 #include "rom/gpio.h"
 #include <dirent.h>       // For opendir(), readdir(), closedir()
 #include "esp_vfs.h"
-
+#include "driver.h"
+#include "cJSON.h"
 #include "connect_wifi.h"
 #include <device.h>
 
 #define LED_PIN 2
-httpd_handle_t server = NULL;
+
+
+static httpd_handle_t server = NULL;
+
+static char echo_buffer[64] = {0};
+
+
 struct async_resp_arg {
     httpd_handle_t hd;
     int fd;
@@ -87,7 +94,7 @@ esp_err_t get_req_handler(httpd_req_t *req)
     {
         sprintf(response_data, index_html, "OFF");
     }
-    response = httpd_resp_send(req, response_data, HTTPD_RESP_USE_STRLEN);
+    response = httpd_resp_send(req, response_data, HTTPD_RESP_USE_STRLEN); // <--- check
     return response;
 }
 
@@ -101,14 +108,11 @@ static void ws_async_send(void *arg)
 
     //led_state = !led_state;
     //gpio_set_level(LED_PIN, led_state);
-    
-    char buff[4];
-    memset(buff, 0, sizeof(buff));
-    sprintf(buff, "%d",led_state);
+
     
     memset(&ws_pkt, 0, sizeof(httpd_ws_frame_t));
-    ws_pkt.payload = (uint8_t *)buff;
-    ws_pkt.len = strlen(buff);
+    ws_pkt.payload = (uint8_t *)echo_buffer;
+    ws_pkt.len = strlen(echo_buffer);
     ws_pkt.type = HTTPD_WS_TYPE_TEXT;
     
     static size_t max_clients = CONFIG_LWIP_MAX_LISTENING_TCP;
@@ -138,11 +142,26 @@ static esp_err_t trigger_async_send(httpd_handle_t handle, httpd_req_t *req)
     return httpd_queue_work(handle, ws_async_send, resp_arg);
 }
 
+
+
 static esp_err_t handle_ws_req(httpd_req_t *req)
 {
     if (req->method == HTTP_GET)
     {
+        S_command cmd;
         ESP_LOGI(TAG, "Handshake done, the new connection was opened");
+        robokit_make_test_command(&cmd);
+        robokit_push_command(&cmd, 0);
+        vTaskDelay(1000/ portTICK_PERIOD_MS);
+        robokit_make_test_command(&cmd);
+        robokit_push_command(&cmd, 0);
+         vTaskDelay(1000/ portTICK_PERIOD_MS);
+        robokit_make_test_command(&cmd);
+        robokit_push_command(&cmd, 0);
+         vTaskDelay(1000/ portTICK_PERIOD_MS);
+        robokit_make_test_command(&cmd);
+        robokit_push_command(&cmd, 0);
+
         return ESP_OK;
     }
 
@@ -179,18 +198,116 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     ESP_LOGI(TAG, "frame len is %d", ws_pkt.len);
 
     ESP_LOGW(TAG,"payload:%s",ws_pkt.payload);
-    S_command cmd;
-    robokit_make_test_command(&cmd);
-    robokit_push_command(&cmd, 0);
-    if(strcmp((char *)ws_pkt.payload, "toggle") == 0)
-    {
-        led_state = !led_state;
-        gpio_set_level(LED_PIN, led_state);
-    }
 
-    if (ws_pkt.type == HTTPD_WS_TYPE_TEXT &&
-        strcmp((char *)ws_pkt.payload, "toggle") == 0)
+    //get first to char of the payload
+    //_____________________________________________________________________________________
+
+
+ ESP_LOGI(TAG, "Third character: %c", (char)ws_pkt.payload[0]);
+ 
+
+
+
+
+
+ cJSON *json = cJSON_ParseWithLength((char*)ws_pkt.payload, ws_pkt.len);
+
+
+ char *json_string = cJSON_Print(json);
+    if (json_string) 
     {
+       ESP_LOGI("TAG", "Parsed JSON:\n%s", json_string);
+    }
+        //ESP_LOGI(TAG, "1111111111");
+    const char *key = cJSON_GetStringValue(cJSON_GetObjectItem(json, "key"));
+    //ESP_LOGI(TAG, "222222222222");
+    const char *value = cJSON_GetStringValue(cJSON_GetObjectItem(json, "value"));
+    if(!value)
+    {
+    ESP_LOGI(TAG,"isNULLLL");
+    }
+ //ESP_LOGI(TAG, "33333333333333333");
+    S_command cmd;
+    ESP_LOGW(TAG,"payload:%s",ws_pkt.payload);
+    ESP_LOGW(TAG,"key:%s",key);
+    ESP_LOGW(TAG,"value:%s", value);
+    //ESP_LOGI(TAG, "44444444444444");
+
+
+    int num = atoi(key);
+    switch (num) // Note: No cast is necessary here
+    {
+    case 1: // Assuming you want to match 't' (a single character)
+        
+        
+        robokit_make_test_command(&cmd);
+        robokit_push_command(&cmd, 0);
+        snprintf(echo_buffer, 64, "Toggle %s", "enter");
+
+        break;
+
+    case 2: // Assuming you want to match 'd' (a single character)
+        // Handle 'd'
+        //driver 100
+        createrampcmdf(100);
+        snprintf(echo_buffer, 64, "fwd %s", "enter");
+       
+
+        
+        break;
+    case 3:
+
+    createrampcmdb(100);
+
+    break;
+    
+    case 4:
+        snprintf(echo_buffer, 64, "stop %s", "--");
+
+        robokit_make_drive_command_fwd(&cmd,0);
+        robokit_push_command(&cmd,0);
+        break;
+
+    case 5:
+        break;
+    case 7:
+
+    do_45();
+
+    snprintf(echo_buffer, 64, "45 grad %s", "finish");
+    break;
+    
+    case 8:
+        vTaskDelay(20/ portTICK_PERIOD_MS);
+        
+        vTaskDelay(20/ portTICK_PERIOD_MS);
+
+        do_90();
+
+        snprintf(echo_buffer, 64, "90 grad %s", "finish");
+
+
+        break;
+
+    case 9:
+
+    do_180();
+    snprintf(echo_buffer, 64, "180 grad %s", "finish");
+
+    break;
+    
+    
+
+    default:
+        // Handle unknown character
+        break;
+    }
+    cJSON_Delete(json);
+
+    //_____________________________________________________________________________________________________
+   if (ws_pkt.type == HTTPD_WS_TYPE_TEXT)
+    {
+        
         free(buf);
         return trigger_async_send(req->handle, req);
     }
@@ -230,6 +347,14 @@ httpd_handle_t setup_websocket_server(void)
 void app_main()
 {
     device_init();
+    S_command cmd;
+     
+        robokit_make_test_command(&cmd);
+        robokit_push_command(&cmd, 0);
+         vTaskDelay(5000/ portTICK_PERIOD_MS);
+         robokit_make_test_command(&cmd);
+        robokit_push_command(&cmd, 0);
+       
 
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
@@ -244,12 +369,15 @@ void app_main()
 
     if (wifi_connect_status)
     {
-        gpio_pad_select_gpio(LED_PIN);
-        gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
+        //gpio_pad_select_gpio(LED_PIN);
+        //gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
 
-        led_state = 0;
+        //led_state = 0;
         ESP_LOGI(TAG, "ESP32 ESP-IDF WebSocket Web Server is running ... ...\n");
         initi_web_page_buffer();
         setup_websocket_server();
     }
+    ESP_LOGI(TAG, "in TEST cmd");
+
+    
 }

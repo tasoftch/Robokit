@@ -32,6 +32,7 @@ static volatile uint8_t command_stack_head = 0;
 static F_command_callback _callback_fn_list[ROBOKIT_MAX_SCHEDULED_COMMANDS] = {0};
 static QueueHandle_t commandQueue;
 
+static volatile uint8_t peripheralsStatus = 0;
 
 void hal_error_handler() {
 	// If there is any problem in the HW, call this function.
@@ -61,6 +62,18 @@ void _robokit_task_handler(void *parameters) {
 	}
 }
 
+/**
+ * A 50Hz Task that updates the drive by either follow a line or imu sensors
+ *
+ * @param parameters void * Not used
+ */
+void _robokit_task_handler_peripherals(void *parameters) {
+	while (1) {
+
+		vTaskDelay(20 / portTICK_PERIOD_MS);
+	}
+}
+
 
 void _scheduler_init(void) {
 	commandQueue = xQueueCreate(8, 1);
@@ -75,6 +88,15 @@ void _scheduler_init(void) {
 		configMINIMAL_STACK_SIZE+2000,
 		((void*) 1),
 		tskIDLE_PRIORITY+5,
+		NULL
+		);
+
+	xTaskCreate(
+		_robokit_task_handler_peripherals,
+		"rob_peri",
+		configMINIMAL_STACK_SIZE+2000,
+		((void*) 1),
+		tskIDLE_PRIORITY+3,
 		NULL
 		);
 }
@@ -112,10 +134,9 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	if(command_stack_head >= ROBOKIT_COMMAND_STACK_SIZE) {
 		command_stack_head = 0;
 	}
+	xQueueSend(commandQueue, &cmd_idx, portMAX_DELAY);
 	taskENABLE_INTERRUPTS();
 
-
-	xQueueSend(commandQueue, &cmd_idx, portMAX_DELAY);
 	ROBOKIT_LOGI("Command %d enqueued at index %d.", cmd->cmd, cmd_idx);
 	return 1;
 }

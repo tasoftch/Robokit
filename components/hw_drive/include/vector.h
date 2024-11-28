@@ -17,8 +17,6 @@ typedef struct {
 
 extern const S_vector ROBOKIT_INVALID_VECTOR;
 
-#define ROBOKIT_MAKE_VECTOR(ANGLE, SPEED) ((S_vector){(ANGLE), (SPEED)})
-
 // === DIESE FUNKTIONEN WERDEN AUSSERHALB DER HW BENUTZT. ==
 // Die enthalten die math.h Library um Winkel und Geschwindigkeiten zu berechnen.
 
