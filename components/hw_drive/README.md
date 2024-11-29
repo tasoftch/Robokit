@@ -10,7 +10,7 @@ Die Komponente ```hw_drive``` muss deshalb im Main Programm in der CMake Datei v
 idf_component_register(SRCS "main.c"
         ...
         INCLUDE_DIRS "."
-        REQUIRES hw_drive   
+        REQUIRES hw_drive
 )
 ```
 
@@ -134,7 +134,6 @@ S_motor_config robokit_motor_right_get_config(void);
 Die Konfiguration muss bereit sein, bevor ein Kommando erstellt wird.  
 Die Konfiguration ist im Drive Command gespeichert.
 
-
 ### LEDS
 Die LEDs werden auf Pin 13, separat herausgeführt angeschlossen.  
 Es gilt, Ausgang auf Eingang. Das Testboard ist der erste Ausgang.  
@@ -176,4 +175,51 @@ void app_main()
 }
 ```
 
+### Follow a Line Sensor
+Das Follow A Line System folgt einer schwarzen Linie auf hellem Grund mit maximalen Winkeln von 40°. Die Geschwindigkeit ist auf 50% fix eingestellt.  
+Bevor das System funktioniert, muss es kalibriert werden. Dabei soll es von weissem Grund über eine mindestens 3cm breite schwarze Fläche fahren.  
+Das Fahrzeug fährt von alleine los, wenn ein Kalibrierungskommando ankommt. Nach 1 Sekunde oder wenn die Kalibrierung abgeschlossen ist, stoppt das Fz und der GUI Task wird informiert.
 
+#### Beispiel Code
+```c++
+static uint8_t warten = 1;
+
+static void kalibration_ist_beendet(uint8_t ok) {
+    // ACHTUNG!
+    // Die callback wird nicht vom main Task ausgeführt.
+    // Sie soll möglichst schnell wieder zurückkehren.
+    if(ok) {
+        ROBOKIT_LOGI("kalibration ist beendet");
+        warten = 0;
+    } else {
+        ROBOKIT_LOGE("Kalibrierung hat nicht funktioniert.");
+    }
+}
+
+
+void app_main()
+{
+    device_init();
+
+    S_command cmd;
+    // Callback angeben, welche aufgerufen wird, sobald die Kalibration abgeschlossen ist.
+    robokit_make_command_fal_calibrate(&cmd, kalibration_ist_beendet);
+    robokit_push_command(&cmd, 0);
+
+    // Warten, bis Kalibration fertig ist.
+    while (warten) {
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+    robokit_make_command_fal_enable(&cmd);
+    robokit_push_command(&cmd, 0);
+
+    // 5 Sekunden einer Linie folgen.
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+
+    robokit_make_command_fal_disable(&cmd);
+    robokit_push_command(&cmd, 0);
+}
+```
