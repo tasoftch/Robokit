@@ -7,7 +7,7 @@
 
 #include "main_commands.h"
 
-uint8_t robokit_make_command_fal_calibrate(S_command *cmd);
+uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(uint8_t));
 
 uint8_t robokit_make_command_fal_enable(S_command *cmd);
 uint8_t robokit_make_command_fal_disable(S_command *cmd);

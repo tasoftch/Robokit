@@ -27,11 +27,23 @@ enum {
 	E_FAL_OPTION_ENABLE
 };
 
+typedef struct {
+	uint16_t fb_1_left:3;
+	uint16_t fb_2_middle_left:3;
+	uint16_t fb_3_middle:3;
+	uint16_t fb_4_middle_right:3;
+	uint16_t fb_5_right:3;
+} S_Fal_Result;
 
 void fal_init(void);
-
 uint8_t fal_is_calibrated(void);
-
 void fal_update(void);
+
+unsigned char fal_name_of_color(uint8_t color);
+
+
+void fal_set_line_result_interpreter(void (*interpreter) (S_Fal_Result *));
+
+void fal_default_line_result_interpreter(S_Fal_Result *result);
 
 #endif //FAL_H

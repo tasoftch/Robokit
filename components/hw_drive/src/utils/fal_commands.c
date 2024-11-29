@@ -33,7 +33,7 @@ uint8_t robokit_make_command_fal_disable(S_command *cmd) {
 	return 1;
 }
 
-uint8_t robokit_make_command_fal_calibrate(S_command *cmd) {
+uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(uint8_t)) {
 	if(!cmd)
 		return 0;
 
@@ -41,6 +41,7 @@ uint8_t robokit_make_command_fal_calibrate(S_command *cmd) {
 	_S_Command_Fal *fal_cmd = (_S_Command_Fal *)cmd;
 	fal_cmd->cmd = E_COMMAND_FAL;
 	fal_cmd->flags = E_FAL_OPTION_CALIBRATE;
+	fal_cmd->callback = calibrated;
 
 	return 1;
 }
