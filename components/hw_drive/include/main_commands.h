@@ -24,6 +24,8 @@ enum {
 	E_COMMAND_LED_SETUP,						// Choose a LED number and set its color
 	E_COMMAND_LED_FLUSH,						// Sends all LED setups to strip
 
+	E_COMMAND_FAL,								// Call follow a line sensor command
+
 	E_COMMAND_TEST = ROBOKIT_MAX_SCHEDULED_COMMANDS - 1
 };
 
@@ -36,7 +38,8 @@ enum {
 enum {
 	E_PUSH_STATUS_OK,
 	E_PUSH_STATUS_UNKNOWN_COMMAND,
-	E_PUSH_STATUS_STACK_FULL
+	E_PUSH_STATUS_STACK_FULL,
+	E_PUSH_PRECHECK_FAILED
 };
 
 typedef struct {
@@ -48,12 +51,5 @@ typedef struct {
 // Using Pointers in commands, please use this functions for proper working.
 uint8_t robokit_drive_command_set_pointer(S_command *cmd, void *prt);
 void *robokit_drive_command_get_pointer(S_command *cmd);
-
-/* FOLLOW A LINE */
-uint8_t robokit_make_drive_command_fal_enable(S_command *cmd, uint8_t speed);
-uint8_t robokit_make_drive_command_fal_disable(S_command *cmd);
-
-// noch nicht ganz fertig.
-uint8_t robokit_make_drive_command_fal_pattern(S_command *cmd);
 
 #endif /* commands_h */

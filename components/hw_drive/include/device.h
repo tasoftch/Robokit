@@ -13,6 +13,7 @@
 #include "drive_command.h"
 #include "test_commands.h"
 #include "main_commands.h"
+#include "fal_commands.h"
 #include "values.h"
 
 // Bitte diese Funktion in main aufrufen.
