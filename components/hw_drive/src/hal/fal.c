@@ -30,16 +30,18 @@ typedef struct {
 } S_color;
 
 static volatile S_color my_colors[5];
-static volatile S_color my_colors_reference[5] = {0};
-static volatile uint8_t my_status = 0;
+static volatile S_color my_color_minimums[5] = {0};
+static volatile S_color my_color_maximums[5] = {0};
+static volatile uint8_t my_fal_result[5] = {0};
 
-static S_Fal_Result fal_result = {0};
-
-static char my_color_refs[] = {'S', 'B', 'G', 'C', 'R', 'M', 'Y', 'W'};
+static uint8_t is_running=0;
+static uint8_t is_calibrated=0;
 
 uint8_t fal_is_calibrated(void) {
-	return my_status & 128;
+	return is_calibrated;
 }
+
+static char my_color_refs[] = {'S', 'B', 'G', 'C', 'R', 'M', 'Y', 'W'};
 
 static uint16_t fal_get_sensor_left(void) {
 	return adc1_get_raw(ROBOKIT_FB_LEFT);
@@ -61,9 +63,21 @@ static uint16_t fal_get_sensor_right(void) {
 	return adc1_get_raw(ROBOKIT_FB_RIGHT);
 }
 
+static void _fal_reset_calibration(void) {
+	for(int e=0; e<5; e++) {
+		my_color_maximums[e] = (S_color){0};
+		my_color_minimums[e] = (S_color){
+			.red = 0xFFFF,
+			.green = 0xFFFF,
+			.blue = 0xFFFF
+		};
+	}
+	is_calibrated = 0;
+}
+
 static void _robokit_cmd_handler(_S_Command_Fal *cmd, uint8_t mode, uint8_t *flags) {
 	if (mode == E_SCHEDULE_MODE_PRECHECK) {
-		if(cmd->flags & 2) {
+		if(cmd->flags == E_FAL_OPTION_ENABLE) {
 			if(!fal_is_calibrated()) {
 				ROBOKIT_LOGE("Calibration not yet done.");
 				*flags = 0xFF;
@@ -74,13 +88,14 @@ static void _robokit_cmd_handler(_S_Command_Fal *cmd, uint8_t mode, uint8_t *fla
 	}
 
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
-		if(cmd->flags & 1) {
-			// Kalibrieren
-			my_status = 1;
-		} else if(cmd->flags & 2) {
-			my_status |= 2;
-		} else {
-			my_status &= ~2;
+		if(cmd->flags == E_FAL_OPTION_CALIBRATE) {
+			_fal_reset_calibration();
+			// TODO: Fahrkommandos eingeben.
+			is_running = 1;
+		} else if(cmd->flags == E_FAL_OPTION_ENABLE) {
+			is_running = 1;
+		} else if(cmd->flags == E_FAL_OPTION_DISABLE) {
+			is_running = 0;
 		}
 	}
 }
@@ -97,11 +112,6 @@ void fal_init(void) {
 	gpio_config(&io_conf);
 
 	adc1_config_width(ADC_WIDTH_BIT_12);
-
-	gpio_pullup_dis(GPIO_NUM_0);
-	gpio_pulldown_dis(GPIO_NUM_0);
-	gpio_pullup_dis(GPIO_NUM_1);
-	gpio_pulldown_dis(GPIO_NUM_1);
 
 	adc1_config_channel_atten(ROBOKIT_FB_LEFT, ADC_ATTEN_DB_0);
 	adc1_config_channel_atten(ROBOKIT_FB_MIDDLE_LEFT, ADC_ATTEN_DB_0);
@@ -120,11 +130,11 @@ static void fal_read_red(void) {
 
 	esp_rom_delay_us(ROBOKIT_READ_INTERVAL_US);
 
-	my_colors[4].red = fal_get_sensor_right();
-	my_colors[3].red = fal_get_sensor_middle_right();
-	my_colors[2].red = fal_get_sensor_middle();
-	my_colors[1].red = fal_get_sensor_middle_left();
 	my_colors[0].red = fal_get_sensor_left();
+	my_colors[1].red = fal_get_sensor_middle_left();
+	my_colors[2].red = fal_get_sensor_middle();
+	my_colors[3].red = fal_get_sensor_middle_right();
+	my_colors[4].red = fal_get_sensor_right();
 
 	gpio_set_level(GPIO_RED, 0);
 	gpio_set_level(GPIO_GREEN, 0);
@@ -167,80 +177,91 @@ static void fal_read_blue(void) {
 	gpio_set_level(GPIO_BLUE, 0);
 }
 
-static void print_fal(void) {
+static void print_fal(S_color *the_colors) {
 	ROBOKIT_LOGI("CD | POS | RED  | GRN  | BLUE");
 	ROBOKIT_LOGI("----+------+------+------|");
-	ROBOKIT_LOGI("01 | LFT | %04d | %04d | %04d", my_colors[0].red, my_colors[0].green, my_colors[0].blue);
-	ROBOKIT_LOGI("02 | LFM | %04d | %04d | %04d", my_colors[1].red, my_colors[1].green, my_colors[1].blue);
-	ROBOKIT_LOGI("03 | MID | %04d | %04d | %04d", my_colors[2].red, my_colors[2].green, my_colors[2].blue);
-	ROBOKIT_LOGI("04 | RTM | %04d | %04d | %04d", my_colors[3].red, my_colors[3].green, my_colors[3].blue);
-	ROBOKIT_LOGI("05 | RGT | %04d | %04d | %04d", my_colors[4].red, my_colors[4].green, my_colors[4].blue);
+	ROBOKIT_LOGI("01 | LFT | %04d | %04d | %04d", the_colors[0].red, the_colors[0].green, the_colors[0].blue);
+	ROBOKIT_LOGI("02 | LFM | %04d | %04d | %04d", the_colors[1].red, the_colors[1].green, the_colors[1].blue);
+	ROBOKIT_LOGI("03 | MID | %04d | %04d | %04d", the_colors[2].red, the_colors[2].green, the_colors[2].blue);
+	ROBOKIT_LOGI("04 | RTM | %04d | %04d | %04d", the_colors[3].red, the_colors[3].green, the_colors[3].blue);
+	ROBOKIT_LOGI("05 | RGT | %04d | %04d | %04d", the_colors[4].red, the_colors[4].green, the_colors[4].blue);
 	ROBOKIT_LOGI("----+------+------+------|");
 }
 
-static uint8_t _calculate_color(uint8_t index) {
-	uint8_t color = ROBOKIT_FAL_WHITE;
-	if(my_colors[index].red < my_colors_reference[index].red *2 / 3) {
-		color &= ~ ROBOKIT_FAL_RED;
+
+void _fal_calibration_done(void) {
+	for(int e=0;e<5;e++) {
+		my_color_minimums[e].red = (my_color_minimums[e].red + my_color_maximums[e].red) / 2;
+		my_color_minimums[e].green = (my_color_minimums[e].green + my_color_maximums[e].green) / 2;
+		my_color_minimums[e].blue = (my_color_minimums[e].blue + my_color_maximums[e].blue) / 2;
 	}
-	if(my_colors[index].green < my_colors_reference[index].green *2 / 3) {
-		color &= ~ ROBOKIT_FAL_GREEN;
-	}
-	if(my_colors[index].blue < my_colors_reference[index].blue *2 / 3) {
-		color &= ~ ROBOKIT_FAL_BLUE;
-	}
-	return color;
+
+	is_calibrated = 1;
+	// is_running = 0;
+
+
 }
 
-static void calculate_result() {
-	fal_result.fb_1_left = _calculate_color(0);
-	fal_result.fb_2_middle_left = _calculate_color(1);
-	fal_result.fb_3_middle = _calculate_color(2);
-	fal_result.fb_4_middle_right = _calculate_color(3);
-	fal_result.fb_5_right = _calculate_color(4);
 
-	ROBOKIT_LOGI("FAL[L-R, 1..5]: %c %c %c %c %c",
-		my_color_refs[ fal_result.fb_1_left ],
-		my_color_refs[ fal_result.fb_2_middle_left ],
-		my_color_refs[ fal_result.fb_3_middle ],
-		my_color_refs[ fal_result.fb_4_middle_right ],
-		my_color_refs[ fal_result.fb_5_right ]
-	);
+void _fal_calibration_init(void) {
+	static uint8_t status = 0;
+
+	for(int e=0;e<5;e++) {
+		my_color_minimums[e].red = MIN( my_color_minimums[e].red, my_colors[e].red );
+		my_color_minimums[e].green = MIN( my_color_minimums[e].green, my_colors[e].green );
+		my_color_minimums[e].blue = MIN( my_color_minimums[e].blue, my_colors[e].blue );
+
+		my_color_maximums[e].red = MAX( my_color_maximums[e].red, my_colors[e].red );
+		my_color_maximums[e].green = MAX( my_color_maximums[e].green, my_colors[e].green );
+		my_color_maximums[e].blue = MAX( my_color_maximums[e].blue, my_colors[e].blue );
+	}
+
+	if(status == 1) {
+		if(my_color_maximums[3].red - my_colors[3].red < 50) {
+			_fal_calibration_done();
+			status = 0;
+		}
+	}
+
+	if(status == 0) {
+		if(my_color_maximums[3].red - my_color_minimums[3].red > 100) {
+			status = 1;
+		}
+	}
+}
+
+
+static void _fal_calculate_result(void) {
+	for(int e=0;e<5;e++) {
+		my_fal_result[e] = 0;
+
+		my_fal_result[e] |= my_colors[e].red > my_color_minimums[e].red ? ROBOKIT_FAL_RED : 0;
+		my_fal_result[e] |= my_colors[e].green > my_color_minimums[e].green ? ROBOKIT_FAL_GREEN : 0;
+		my_fal_result[e] |= my_colors[e].blue > my_color_minimums[e].blue ? ROBOKIT_FAL_BLUE : 0;
+	}
+
+	ROBOKIT_LOGI("FAL [1..5] %c %c %c %c %c",
+		my_color_refs[my_fal_result[0]],
+		my_color_refs[my_fal_result[1]],
+		my_color_refs[my_fal_result[2]],
+		my_color_refs[my_fal_result[3]],
+		my_color_refs[my_fal_result[4]]
+		);
+}
+
+
+void fal_render_result(void) {
+	if(!is_calibrated) {
+		_fal_calibration_init();
+	} else {
+		_fal_calculate_result();
+	}
 }
 
 void fal_update(void) {
-	if(my_status & 1) {
-		ROBOKIT_LOGI("KAL START");
-		fal_read_red();
-		fal_read_green();
-		fal_read_blue();
-		ROBOKIT_LOGI("KAL STOP");
-		my_colors_reference[0] = my_colors[0];
-		my_colors_reference[1] = my_colors[1];
-		my_colors_reference[2] = my_colors[2];
-		my_colors_reference[3] = my_colors[3];
-		my_colors_reference[4] = my_colors[4];
-		ROBOKIT_LOGI("KALIBRATION");
-		print_fal();
-
-		my_status |= 128;
-		my_status &= ~1;
-		return;
-	}
-
-	if(!fal_is_calibrated())
+	if(!is_running)
 		return;
 
-	if(!(my_status & 2))
-		return;
-
-	fal_read_red();
-	fal_read_green();
-	fal_read_blue();
-
-	print_fal();
-
-	return;
 	static uint8_t status = 0;
 	switch (status) {
 		case 0:
@@ -251,8 +272,11 @@ void fal_update(void) {
 			status = 2;
 			fal_read_green();
 		break;
+		case 2:
+			status = 3;
+			fal_read_blue();
 		default:
 			status = 0;
-			fal_read_blue();
+			fal_render_result();
 	}
 }

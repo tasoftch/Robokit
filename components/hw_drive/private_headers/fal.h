@@ -20,14 +20,12 @@
 
 #include <stdint.h>
 
-
-typedef struct {
-	uint16_t fb_1_left:3;
-	uint16_t fb_2_middle_left:3;
-	uint16_t fb_3_middle:3;
-	uint16_t fb_4_middle_right:3;
-	uint16_t fb_5_right:3;
-} S_Fal_Result;
+// Es wird nur eine Option angegeben pro Kommando!
+enum {
+	E_FAL_OPTION_DISABLE = 0,
+	E_FAL_OPTION_CALIBRATE,
+	E_FAL_OPTION_ENABLE
+};
 
 
 void fal_init(void);
