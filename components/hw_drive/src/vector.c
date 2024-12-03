@@ -27,6 +27,13 @@
 
 const S_vector ROBOKIT_INVALID_VECTOR = {-128, -128};
 
+/**
+ * @brief Baut einen Vektor auf, ohne den Winkel anzupassen.
+ *
+ * @param angle Integer Winkel in Grad
+ * @param length Integer Länge als Geschwindigkeit
+ * @return S_Vector
+ */
 static S_vector _robokit_make_vector_polar(int8_t angle, T_Speed length) {
     if(length > ROBOKIT_MAX_SPEED || length < ROBOKIT_MIN_SPEED)
         return ROBOKIT_INVALID_VECTOR;
@@ -35,6 +42,12 @@ static S_vector _robokit_make_vector_polar(int8_t angle, T_Speed length) {
     return vec;
 }
 
+/**
+ * @brief
+ * @param angle Integer Winkel zwischen -180 und 180 Grad.
+ * @param length Integer Länge als Geschwindigkeit
+ * @return S_Vector
+ */
 S_vector robokit_make_vector_polar(int16_t angle, T_Speed length) {
     if(length > ROBOKIT_MAX_SPEED || length < ROBOKIT_MIN_SPEED)
         return ROBOKIT_INVALID_VECTOR;
@@ -43,6 +56,13 @@ S_vector robokit_make_vector_polar(int16_t angle, T_Speed length) {
     return vec;
 }
 
+/**
+ * @brief Baut einen Vektor aufgrund eines Joysticks auf.
+ *
+ * @param x Integer Links oder Rechts Ausrichtung der Steuerung
+ * @param y Integer Vorwärts- oder Rückwärtsbewegung der Steuerung
+ * @return S_Vector
+ */
 S_vector robokit_make_vector(int8_t x, int8_t y) {
     float angle = (float)atan2(x, y) * 180.0f / (float)M_PI;
     
@@ -52,6 +72,12 @@ S_vector robokit_make_vector(int8_t x, int8_t y) {
     );
 }
 
+/**
+ * @brief Vergleicht zwei Vektoren auf Gleichheit.
+ * @param vec1 S_vector
+ * @param vec2 S_vector
+ * @return 1, wenn beide gleich sind, sonst 0.
+ */
 uint8_t robokit_vector_equals(S_vector vec1, S_vector vec2) {
     return vec1.angle == vec2.angle && vec1.speed == vec2.speed;
 }

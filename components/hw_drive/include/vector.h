@@ -48,10 +48,13 @@ S_vector robokit_make_vector(int8_t left_right, int8_t forward_backward);
 
 // Vektor berechnen lassen aus Richtung und Geschwindigkeit:
 // Richtung 0 => geradeaus
-// 0 .. +90  => nach rechts abdrehen (Motor rechts wird langsamer. Bei 90° bleibt Motor rechts stehen)
-// 90 .. 180 => Motor rechts beginnt rückwärts zu laufen (180 => Fahrzeug dreht um eigene Achse)
-// Dasselbe auf die andere Seite 0 .. -180
-// Length ist die Geschwindigkeit und reicht von 0 - 100
+// Wird der Winkel grösser als 0 Grad, beginnt das Fahrzeut nach rechts abzudrehen.
+// Bei 45° bleibt das Rad rechts stehen und nur das linke dreht noch. Der Roboter dreht um das rechte Rad.
+// Bei 90° dreht das rechte Rad rückwärts. Der Roboter dreht sich um die eigene Achse.
+// Bei 135° dreht sich der Roboter um das linke Rad, aber jetzt rückwärts.
+// Bei 180° fährt das Fz gerade rückwärts.
+// Dasselbe passiert spiegelverkehrt auf die andere Seite (Winkel < 0) bis -180 Grad.
+// speed ist die Geschwindigkeit und reicht von 0 - 100
 S_vector robokit_make_vector_polar(int16_t angle, T_Speed speed);
 
 // Prüfe, ob zwei Vektoren gleich sind.

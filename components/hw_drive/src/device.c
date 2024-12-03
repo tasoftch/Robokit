@@ -34,6 +34,9 @@ extern void _scheduler_init(void);
 extern void _test_commands_init(void);
 extern void _robokit_pwm_motors_init(void);
 
+/**
+ * @brief Init Verteilung in der Hardware
+ */
 void device_init(void) {
     ROBOKIT_LOGI("Initializing device...");
     _scheduler_init();
