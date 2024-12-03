@@ -33,18 +33,18 @@
 #include "fal_commands.h"
 #include "values.h"
 
-// Bitte diese Funktion in main aufrufen.
+// Diese Funktion muss in der main() Funktion des Hauptprpgrammes aufgerufen werden.
 // Sie initialisiert alle Hardware und Firmware.
 void device_init(void);
 
-// Danach das Kommando absetzen und gut ist's.
-// Flags werden folgende sein:
-// Flag für warten, wenn der Command Stack voll ist.
-// Flag für warten, bis das Kommando ausgeführt wurde.
-// ... falls noch weitere notwendig sind.
+// Nimmt Kommandos entgegen und schleust diese in die Hardware ein.
+// Anweisungen an das Fahrzeug können nur mit Kommandos über diese Funktion erteilt werden.
+// Benutze die E_COMMAND_FLAG_* Konstanten.
+// Zurzeit kann für flags 0 eingesetzt werden.
 uint8_t robokit_push_command(S_command *cmd, uint8_t flags);
 
-/* Returns how many commands can be added set. */
+// Meldet, wie viele Kommandos noch eingeschleust werden können, bevor
+// die Warteschlange voll ist.
 uint8_t robokit_get_free_stack_count(void);
 
 #endif /* device_h */

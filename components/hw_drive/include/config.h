@@ -25,17 +25,22 @@
 #ifndef types_h
 #define types_h
 
-
 #include <stdint.h>
 
-// Any speed information is given in percent from 0 to 100.
+// Die Angaben zu einer Geschwindigkeit sind immer in Prozent von 0% bis 100%
 typedef int8_t T_Speed;
+
+// Diese Direktiven definieren die Limits.
 #define ROBOKIT_MIN_SPEED 0
 #define ROBOKIT_MAX_SPEED 100
 
+// Definition, wie viele Kommandos im Scheduler registriert werden können.
 #define ROBOKIT_MAX_SCHEDULED_COMMANDS 32
+
+// Kommando-Stacksize für push_command Aufrufe
 #define ROBOKIT_COMMAND_STACK_SIZE 8
 
+// Debug Modus. Alle ROBOKIT_LOGX() Makros werden ausgeschaltet, wenn Debug=0
 #define ROBOKIT_DEBUG 1
 
 #endif /* types_h */
