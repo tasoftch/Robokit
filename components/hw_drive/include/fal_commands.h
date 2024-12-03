@@ -27,9 +27,36 @@
 
 #include "main_commands.h"
 
+/**
+ * @brief Constructs a FAL (Follow A Line) calibrate command.
+ * @param[out] cmd S_command* Pointer to the command structure to be initialized.
+ * @param[in] calibrated void(*)(uint8_t) Function pointer for the calibration callback.
+ * @return uint8_t Returns 1 if the command is successfully constructed, 0 otherwise.
+ */
 uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(uint8_t));
 
+/**
+ * @brief Initializes and enables a follow a line (FAL) command.
+ *
+ * This function initializes the given command structure to prepare it
+ * for enabling the follow a line function. The command is set to
+ * E_COMMAND_FAL and the option is set to enable.
+ *
+ * @param[out] cmd S_command* Pointer to the command structure to initialize and enable.
+ * @return uint8_t Returns 1 if the operation is successful, or 0 if the cmd pointer is null.
+ */
 uint8_t robokit_make_command_fal_enable(S_command *cmd);
+
+/**
+ * @brief Disables the Follow A Line (FAL) sensor command.
+ *
+ * This function initializes and configures the command structure `cmd`
+ * to disable the Follow A Line (FAL) sensor. It sets the appropriate
+ * command and flags within the structure.
+ *
+ * @param [out] cmd S_command* Pointer to the command structure to be configured.
+ * @return uint8_t Returns 1 if the command was successfully configured, 0 if the input pointer was null.
+ */
 uint8_t robokit_make_command_fal_disable(S_command *cmd);
 
 #endif //FAL_COMMANDS_H

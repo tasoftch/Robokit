@@ -33,18 +33,34 @@
 #include "fal_commands.h"
 #include "values.h"
 
-// Diese Funktion muss in der main() Funktion des Hauptprpgrammes aufgerufen werden.
-// Sie initialisiert alle Hardware und Firmware.
+/**
+ * @brief Initializes the device components required for operation.
+ *
+ * This function sets up various subsystems and modules of the device,
+ * including the command handlers, scheduler, and PWM motors. It logs
+ * the initialization process and subsequently calls the fal initialization.
+ */
 void device_init(void);
 
-// Nimmt Kommandos entgegen und schleust diese in die Hardware ein.
-// Anweisungen an das Fahrzeug können nur mit Kommandos über diese Funktion erteilt werden.
-// Benutze die E_COMMAND_FLAG_* Konstanten.
-// Zurzeit kann für flags 0 eingesetzt werden.
+/**
+ * @brief Enqueues a command to be processed by the Robokit system.
+ *
+ * This function pushes a command onto the command stack and schedules it for execution.
+ * It performs a precheck to ensure the command is valid and that there is space in the stack.
+ *
+ * @param[in] cmd S_command* A pointer to the command structure containing the command to be enqueued.
+ * @param[in] flags uint8_t Flags indicating specific command behaviors (e.g., block until enqueued).
+ *
+ * @return uint8_t Status code indicating the result of the operation, such as
+ *                 E_PUSH_STATUS_OK, E_PUSH_STATUS_UNKNOWN_COMMAND, E_PUSH_STATUS_STACK_FULL,
+ *                 or E_PUSH_PRECHECK_FAILED.
+ */
 uint8_t robokit_push_command(S_command *cmd, uint8_t flags);
 
-// Meldet, wie viele Kommandos noch eingeschleust werden können, bevor
-// die Warteschlange voll ist.
+/**
+ * @brief Retrieves the number of available spaces in the command queue.
+ * @return uint8_t The number of free slots available in the command queue.
+ */
 uint8_t robokit_get_free_stack_count(void);
 
 #endif /* device_h */
