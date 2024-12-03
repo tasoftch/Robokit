@@ -24,13 +24,13 @@
 
 #include "scheduler.h"
 
-#include <device.h>
+#include "device.h"
 #include <esp_log.h>
-#include <fal.h>
+#include "fal.h"
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/task.h>
 #include "robokit_log.h"
 
 static volatile S_command command_stack[ROBOKIT_COMMAND_STACK_SIZE];
@@ -41,20 +41,36 @@ static QueueHandle_t commandQueue;
 
 static volatile uint8_t peripheralsStatus = 0;
 
+/**
+ * @brief Hard Fault Handler
+ *
+ * Falls irgend etwas schief geht, wird der Task in diese Funktion geleitet.
+ * Mit der Endlosschleife verbleibt er da für Debug Zwecke.
+ */
 void hal_error_handler() {
-	// If there is any problem in the HW, call this function.
-	// It contains an endless loop to holt cpu for debug.
 	ROBOKIT_LOGE("!! Hard fault !!");
 	while (1) {
 		;
 	}
 }
 
+/**
+ * @brief Ausführen des Kommandos in der Hardware.
+ * @param cmd S_Command* Kommando, welches ausgeführt werden soll.
+ */
 void hal_task_handler(S_command *cmd) {
 	uint8_t flags=0;
 	_callback_fn_list[cmd->cmd](cmd, E_SCHEDULE_MODE_PERFORM, &flags);
 }
 
+/**
+ * @brief Haupt Task für das Einschleusen der Kommandos
+ *
+ * Dieser Task nimmt die Kommandos aus der Warteschlange und führt sie auf der Hardware aus.
+ * Er sucht dabei nach einer registrierten Callback Funktion für ein Kommando und ruft sie auf.
+ *
+ * @param parameters void *
+ */
 void _robokit_task_handler(void *parameters) {
 	while (1) {
 		uint8_t cmd_idx=0;
@@ -70,7 +86,10 @@ void _robokit_task_handler(void *parameters) {
 }
 
 /**
- * A 50Hz Task that updates the drive by either follow a line or imu sensors
+ * @brief A 100Hz Task that updates the drive by either follow a line or imu sensors
+ *
+ * Das ist der Hardware Loop Task. Er prüft die Einstellungen und kümmert sich um die Ansteuerung
+ * der IMU und des Follow a Line Sensors.
  *
  * @param parameters void * Not used
  */
@@ -85,7 +104,13 @@ void _robokit_task_handler_peripherals(void *parameters) {
 	}
 }
 
-
+/**
+ * @brief Wird von device_init() aufgerufen und setzt die Umgebung auf.
+ *
+ * Die Hardware läuft in einem separaten Task mit hoher Priorität.
+ * Gleichzeitig wird ein weiterer Task erzeugt, welcher sich um zyklische
+ * Aufgaben in der Hardware kümmert.
+ */
 void _scheduler_init(void) {
 	commandQueue = xQueueCreate(8, 1);
 	if(!commandQueue) {
@@ -112,6 +137,22 @@ void _scheduler_init(void) {
 		);
 }
 
+/**
+ * @brief Registriert Callback Funktionen für die Interaktion
+ *
+ * Die Callback Funktionen dürfen nicht blockieren und müssen möglichst schnell beendet werden.
+ * Jede Callback Funktion wird zweimal aufgerufen.
+ * Das erste Mal mit dem Modus E_SCHEDULE_MODE_PRECHECK. Sie muss prüfen, ob das Kommando gültig ist und
+ * eingeschleust werden darf. Ebenfalls darf das Kommando noch angepasst werden falls nötig.
+ * Das passiert noch im Task, welcher push_command aufruft.
+ * Das zweite Mal mit dem Modus E_SCHEDULE_MODE_PERFORM. Jetzt muss die Callback das Kommando in der Hardware umsetzen.
+ * Dies geschieht im Hardware Task, welcher die höchste Priorität hat. Deshalb muss die Funktion so schnell wie möglich
+ * zurückkehren.
+ *
+ * @param cmd T_cmd Kommando Nummer, unter welcher die Handler Funktion abgelegt wird.
+ * @param cb void*
+ * @return 1 im Erfolgsfall, sonst 0
+ */
 uint8_t robokit_register_command_fn(T_cmd cmd, F_command_callback cb) {
 	if(cmd < ROBOKIT_MAX_SCHEDULED_COMMANDS) {
 		if(_callback_fn_list[cmd] != NULL)
@@ -122,6 +163,17 @@ uint8_t robokit_register_command_fn(T_cmd cmd, F_command_callback cb) {
 	return 0;
 }
 
+/**
+ * @brief Schleust ein neues Kommando in die Hardware ein.
+ *
+ * Diese Funktion bildet die Hauptschnittstelle zwischen GUI und Hardware.
+ * Sie trennt beide Tasks voneinander.
+ *
+ * @param [in] cmd S_Command* Neues Kommando
+ * @param [in] flags Integer Flags
+ * @return 1|0
+ * @see E_COMMAND_FLAG_* Konstanten
+ */
 uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	T_cmd tcmd = cmd->cmd;
 	uint8_t cmd_idx;
@@ -130,7 +182,6 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 		ROBOKIT_LOGE("No command found %d.", cmd->cmd);
 		return E_PUSH_STATUS_UNKNOWN_COMMAND;
 	}
-
 
 	_callback_fn_list[tcmd](cmd, E_SCHEDULE_MODE_PRECHECK, &flags);
 	if(flags == 0xFF)
@@ -154,7 +205,11 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	return 1;
 }
 
-/* Returns how many commands can be added set. */
+/**
+ * @brief Liefert die Anzahl noch freier Kommandos, welche eingespeist werden können.
+ * @return uint8_t
+ * @see robokit_push_command();
+ */
 uint8_t robokit_get_free_stack_count(void) {
 	return uxQueueSpacesAvailable(commandQueue);
 }
