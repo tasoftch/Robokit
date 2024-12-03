@@ -55,15 +55,57 @@ typedef struct {
 	uint16_t fb_5_right:3;
 } S_Fal_Result;
 
+/**
+ * @brief Initializes the necessary peripherals and configurations for FAL (Follow A Line) operation.
+ *
+ * This function sets up the GPIO pins for RGB output and configures the ADC channels
+ * for the FAL sensors. Additionally, it registers the command handler for FAL commands.
+ */
 void fal_init(void);
+
+/**
+ * @brief Checks if the calibration process is completed.
+ *
+ * This function returns the current calibration status of the system,
+ * indicating whether the calibration has been successfully finished or not.
+ *
+ * @return uint8_t Non-zero if calibrated, zero if not calibrated.
+ */
 uint8_t fal_is_calibrated(void);
+
+/**
+ * @brief Updates the status of the fal (feedback and light) system and handles related commands.
+ *
+ * The function controls the color reading sequence, checks the drive command status,
+ * and initiates commands accordingly if the system is running.
+ * It alternates between reading red, green, and blue using internal sensor functions
+ * and renders the result once the cycle is complete.
+ */
 void fal_update(void);
 
+/**
+ * @brief Returns the character representation of a color index.
+ *
+ * This function maps a color index to a character representation based on a predefined array
+ * of colors. The mapping is defined for indices from 0 to 7.
+ *
+ * @param[in] color uint8_t The index of the color.
+ *
+ * @return unsigned char The character representing the color if the index is valid, otherwise '-'.
+ */
 unsigned char fal_name_of_color(uint8_t color);
 
 
+/**
+ * @brief Sets the line result interpreter function.
+ * @param [in] interpreter void(*)(S_Fal_Result*) Function pointer to be used as the new line result interpreter.
+ */
 void fal_set_line_result_interpreter(void (*interpreter) (S_Fal_Result *));
 
+/**
+ * @brief Interprets the line following sensor result and issues appropriate drive commands.
+ * @param [in] result S_Fal_Result* Pointer to the sensor data structure containing readings from five sensors.
+ */
 void fal_default_line_result_interpreter(S_Fal_Result *result);
 
 #endif //FAL_H

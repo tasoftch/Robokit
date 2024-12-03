@@ -37,7 +37,17 @@ typedef struct {
     uint8_t speed:7;                // 0 Stillstand, 100 Vollgas
 } S_motor_ctl;
 
-// Motor-Konfigurationen berechnen lassen aus Vektoren.
+/**
+ * @brief Converts a vector into motor speed and direction commands for two motors.
+ *
+ * This function translates the input vector, consisting of angle and speed,
+ * into control signals for two motors, controlling their speed and direction.
+ *
+ * @param[in] vector S_vector The input vector with angle and speed.
+ * @param[out] pwm_motor_left S_motor_ctl* Pointer to the motor control structure for the left motor.
+ * @param[out] pwm_motor_right S_motor_ctl* Pointer to the motor control structure for the right motor.
+ * @return uint8_t Returns 1 if the conversion is successful, otherwise returns 0.
+ */
 uint8_t robokit_vector_to_motor(S_vector vector, S_motor_ctl *pwm_motor_left, S_motor_ctl *pwm_motor_right);
 
 #endif /* motor_logic_h */

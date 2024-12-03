@@ -32,55 +32,28 @@
 #include "main_commands.h"
 #include "robokit_log.h"
 
+/**
+ * Initializes the given command structure to zero.
+ *
+ * This function sets all fields of the provided S_command structure
+ * to their default or initial state by zero-initializing the structure.
+ *
+ * @param cmd Pointer to the S_command structure to be initialized.
+ *            If the pointer is null, the function does nothing.
+ */
 void _robokit_command_init(S_command *cmd) {
     if(cmd) {
         *cmd = ((S_command){0});
     }
 }
 
+/**
+ * Initializes the command system for the application.
+ *
+ * This function logs an informational message indicating that the
+ * command system initialization process has started. It is intended
+ * to be called during the device initialization sequence.
+ */
 void _commands_init(void) {
     ROBOKIT_LOGI("Commands init");
 }
-
-
-/*
-uint8_t robokit_make_drive_command_fal_enable(S_command *cmd, uint8_t speed) {
-    if(!cmd)
-        return 0;
-    
-    _robokit_command_init(cmd);
-    cmd->cmd = E_COMMAND_FAL_ENABLE;
-    cmd->dta.uint8.a = speed;
-    
-    return 1;
-}
-
-uint8_t robokit_drive_command_set_pointer(S_command *cmd, void *ptr) {
-    if(!cmd)
-        return 0;
-    
-#if defined(__i386__) || defined(_M_IX86)
-    cmd->ptr = ptr;
-    return 1;
-#else
-    return 0;
-#endif
-}
-
-void *robokit_drive_command_get_pointer(S_command *cmd) {
-    if(!cmd)
-        return 0;
-    
-#if defined(__i386__) || defined(_M_IX86)
-    return cmd->ptr;
-#else
-    return NULL;
-#endif
-}
-
-
-uint8_t robokit_make_drive_command_fal_disable(S_command *cmd);
-
-// noch nicht ganz fertig.
-uint8_t robokit_make_drive_command_fal_pattern(S_command *cmd);
-*/

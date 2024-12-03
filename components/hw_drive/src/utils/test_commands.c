@@ -43,6 +43,21 @@ extern void _robokit_command_init(S_command *cmd);
 static volatile uint8_t _test_led_current_state = 0;
 static led_strip_handle_t _my_test_led_strip;
 
+/**
+ * Callback function that handles LED control based on the provided command and mode.
+ *
+ * This function is invoked as part of a command processing routine. It interprets the given
+ * command and mode to control an LED by either turning it on or off. If the system is
+ * configured to use a built-in LED strip, the function sets the LED strip's pixel color
+ * and refreshes it. Otherwise, it controls the GPIO pin directly associated with the LED.
+ * The result of the operation is logged at the INFO or WARNING level.
+ *
+ * @param cmd Pointer to the command structure containing the specific command to be executed.
+ * @param mode Operation mode indicating whether the command is in pre-check or perform mode.
+ *             This function reacts only when the mode is E_SCHEDULE_MODE_PERFORM.
+ * @param flags Pointer to a flags variable which gets reset (set to zero) at the start of the function,
+ *              used for returning status flags if necessary.
+ */
 void __robokit_my_callback(S_command *cmd, uint8_t mode, uint8_t *flags) {
 	*flags = 0;
 
@@ -69,6 +84,17 @@ void __robokit_my_callback(S_command *cmd, uint8_t mode, uint8_t *flags) {
 }
 
 
+/**
+ * Initializes the test commands for the Robokit platform.
+ *
+ * This function registers the test command callback and configures the LED control settings
+ * depending on whether a built-in LED is being used. If `ROBOKIT_USE_BUILTIN_LED` is defined, it
+ * initializes the LED strip configuration for a DevkitC board, specifying pin, maximum number
+ * of LEDs, and resolution. If the built-in LED is not used, it sets the direction of the LED pin
+ * as an output for direct GPIO control.
+ *
+ * This setup is necessary for handling test commands related to LED control operations.
+ */
 void _test_commands_init(void) {
 	robokit_register_command_fn(E_COMMAND_TEST, __robokit_my_callback);
 
@@ -90,6 +116,19 @@ void _test_commands_init(void) {
 }
 
 
+/**
+ * Creates and initializes a test command for the robokit system.
+ *
+ * This function initializes the provided command structure, sets its command type to
+ * E_COMMAND_TEST, and toggles the internal state of the test LED. Depending on the LED's
+ * state, the function sets the appropriate value in the command's reserved section to
+ * reflect the LED state.
+ *
+ * @param cmd Pointer to an S_command structure to be initialized and configured as a test command.
+ *            This pointer must not be null.
+ * @return Returns 1 on successful command initialization, or 0 if the provided
+ *         command pointer is null.
+ */
 uint8_t robokit_make_test_command(S_command *cmd) {
 	if(!cmd)
 		return 0;

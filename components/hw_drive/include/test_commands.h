@@ -30,9 +30,16 @@
 #define ROBOKIT_USE_BUILTIN_LED 1
 
 
-// The test command just blinks the LED on board
-// at Pin 8. This pin is also wired to GPIO of the drive.
-// The LED on board is the first one of a serie of WS2812B LEDs
+/**
+ * @brief Creates a test command and updates its current state.
+ *
+ * Initializes the given command structure and toggles the LED state for testing purposes.
+ * The command structure is updated with a test command, and the internal state affects
+ * the reserved fields of the command.
+ *
+ * @param [in] command S_command* Pointer to the command structure that will be initialized and modified.
+ * @return uint8_t Returns 1 if the command structure is successfully initialized and modified, otherwise 0.
+ */
 uint8_t robokit_make_test_command(S_command *command);
 
 #endif //TEST_COMMANDS_H

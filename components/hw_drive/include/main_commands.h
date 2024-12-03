@@ -26,7 +26,6 @@
 #define commands_h
 
 #include "config.h"
-#include "vector.h"
 
 typedef uint8_t T_cmd;
 
@@ -63,10 +62,5 @@ typedef struct {
 	uint8_t cmd;                // Eindeutige Kennung des Kommandos
 	uint8_t data[7];			// Datencontainer
 } S_command;
-
-
-// Using Pointers in commands, please use this functions for proper working.
-uint8_t robokit_drive_command_set_pointer(S_command *cmd, void *prt);
-void *robokit_drive_command_get_pointer(S_command *cmd);
 
 #endif /* commands_h */
