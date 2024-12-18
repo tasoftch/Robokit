@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2024 Th. Abplanalp, F. Romer
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 //
 //  test_unit.c
 //  test_bench
@@ -8,7 +32,6 @@
 #include "test_unit.h"
 #include "_test_unit.h"
 #include <stdarg.h>
-#include <ctype.h>
 
 static int tests_done=0;
 static int tests_failed=0;
@@ -19,17 +42,24 @@ static int ts_failed = 0;
 static int tc_count = 0;
 static int tc_failed = 0;
 
-static void _test_case_init(void) {
-    tc_count = 0;
-    tc_failed = 0;
+static void (*_test_suite_functions[TA_MAX_TESTS])(void);
+static const char *_test_suite_names[TA_MAX_TESTS];
+static int _test_suites_count = 0;
+
+void __ta_register_test(void (*func)(void), const char *name) {
+    if (_test_suites_count < TA_MAX_TESTS) {
+        _test_suite_functions[_test_suites_count] = func;
+        _test_suite_names[_test_suites_count] = name;
+        _test_suites_count++;
+    } else {
+        printf("Maximale Testanzahl erreicht!\n");
+    }
 }
 
 static void _test_suite_init(void) {
     ts_count = 0;
     ts_failed = 0;
 }
-
-
 
 void _tu_print_error(const char *fn_name, int line, int num_args, ...) {
     va_list args;
@@ -60,63 +90,34 @@ void _test_failed(void) {
     ts_failed++;
 }
 
-void _find_next_case_name(const char *fn_string, char *name, int *index) {
-    int idx = 0;
-    char cc=0;
-    
-    while ((cc = fn_string[(*index)++])) {
-        if(isalpha(cc) || isdigit(cc) || cc == '_') {
-            name[idx++] = cc;
-        } else if(idx > 0)
-            break;
-    }
-    name[idx] = '\0';
-}
+void TARunTests(void) {
+    for(int i = 0; i < _test_suites_count; i++) {
+        printf("== Start Test Suite %s ==\n", _test_suite_names[i]);
+        _test_suite_init();
+        _test_suite_functions[i]();
 
-void __tu_tests_init(const char *name, const char *fn_names, ...) {
-    printf("== Start Test Suite %s ==\n", name);
-    va_list args;
-    char buffer[100] = {0};
-    
-    va_start(args, fn_names);
-
-    void (*fn)(void) = NULL;
-    int idx=0;
-    
-    _test_suite_init();
-    
-    while ((fn = va_arg(args, void *))) {
-        _find_next_case_name(fn_names, buffer, &idx);
-        _test_case_init();
-        
-        printf("    = Start Test Case %s =\n", buffer);
-        fn();
-        printf("    = Test Case %s =\n", buffer);
-        
         if(tc_count < 1) {
             printf("    :: Risky! No assertion performed.\n\n");
             continue;
         }
-        
+
         if(tc_failed < 1) {
             printf("    :: Passed with %d assertions.\n\n", tc_count);
         } else {
             printf("    :: Failed with %d failed of %d assertions.\n\n", tc_failed, tc_count);
         }
+
+        printf("== Test Suite %s ==\n", _test_suite_names[i]);
     }
 
-    printf("== Test Suite %s ==\n", name);
-    
     if(ts_count < 1) {
         printf(":: Risky! No assertion performed.\n\n");
         return;
     }
-    
+
     if(tc_failed < 1) {
         printf(":: Passed with %d assertions.\n\n", ts_count);
     } else {
         printf(":: Failed with %d failed of %d assertions.\n\n", ts_failed, ts_count);
     }
-    
-    va_end(args);
 }

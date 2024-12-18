@@ -27,7 +27,8 @@
 #include "vector.h"
 #include "motor_logic.h"
 
-void testCartesicVectors(void) {
+
+TEST_SUITE("Vectors Test") {
     S_vector vector = robokit_make_vector(0, 100);
 
     TAAssertVectorHasSpeed(vector, 100);
@@ -89,7 +90,7 @@ void testCartesicVectors(void) {
     TAAssertVectorHasAngle(vector, -180);
 }
 
-void testVectorMotorPWM(void) {
+TEST_SUITE("Motor Controller") {
     // Motor Stop
     S_vector vector = robokit_make_vector_polar(0, 0);
     S_motor_ctl motor_left={0}, motor_right={0};
@@ -129,7 +130,8 @@ void testVectorMotorPWM(void) {
 }
 
 int main() {
-	TATestSuite("Vectors", testCartesicVectors);
-	TATestSuite("Motor Controller", testVectorMotorPWM);
+	TARunTests();
 	return 0;
 }
+
+

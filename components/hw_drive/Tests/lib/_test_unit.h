@@ -39,13 +39,17 @@ void _tu_print_error(const char *fn_name, int line, int num_args, ...);
 
 void _test_inc(void);
 void _test_failed(void);
+void __ta_register_test(void (*)(void), const char *);
 
-void __tu_tests_init(const char *name, const char *fn_names, ...);
+#define _TA_TEST_MAKE_NAME2(NAME, LINE) NAME##LINE
+#define _TA_TEST_MAKE_NAME(NAME, LINE) _TA_TEST_MAKE_NAME2(NAME, LINE)
 
-#define _tu_init_test_suite(NAME, ...) \
-({\
-    __tu_tests_init(NAME, #__VA_ARGS__, __VA_ARGS__, NULL);\
-})
+#define _TEST_INTERNAL_CREATE(TestName, Caption) \
+    static void TestName( void ); \
+    __attribute__((constructor)) static void _TA_TEST_MAKE_NAME(_TA_INTERNAL_TEST_REG, __LINE__)(void) { \
+        __ta_register_test(TestName, Caption);  \
+    }    \
+    static void TestName( void )
 
 
 #define _tu_assert_true(EXP, EXP_STR) \
