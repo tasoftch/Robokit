@@ -108,24 +108,24 @@ TEST_SUITE("Motor Controller") {
     TAAssertMotorForward(motor_right, 100);
 
     // Volle Kraft nach rechts!
-    vector = robokit_make_vector_polar(90, ROBOKIT_MAX_SPEED);
+    vector = robokit_make_vector_polar(45, ROBOKIT_MAX_SPEED);
     robokit_vector_to_motor(vector, &motor_left, &motor_right);
 
     TAAssertMotorForward(motor_left, 100);
     TAAssertMotorForward(motor_right, 0);
 
     // Volle Kraft nach links!
-    vector = robokit_make_vector_polar(-90, ROBOKIT_MAX_SPEED);
+    vector = robokit_make_vector_polar(90, ROBOKIT_MAX_SPEED);
     robokit_vector_to_motor(vector, &motor_left, &motor_right);
 
-    TAAssertMotorForward(motor_left, 0);
-    TAAssertMotorForward(motor_right, 100);
+    TAAssertMotorForward(motor_left, 100);
+    TAAssertMotorBackward(motor_right, 100);
 
     // Halbe Geschwindigkeit nach 2 Uhr
-    vector = robokit_make_vector_polar(60, 50);
+    vector = robokit_make_vector_polar(30, 50);
     robokit_vector_to_motor(vector, &motor_left, &motor_right);
 
-    TAAssertMotorForward(motor_left, 43);
+    TAAssertMotorForward(motor_left, 50);
     TAAssertMotorForward(motor_right, 25);
 }
 

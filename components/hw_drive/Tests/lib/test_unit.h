@@ -64,4 +64,7 @@ _tu_assert_vaequals(VEC1, #VEC1, ANGLE, #ANGLE)
 #define TAAssertMotorForward(MT_CTL, SPEED, ...) \
 _tu_assert_motor(MT_CTL, #MT_CTL, SPEED, #SPEED)
 
+#define TAAssertMotorBackward(MT_CTL, SPEED, ...) \
+_tu_assert_motorb(MT_CTL, #MT_CTL, SPEED, #SPEED)
+
 #endif /* test_unit_h */

@@ -129,8 +129,18 @@ void __ta_register_test(void (*)(void), const char *);
     _test_inc();\
     S_motor_ctl EXP_VAL1 = (MT_CTL); \
     if(EXP_VAL1.direction != (uint8_t)1 || EXP_VAL1.speed != (uint8_t)SPEED) {\
-        PRINT_ARGS(": Failed asserting that motor ", MT_CTL_STR, " drives forward with speed ", SPEED_STR); \
+        PRINT_ARGS(": Failed asserting that ", MT_CTL_STR, " drives forward with speed ", SPEED_STR); \
         _test_failed();\
+    }\
+})
+
+#define _tu_assert_motorb(MT_CTL, MT_CTL_STR, SPEED, SPEED_STR) \
+({\
+    _test_inc();\
+    S_motor_ctl EXP_VAL1 = (MT_CTL); \
+    if(EXP_VAL1.direction != (uint8_t)0 || EXP_VAL1.speed != (uint8_t)SPEED) {\
+    PRINT_ARGS(": Failed asserting that ", MT_CTL_STR, " drives backward with speed ", SPEED_STR); \
+    _test_failed();\
     }\
 })
 
