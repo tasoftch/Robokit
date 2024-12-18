@@ -35,6 +35,7 @@
 
 static int tests_done=0;
 static int tests_failed=0;
+static int tests_risky=0;
 
 static int ts_count = 0;
 static int ts_failed = 0;
@@ -59,6 +60,8 @@ void __ta_register_test(void (*func)(void), const char *name) {
 static void _test_suite_init(void) {
     ts_count = 0;
     ts_failed = 0;
+    tc_count = 0;
+    tc_failed = 0;
 }
 
 void _tu_print_error(const char *fn_name, int line, int num_args, ...) {
@@ -98,6 +101,7 @@ void TARunTests(void) {
 
         if(tc_count < 1) {
             printf("    :: Risky! No assertion performed.\n\n");
+            tests_risky++;
             continue;
         }
 
@@ -106,18 +110,25 @@ void TARunTests(void) {
         } else {
             printf("    :: Failed with %d failed of %d assertions.\n\n", tc_failed, tc_count);
         }
-
-        printf("== Test Suite %s ==\n", _test_suite_names[i]);
     }
 
-    if(ts_count < 1) {
+    if(tests_done < 1) {
         printf(":: Risky! No assertion performed.\n\n");
         return;
     }
 
-    if(tc_failed < 1) {
-        printf(":: Passed with %d assertions.\n\n", ts_count);
+    printf("************** CONCLUSION **************\n");
+
+    if(tests_failed < 1) {
+        if(tests_risky) {
+            printf("*  Passed with %d assertions. ==\n", tests_done);
+            printf("** BUT CONTAINS %d RISKY TESTS. ==\n", tests_risky);
+        } else {
+            printf("*  Passed with %d assertions. ==\n", tests_done);
+        }
     } else {
-        printf(":: Failed with %d failed of %d assertions.\n\n", ts_failed, ts_count);
+        printf("** Failed with %d failed of %d assertions.==\n", tests_done, tests_failed);
+        printf("*  Passed %d assertions. ==\n", tests_done);
     }
+    printf("****************************************\n\n");
 }

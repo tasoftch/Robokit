@@ -129,6 +129,10 @@ TEST_SUITE("Motor Controller") {
     TAAssertMotorForward(motor_right, 25);
 }
 
+TEST_SUITE("Follow A Line Correction") {
+
+}
+
 int main() {
 	TARunTests();
 	return 0;
