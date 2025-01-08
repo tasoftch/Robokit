@@ -1,0 +1,17 @@
+@startuml
+skinparam defaultTextAlignment center
+
+start
+:Webserver;
+:Socket Server;
+
+repeat
+	:Wait for Message;
+	if (Can parse Message?) then (YES)
+		:Create Robokit Command;
+
+			:Enqueue Command\ninto Robokit HAL;
+	else(NO)
+	endif
+
+@enduml

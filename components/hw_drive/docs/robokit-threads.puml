@@ -1,0 +1,41 @@
+@startuml
+'https://plantuml.com/use-case-diagram
+
+
+
+package "Firmware" #LightGreen {
+	(Robokit Firmware) as HAL
+	(Drive Commands)
+	(Sensors)
+}
+
+package "Software" #LightBlue {
+	(User Interface) as (GUI)
+	(WLAN)
+	(Web Server)
+}
+
+(Power On) as Power
+(Bootstrap) as Boot
+(Start OS) as OS
+
+
+
+Power --> Boot
+Boot --> OS
+OS -down-> (GUI)
+(GUI) --> (WLAN)
+(GUI) --> (Web Server)
+
+OS --> HAL
+HAL --> (Drive Commands)
+HAL --> (Sensors)
+OS ..> (Sensors) : Task
+
+note right of OS
+Starting FreeRTOS
+intern task scheduler
+end note
+
+
+@enduml
