@@ -1,0 +1,23 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+
+package "Task Initialisation" {
+  [Robokit HAL] - [Sensor System]
+  [Graphical Interface]
+}
+
+node "HAL" {
+  GPIO - [GPIO Driver]
+  [Robokit HAL] --> GPIO
+  [Sensor System] --> GPIO
+}
+
+cloud {
+  [WLAN]
+  [Graphical Interface] --> [WLAN]
+}
+
+
+
+@enduml

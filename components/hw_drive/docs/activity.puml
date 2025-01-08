@@ -1,0 +1,10 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:Bootstrap HAL;
+:Start Robokit;
+:Start WLAN;
+:Start Web Server;
+
+@enduml
