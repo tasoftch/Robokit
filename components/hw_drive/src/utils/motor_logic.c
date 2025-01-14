@@ -22,10 +22,10 @@
  * SOFTWARE.
  */
 
-#include "motor_logic.h"
+#include <private/motor_logic.h>
 
-#include "p_lut.h"
-#include "n_lut.h"
+#include "private/p_lut.h"
+#include "private/n_lut.h"
 
 /**
  * Converts a given vector of speed and angle into motor control commands for left and right motors.

@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-#include "pwm_motors.h"
+#include "hal/pwm_motors.h"
 
-#include <robokit_log.h>
+#include <private/robokit_log.h>
 #include <stdio.h>
 #include <driver/ledc.h>
 

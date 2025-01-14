@@ -22,32 +22,38 @@
  * SOFTWARE.
  */
 
-#ifndef motor_logic_h
-#define motor_logic_h
+//
+//  commands.c
+//  robokit
+//
+//  Created by Thomas Abplanalp on 07.11.24.
+//
 
-#include <stdio.h>
-
-#include "config.h"
-#include "vector.h"
-
-// Strukturen dieser Art liegen der Motorsteuerung an.
-// Sie definiert die Richtung und Geschwindigkeit des Motors.
-typedef struct {
-    uint8_t direction:1;            // 1: vorwärts, 0: rückwärts
-    uint8_t speed:7;                // 0 Stillstand, 100 Vollgas
-} S_motor_ctl;
+#include "main_commands.h"
+#include <private/robokit_log.h>
 
 /**
- * @brief Converts a vector into motor speed and direction commands for two motors.
+ * Initializes the given command structure to zero.
  *
- * This function translates the input vector, consisting of angle and speed,
- * into control signals for two motors, controlling their speed and direction.
+ * This function sets all fields of the provided S_command structure
+ * to their default or initial state by zero-initializing the structure.
  *
- * @param[in] vector S_vector The input vector with angle and speed.
- * @param[out] pwm_motor_left S_motor_ctl* Pointer to the motor control structure for the left motor.
- * @param[out] pwm_motor_right S_motor_ctl* Pointer to the motor control structure for the right motor.
- * @return uint8_t Returns 1 if the conversion is successful, otherwise returns 0.
+ * @param cmd Pointer to the S_command structure to be initialized.
+ *            If the pointer is null, the function does nothing.
  */
-uint8_t robokit_vector_to_motor(S_vector vector, S_motor_ctl *pwm_motor_left, S_motor_ctl *pwm_motor_right);
+void _robokit_command_init(S_command *cmd) {
+    if(cmd) {
+        *cmd = ((S_command){0});
+    }
+}
 
-#endif /* motor_logic_h */
+/**
+ * Initializes the command system for the application.
+ *
+ * This function logs an informational message indicating that the
+ * command system initialization process has started. It is intended
+ * to be called during the device initialization sequence.
+ */
+void _commands_init(void) {
+    ROBOKIT_LOGI("Commands init");
+}

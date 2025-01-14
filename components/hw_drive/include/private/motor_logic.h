@@ -22,30 +22,30 @@
  * SOFTWARE.
  */
 
-#include "device.h"
-#include <private/robokit_log.h>
-#include <hal/fal.h>
+#ifndef motor_logic_h
+#define motor_logic_h
 
+#include "config.h"
+#include "vector.h"
 
-extern void _commands_init(void);
-extern void _led_commands_init(void);
-extern void _drive_commands_init(void);
-extern void _scheduler_init(void);
-extern void _test_commands_init(void);
-extern void _robokit_pwm_motors_init(void);
+// Strukturen dieser Art liegen der Motorsteuerung an.
+// Sie definiert die Richtung und Geschwindigkeit des Motors.
+typedef struct {
+    uint8_t direction:1;            // 1: vorwärts, 0: rückwärts
+    uint8_t speed:7;                // 0 Stillstand, 100 Vollgas
+} S_motor_ctl;
 
 /**
- * @brief Init Verteilung in der Hardware
+ * @brief Converts a vector into motor speed and direction commands for two motors.
+ *
+ * This function translates the input vector, consisting of angle and speed,
+ * into control signals for two motors, controlling their speed and direction.
+ *
+ * @param[in] vector S_vector The input vector with angle and speed.
+ * @param[out] pwm_motor_left S_motor_ctl* Pointer to the motor control structure for the left motor.
+ * @param[out] pwm_motor_right S_motor_ctl* Pointer to the motor control structure for the right motor.
+ * @return uint8_t Returns 1 if the conversion is successful, otherwise returns 0.
  */
-void device_init(void) {
-    ROBOKIT_LOGI("Initializing device...");
-    _scheduler_init();
-    _commands_init();
-    _drive_commands_init();
-    _led_commands_init();
-    _test_commands_init();
-    _robokit_pwm_motors_init();
-    fal_init();
-    ROBOKIT_LOGI("Device initialized");
-}
+uint8_t robokit_vector_to_motor(S_vector vector, S_motor_ctl *pwm_motor_left, S_motor_ctl *pwm_motor_right);
 
+#endif /* motor_logic_h */

@@ -27,6 +27,25 @@
 
 #include "main_commands.h"
 
+#define ROBOKIT_FAL_BLACK			0b000
+#define ROBOKIT_FAL_RED				0b100
+#define ROBOKIT_FAL_GREEN			0b010
+#define ROBOKIT_FAL_BLUE			0b001
+#define ROBOKIT_FAL_YELLOW			0b110
+#define ROBOKIT_FAL_MAGENTA			0b101
+#define ROBOKIT_FAL_CYAN			0b011
+#define ROBOKIT_FAL_WHITE			0b111
+
+typedef struct {
+ uint16_t fb_1_left:3;
+ uint16_t fb_2_middle_left:3;
+ uint16_t fb_3_middle:3;
+ uint16_t fb_4_middle_right:3;
+ uint16_t fb_5_right:3;
+} S_Fal_Result;
+
+typedef void (*Fal_Interpreter_Callback)(S_Fal_Result *result);
+
 /**
  * @brief Constructs a FAL (Follow A Line) calibrate command.
  * @param[out] cmd S_command* Pointer to the command structure to be initialized.
@@ -58,5 +77,23 @@ uint8_t robokit_make_command_fal_enable(S_command *cmd);
  * @return uint8_t Returns 1 if the command was successfully configured, 0 if the input pointer was null.
  */
 uint8_t robokit_make_command_fal_disable(S_command *cmd);
+
+/**
+ * @brief Sets the line result interpreter function.
+ *
+ * This function gets frequently called upon the follow a line sensors measurement result.
+ * It is responsible to translate the result into drive commands for adjusting the direction.
+ *
+ * @param [in] interpreter void(*)(S_Fal_Result*) Function pointer to be used as the new line result interpreter.
+ */
+void fal_set_line_result_interpreter(Fal_Interpreter_Callback interpreter);
+
+
+/**
+ * @brief Interprets the line following sensor result and issues appropriate drive commands.
+ * @param [in] result S_Fal_Result* Pointer to the sensor data structure containing readings from five sensors.
+ */
+void fal_default_line_result_interpreter(S_Fal_Result *result);
+
 
 #endif //FAL_COMMANDS_H

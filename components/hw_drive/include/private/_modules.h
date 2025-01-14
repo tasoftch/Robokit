@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 Th. Abplanalp, F. Romer
+ * Copyright (c) 2025 Th. Abplanalp, F. Romer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,37 +23,21 @@
  */
 
 //
-//  commands.c
-//  robokit
-//
-//  Created by Thomas Abplanalp on 07.11.24.
+// Created by Thomas Abplanalp on 14.01.25.
 //
 
-#include "main_commands.h"
-#include "robokit_log.h"
+#ifndef _MODULES_H
+#define _MODULES_H
 
-/**
- * Initializes the given command structure to zero.
- *
- * This function sets all fields of the provided S_command structure
- * to their default or initial state by zero-initializing the structure.
- *
- * @param cmd Pointer to the S_command structure to be initialized.
- *            If the pointer is null, the function does nothing.
- */
-void _robokit_command_init(S_command *cmd) {
-    if(cmd) {
-        *cmd = ((S_command){0});
-    }
-}
+#define _ROBOKIT_MAKE_NAME2(NAME, LINE) NAME##LINE
+#define _ROBOKIT_MAKE_NAME(NAME, LINE) _ROBOKIT_MAKE_NAME2(NAME, LINE)
 
-/**
- * Initializes the command system for the application.
- *
- * This function logs an informational message indicating that the
- * command system initialization process has started. It is intended
- * to be called during the device initialization sequence.
- */
-void _commands_init(void) {
-    ROBOKIT_LOGI("Commands init");
-}
+#define ROBOKIT_REGISTER_COMMAND_HANDLER_EX( CMD_NR, CMD_TYPE, NAME )\
+	static void _ROBOKIT_MAKE_NAME(_robokit_mod_, NAME) (CMD_TYPE *cmd, uint8_t mode, uint8_t *flags);\
+	__attribute__((constructor)) static void _ROBOKIT_MAKE_NAME(_robokit_mod_register_, NAME)(void) { \
+		robokit_register_command_fn(CMD_NR, _ROBOKIT_MAKE_NAME(_robokit_mod_, NAME));  \
+		ROBOKIT_LOGI(#NAME);\
+	}    \
+	static void _ROBOKIT_MAKE_NAME(_robokit_mod_, NAME) (CMD_TYPE *cmd, uint8_t mode, uint8_t *flags)
+
+#endif //_MODULES_H

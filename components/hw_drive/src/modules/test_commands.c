@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-#include <command_data_containers.h>
+#include <private/command_data_containers.h>
 #include <stdio.h>
 #include "test_commands.h"
-#include "scheduler.h"
+#include <hal/scheduler.h>
 
-#include "robokit_log.h"
+#include <private/robokit_log.h>
 #include <led_strip.h>
 
 #ifndef LED_PIN

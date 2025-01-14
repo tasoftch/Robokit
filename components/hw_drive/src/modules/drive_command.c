@@ -24,12 +24,12 @@
 
 #include "drive_command.h"
 
-#include <motor_logic.h>
-#include <scheduler.h>
-#include <pwm_motors.h>
+#include <private/motor_logic.h>
+#include <hal/scheduler.h>
+#include <hal/pwm_motors.h>
 
-#include "command_data_containers.h"
-#include "robokit_log.h"
+#include <private/command_data_containers.h>
+#include <modules/robokit_module.h>
 
 extern void _robokit_command_init(S_command *cmd);
 
@@ -58,7 +58,9 @@ S_motor_config robokit_motor_right_get_config(void) { return right_config; }
  * E_SCHEDULE_MODE_PRECHECK mode. This might be used to set motor state flags
  * for direction and decay handling.
  */
-static void _robokit_task_handler(_S_command_drive *cmd, uint8_t mode, uint8_t *flags) {
+
+//static void _robokit_task_handler(_S_command_drive *cmd, uint8_t mode, uint8_t *flags) {
+ROBOKIT_REGISTER_COMMAND_HANDLER(E_COMMAND_VECTOR, _S_command_drive) {
 	if(mode == E_SCHEDULE_MODE_PRECHECK) {
 		*flags = cmd->flags;
 	}
@@ -69,50 +71,50 @@ static void _robokit_task_handler(_S_command_drive *cmd, uint8_t mode, uint8_t *
 			return;
 		}
 
-		uint8_t flags = 0;
-		flags |= cmd->m_left.fast_decay ? E_DRIVE_MOTOR_DR_LOW_FLAG : (E_DRIVE_MOTOR_DR_LOW_FLAG|E_DRIVE_MOTOR_DR_HIGH_FLAG);
-		flags |= cmd->m_ctl_left.direction ? E_DRIVE_MOTOR_FORWARD_FLAG : E_DRIVE_MOTOR_BACKWARD_FLAG;
+		uint8_t my_flags = 0;
+		my_flags |= cmd->m_left.fast_decay ? E_DRIVE_MOTOR_DR_LOW_FLAG : (E_DRIVE_MOTOR_DR_LOW_FLAG|E_DRIVE_MOTOR_DR_HIGH_FLAG);
+		my_flags |= cmd->m_ctl_left.direction ? E_DRIVE_MOTOR_FORWARD_FLAG : E_DRIVE_MOTOR_BACKWARD_FLAG;
 
 		if(cmd->m_left.switch_direction)
-			flags |= E_DRIVE_MOTOR_SWITCH_CONNECTORS;
+			my_flags |= E_DRIVE_MOTOR_SWITCH_CONNECTORS;
 
 		if(cmd->m_left.motor_1) {
-			robokit_pwm_motor_1_speed(cmd->m_ctl_left.speed, flags);
+			robokit_pwm_motor_1_speed(cmd->m_ctl_left.speed, my_flags);
 		}
 
 		if(cmd->m_left.motor_2) {
-			robokit_pwm_motor_2_speed(cmd->m_ctl_left.speed, flags);
+			robokit_pwm_motor_2_speed(cmd->m_ctl_left.speed, my_flags);
 		}
 
 		if(cmd->m_left.motor_3) {
-			robokit_pwm_motor_3_speed(cmd->m_ctl_left.speed, flags);
+			robokit_pwm_motor_3_speed(cmd->m_ctl_left.speed, my_flags);
 		}
 
 		if(cmd->m_left.motor_4) {
-			robokit_pwm_motor_4_speed(cmd->m_ctl_left.speed, flags);
+			robokit_pwm_motor_4_speed(cmd->m_ctl_left.speed, my_flags);
 		}
 
-		flags = 0;
-		flags |= cmd->m_right.fast_decay ? E_DRIVE_MOTOR_DR_LOW_FLAG : (E_DRIVE_MOTOR_DR_LOW_FLAG|E_DRIVE_MOTOR_DR_HIGH_FLAG);
-		flags |= cmd->m_ctl_right.direction ? E_DRIVE_MOTOR_FORWARD_FLAG : E_DRIVE_MOTOR_BACKWARD_FLAG;
+		my_flags = 0;
+		my_flags |= cmd->m_right.fast_decay ? E_DRIVE_MOTOR_DR_LOW_FLAG : (E_DRIVE_MOTOR_DR_LOW_FLAG|E_DRIVE_MOTOR_DR_HIGH_FLAG);
+		my_flags |= cmd->m_ctl_right.direction ? E_DRIVE_MOTOR_FORWARD_FLAG : E_DRIVE_MOTOR_BACKWARD_FLAG;
 
 		if(cmd->m_right.switch_direction)
-			flags |= E_DRIVE_MOTOR_SWITCH_CONNECTORS;
+			my_flags |= E_DRIVE_MOTOR_SWITCH_CONNECTORS;
 
 		if(cmd->m_right.motor_1) {
-			robokit_pwm_motor_1_speed(cmd->m_ctl_right.speed, flags);
+			robokit_pwm_motor_1_speed(cmd->m_ctl_right.speed, my_flags);
 		}
 
 		if(cmd->m_right.motor_2) {
-			robokit_pwm_motor_2_speed(cmd->m_ctl_right.speed, flags);
+			robokit_pwm_motor_2_speed(cmd->m_ctl_right.speed, my_flags);
 		}
 
 		if(cmd->m_right.motor_3) {
-			robokit_pwm_motor_3_speed(cmd->m_ctl_right.speed, flags);
+			robokit_pwm_motor_3_speed(cmd->m_ctl_right.speed, my_flags);
 		}
 
 		if(cmd->m_right.motor_4) {
-			robokit_pwm_motor_4_speed(cmd->m_ctl_right.speed, flags);
+			robokit_pwm_motor_4_speed(cmd->m_ctl_right.speed, my_flags);
 		}
 	}
 }
@@ -128,7 +130,7 @@ static void _robokit_task_handler(_S_command_drive *cmd, uint8_t mode, uint8_t *
  */
 void _drive_commands_init(void) {
 	ROBOKIT_LOGI("drive_commands_init");
-	robokit_register_command_fn(E_COMMAND_VECTOR, _robokit_task_handler);
+	//robokit_register_command_fn(E_COMMAND_VECTOR, _robokit_task_handler);
 }
 
 /**

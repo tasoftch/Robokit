@@ -22,16 +22,16 @@
  * SOFTWARE.
  */
 
-#include "scheduler.h"
+#include "hal/scheduler.h"
 
 #include "device.h"
 #include <esp_log.h>
-#include "fal.h"
+#include "hal/fal.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
-#include "robokit_log.h"
+#include <private/robokit_log.h>
 
 static volatile S_command command_stack[ROBOKIT_COMMAND_STACK_SIZE];
 static volatile uint8_t command_stack_head = 0;
@@ -44,7 +44,7 @@ static volatile uint8_t peripheralsStatus = 0;
 /**
  * @brief Hard Fault Handler
  *
- * Falls irgend etwas schief geht, wird der Task in diese Funktion geleitet.
+ * Falls irgendetwas schiefgeht, wird der Task in diese Funktion geleitet.
  * Mit der Endlosschleife verbleibt er da für Debug Zwecke.
  */
 void hal_error_handler() {

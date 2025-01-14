@@ -23,8 +23,8 @@
  */
 
 #include "fal_commands.h"
-#include <command_data_containers.h>
-#include "fal.h"
+#include <private/command_data_containers.h>
+#include "hal/fal.h"
 
 extern void _robokit_command_init(S_command *cmd);
 

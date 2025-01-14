@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 Th. Abplanalp, F. Romer
+ * Copyright (c) 2025 Th. Abplanalp, F. Romer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,19 @@
  * SOFTWARE.
  */
 
-#include "device.h"
+//
+// Created by Thomas Abplanalp on 14.01.25.
+//
+
+#ifndef ROBOKIT_MODULE_H
+#define ROBOKIT_MODULE_H
+
+#include <device.h>
 #include <private/robokit_log.h>
-#include <hal/fal.h>
+#include <private/command_data_containers.h>
 
+#include <private/_modules.h>
 
-extern void _commands_init(void);
-extern void _led_commands_init(void);
-extern void _drive_commands_init(void);
-extern void _scheduler_init(void);
-extern void _test_commands_init(void);
-extern void _robokit_pwm_motors_init(void);
+#define ROBOKIT_REGISTER_COMMAND_HANDLER( CMD_NR, CMD_TYPE )     ROBOKIT_REGISTER_COMMAND_HANDLER_EX( CMD_NR, CMD_TYPE, CMD_NR )
 
-/**
- * @brief Init Verteilung in der Hardware
- */
-void device_init(void) {
-    ROBOKIT_LOGI("Initializing device...");
-    _scheduler_init();
-    _commands_init();
-    _drive_commands_init();
-    _led_commands_init();
-    _test_commands_init();
-    _robokit_pwm_motors_init();
-    fal_init();
-    ROBOKIT_LOGI("Device initialized");
-}
-
+#endif //ROBOKIT_MODULE_H

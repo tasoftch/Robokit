@@ -23,10 +23,10 @@
  */
 
 #include "led_command.h"
-#include "command_data_containers.h"
-#include "robokit_log.h"
+#include <private/command_data_containers.h>
+#include <private/robokit_log.h>
 #include <led_strip.h>
-#include <scheduler.h>
+#include <hal/scheduler.h>
 
 
 #ifndef LED_PIN_ST

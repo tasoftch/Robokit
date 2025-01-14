@@ -22,19 +22,16 @@
  * SOFTWARE.
  */
 
-#include "fal.h"
+#include "hal/fal.h"
 
 #include <device.h>
-#include <led_command.h>
 #include <portmacro.h>
-#include <robokit_log.h>
+#include <private/robokit_log.h>
 #include <driver/gpio.h>
 #include <driver/adc.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 
-#include "scheduler.h"
-#include "command_data_containers.h"
+#include "hal/scheduler.h"
+#include <private/command_data_containers.h>
 
 #define ROBOKIT_FB_LEFT ADC_CHANNEL_0
 #define ROBOKIT_FB_MIDDLE_LEFT ADC_CHANNEL_1
@@ -60,7 +57,7 @@ static void (*my_fal_line_interpreter)(S_Fal_Result *) = fal_default_line_result
 static uint8_t is_running=0;
 static uint8_t is_calibrated=0;
 static uint8_t make_drive_command=0;
-static uint8_t drive_counter=0;
+static uint16_t drive_counter=0;
 
 uint8_t fal_is_calibrated(void) {
 	return is_calibrated;
@@ -81,69 +78,6 @@ unsigned char fal_name_of_color(uint8_t color) {
 
 	return '-';
 }
-
-
-void fal_default_line_result_interpreter(S_Fal_Result *result) {
-	S_command cmd;
-	S_vector vector;
-
-	uint8_t flags = 0;
-	static int8_t lut[] = {
-		0, 		    // -----
-		-45, 		// ----S
-		-30, 		// ---S-
-		-45, 		// ---SS
-		0, 		    // --S--
-		-30, 		// --S-S
-		-12, 		// --SS-
-		-30, 		// --SSS
-		30, 		// -S---
-		-3, 		// -S--S
-		0, 		    // -S-S-
-		-3, 		// -S-SS
-		12, 		    // -SS--
-		12, 		    // -SS-S
-		0, 		    // -SSS-
-		-3, 		// -SSSS
-		45, 		// S----
-		45, 		    // S---S
-		30, 		    // S--S-
-		-3, 		// S--SS
-		12, 		    // S-S--
-		0, 		    // S-S-S
-		0, 		    // S-SS-
-		0, 		    // S-SSS
-		30, 		// SS---
-		30, 		// SS--S
-		30, 		    // SS-S-
-		0, 		    // SS-SS
-		30, 		// SSS--
-		30, 		// SSS-S
-		0, 		    // SSSS-
-		0 		    // SSSSS
-	};
-	flags |= (result->fb_1_left == ROBOKIT_FAL_BLACK) ? (1<<4) : 0;
-	flags |= (result->fb_2_middle_left == ROBOKIT_FAL_BLACK) ? (1<<3) : 0;
-	flags |= (result->fb_3_middle == ROBOKIT_FAL_BLACK) ? (1<<2) : 0;
-	flags |= (result->fb_4_middle_right == ROBOKIT_FAL_BLACK) ? (1<<1) : 0;
-	flags |= (result->fb_5_right == ROBOKIT_FAL_BLACK) ? (1<<0) : 0;
-
-	vector = robokit_make_vector_polar(lut[flags], 50);
-
-	robokit_make_drive_command_vector(&cmd, vector);
-	robokit_push_command(&cmd, 0);
-
-	ROBOKIT_LOGI("FAL [1..5] %c %c %c %c %c %d",
-		fal_name_of_color( result->fb_1_left ) ,
-		fal_name_of_color( result->fb_2_middle_left ) ,
-		fal_name_of_color( result->fb_3_middle ) ,
-		fal_name_of_color( result->fb_4_middle_right ) ,
-		fal_name_of_color( result->fb_5_right ),
-		lut[flags]
-		);
-}
-
-
 
 static uint16_t fal_get_sensor_left(void) {
 	return adc1_get_raw(ROBOKIT_FB_LEFT);
@@ -200,9 +134,10 @@ static void _robokit_cmd_handler(_S_Command_Fal *cmd, uint8_t mode, uint8_t *fla
 			is_running = 1;
 		} else if(cmd->flags == E_FAL_OPTION_DISABLE) {
 			is_running = 0;
-			S_command cmd;
-			robokit_make_drive_command_fwd(&cmd, 0);
-			robokit_push_command(&cmd, 0);
+
+			S_command dcmd;
+			robokit_make_drive_command_fwd(&dcmd, 0);
+			robokit_push_command(&dcmd, 0);
 		}
 	}
 }
