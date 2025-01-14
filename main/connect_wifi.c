@@ -5,8 +5,8 @@ static const char *TAG = "Connect_WiFi";
 int s_retry_num = 0;
 
 // Define Wi-Fi credentials from menuconfig
-#define WIFI_SSID "Casa Dos Amigos"
-#define WIFI_PASSWORD "cda-tuk-2016"
+#define WIFI_SSID CONFIG_ESP_WIFI_SSID
+#define WIFI_PASSWORD CONFIG_ESP_WIFI_PASSWORD
 #define MAXIMUM_RETRY 5
 
 EventGroupHandle_t s_wifi_event_group;  // Event group for connection status
