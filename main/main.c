@@ -305,6 +305,9 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     robokit_push_command(&cmd,0);
     snprintf(echo_buffer, 64, "led an %s", "finish");
     vTaskDelay(2000/ portTICK_PERIOD_MS);
+    robokit_make_led_command_flush(&cmd)
+    robokit_push_command(&cmd,0);
+        
 
         break;
     
