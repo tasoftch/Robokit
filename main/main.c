@@ -297,11 +297,13 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
     break;
 
 
-        case 10:
+    case 10:
 
             
         robokit_push_command(&cmd,0);
         snprintf(echo_buffer, 64, "led an %s", "finish");
+
+        break;
     
     
 
