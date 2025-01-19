@@ -299,9 +299,11 @@ static esp_err_t handle_ws_req(httpd_req_t *req)
 
     case 10:
 
-            
-        robokit_push_command(&cmd,0);
-        snprintf(echo_buffer, 64, "led an %s", "finish");
+    uint32_t LEDs=0;
+    ROBOKIT_MAKE_LED_LIST(LEDs, LED_1, LED_5, LED_8, LED_15);
+    robokit_make_led_command_setup_list(&cmd, LEDs, 255, 0, 0)
+    robokit_push_command(&cmd,0);
+    snprintf(echo_buffer, 64, "led an %s", "finish");
 
         break;
     
