@@ -36,22 +36,37 @@
 #define ROBOKIT_MODULE_H
 
 #include <device.h>
-#include <private/robokit_log.h>
 #include <private/command_data_containers.h>
 #include <hal/scheduler.h>
 
 #include <private/_modules.h>
 
 /**
- *
+ * Defines a new function responding to enqueued commands.
+ * The macro requires a command number and a command type.
+ * It will expand this to the function signature F_command_callback
+ * defined in schedule.h
  */
-#define ROBOKIT_REGISTER_COMMAND_HANDLER( CMD_NR, CMD_TYPE )     ROBOKIT_REGISTER_COMMAND_HANDLER_EX( CMD_NR, CMD_TYPE, CMD_NR )
+#define ROBOKIT_MODULE_COMMAND_HANDLER( CMD_NR, CMD_TYPE )	ROBOKIT_REGISTER_COMMAND_HANDLER_EX( CMD_NR, CMD_TYPE, CMD_NR )
 
 /**
- *
+ * Defines a function that is called at the bootstrap of the system.
+ * Software must call device_init();
+ * During this call, all defined init module functions are called.
+ * The order is not specified and must be independent.
  */
-#define ROBOKIT_MODULE_INIT(NAME)								ROBOKIT_MODULE_INIT_EX(NAME)
+#define ROBOKIT_MODULE_INIT(...)				ROBOKIT_MODULE_INIT_EX(__VA_ARGS__)
 
+/**
+ * Defines a function that frequently is called and should update any
+ * sensor values. It should not block or delay if anyhow possible.
+ */
+#define ROBOKIT_MODULE_SENSOR_LOOP(...)				ROBOKIT_MODULE_LOOP_EX(__VA_ARGS__)
+
+/**
+ * Helper macro to reset commands.
+ */
 #define ROBOKIT_COMMAND_RESET(CMD) ( CMD = (S_command){0} )
 #define ROBOKIT_COMMAND_RESET_P(CMD) if(CMD) { *CMD = (S_command){0}; }
+
 #endif //ROBOKIT_MODULE_H

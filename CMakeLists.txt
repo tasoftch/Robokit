@@ -30,4 +30,6 @@ else()
     set(ENV{IDF_TARGET} "esp32c6")
     include($ENV{IDF_PATH}/tools/cmake/project.cmake)
     project(Robo)
+    # Damit die automatische Registrierung der Module in hw_drive funktioniert.
+    target_link_options(Robo.elf PRIVATE "-Wl,--whole-archive" "${CMAKE_CURRENT_BINARY_DIR}/esp-idf/hw_drive/libhw_drive.a" "-Wl,--no-whole-archive")
 endif ()
