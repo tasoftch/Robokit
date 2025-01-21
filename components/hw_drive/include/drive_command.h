@@ -73,63 +73,15 @@ uint8_t robokit_make_drive_command_vector(S_command *cmd, S_vector vector);
 
 /**
  * Motor configuration
- * The motor configuration is required to assign motor left and motor right.
+ * The motor configuration is required to assign motor numbers to motor left and motor right.
  */
-
 typedef struct {
- /**
-  * @brief Represents the state of the first motor in a motor configuration setup.
-  *
-  * The motor_1 member is a bit-field that indicates whether the first motor
-  * in a set of motors is active. This can be used to toggle the motor on or off
-  * in scenarios where bit manipulation provides efficient state control.
-  *
-  * @param[in] motor_1 uint8_t:1 Bit indicating the active state of motor 1.
-  */
- uint8_t motor_1:1;
- /**
-  * @brief Bitfield indicating the state of the second motor.
-  *
-  * Represents a binary flag indicating whether the second motor is active or inactive.
-  */
- uint8_t motor_2:1;
- /**
-  * @brief Represents the configuration state of the third motor.
-  *
-  * The `motor_3` bit field indicates whether the third motor in a set of four
-  * motors is activated (1) or deactivated (0). It is part of the motor configuration
-  * structure used to control multiple motors simultaneously.
-  */
- uint8_t motor_3:1;
- /**
-  * @brief Represents the configuration state of the fourth motor.
-  *
-  * This bit field indicates whether the fourth motor is active in the
-  * motor configuration structure. It is used in controlling the state
-  * of the motor in the drive system.
-  */
- uint8_t motor_4:1;
- /**
-  * @brief Fast decay mode flag for motor control configuration.
-  *
-  * This flag indicates whether the fast decay mode is enabled for a motor in the
-  * configuration. Fast decay is a method used in motor drive to stop the current
-  * flowing through a motor winding quickly, allowing for more precise control over
-  * the motor's stopping and responsiveness.
-  *
-  * @return uint8_t Returns 1 if fast decay mode is enabled, otherwise returns 0.
-  */
- uint8_t fast_decay:1;
- /**
-  * @brief Indicates if the motor direction should be switched.
-  *
-  * This field is used to determine whether the direction of motor connectors
-  * should be switched. A value of '1' indicates that the direction should be
-  * switched, while a value of '0' means the direction remains unchanged.
-  *
-  * @param[in] switch_direction uint8_t Direction switch flag for motors.
-  */
- uint8_t switch_direction:1;
+    uint8_t motor_1:1;
+    uint8_t motor_2:1;
+    uint8_t motor_3:1;
+    uint8_t motor_4:1;
+    uint8_t fast_decay:1;
+    uint8_t switch_direction:1;
 } S_motor_config;
 
 
