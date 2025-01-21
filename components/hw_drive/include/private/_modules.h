@@ -32,12 +32,19 @@
 #define _ROBOKIT_MAKE_NAME2(NAME, LINE) NAME##LINE
 #define _ROBOKIT_MAKE_NAME(NAME, LINE) _ROBOKIT_MAKE_NAME2(NAME, LINE)
 
+void __robokit_register_init_callback(void(*)(void));
+
 #define ROBOKIT_REGISTER_COMMAND_HANDLER_EX( CMD_NR, CMD_TYPE, NAME )\
 	static void _ROBOKIT_MAKE_NAME(_robokit_mod_, NAME) (CMD_TYPE *cmd, uint8_t mode, uint8_t *flags);\
 	__attribute__((constructor)) static void _ROBOKIT_MAKE_NAME(_robokit_mod_register_, NAME)(void) { \
 		robokit_register_command_fn(CMD_NR, _ROBOKIT_MAKE_NAME(_robokit_mod_, NAME));  \
-		ROBOKIT_LOGI(#NAME);\
 	}    \
 	static void _ROBOKIT_MAKE_NAME(_robokit_mod_, NAME) (CMD_TYPE *cmd, uint8_t mode, uint8_t *flags)
 
+#define ROBOKIT_MODULE_INIT_EX(NAME, ...)\
+	static void _ROBOKIT_MAKE_NAME(_robokit_init_, __LINE__) (void);\
+	__attribute__((constructor)) static void _ROBOKIT_MAKE_NAME(_robokit_init_register, __LINE__)(void) { \
+		__robokit_register_init_callback(_ROBOKIT_MAKE_NAME(_robokit_init_, __LINE__));  \
+	}    \
+	static void _ROBOKIT_MAKE_NAME(_robokit_init_, __LINE__) (void)
 #endif //_MODULES_H
