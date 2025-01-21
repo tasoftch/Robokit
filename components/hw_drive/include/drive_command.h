@@ -29,36 +29,45 @@
 #include "vector.h"
 
 /**
- * @brief Constructs a drive command to move forward at a specified speed.
+ * @brief Constructs a drive command for moving forward with a specified speed.
  *
- * This function initializes the given command structure to drive forward using
- * a specified speed and enables the IMU if applicable. It uses polar vector
- * conversion to set the direction and speed before finalizing the command.
+ * This function creates a drive command vector with a polar vector at zero
+ * angle and a specified speed.
  *
- * @param[out] cmd S_command* Pointer to the command structure to be initialized.
- * @param[in] speed T_Speed The speed at which to move forward.
+ * @param cmd A pointer to an S_command structure where the drive command
+ * will be stored.
+ * @param speed A T_Speed value indicating the desired speed of the forward
+ * drive.
  *
- * @return uint8_t Returns a status indicator of the operation, typically 0 for failure or non-zero for success.
+ * @return 1 on success, 0 otherwise
  */
 uint8_t robokit_make_drive_command_fwd(S_command *cmd, T_Speed speed);
 
 /**
- * @brief Creates a drive command to move backward at a specified speed.
- * @param [out] cmd S_command* Pointer to the command structure to be populated.
- * @param [in] speed T_Speed The speed at which to move backward.
- * @return uint8_t Success flag indicating if the command was successfully created and modified.
+ * @brief Constructs a drive command for moving backward with a specified speed.
+ *
+ * This function creates a drive command vector with a polar vector at 180
+ * angle and a specified speed.
+ *
+ * @param cmd A pointer to an S_command structure where the drive command
+ * will be stored.
+ * @param speed A T_Speed value indicating the desired speed of the forward
+ * drive.
+ *
+ * @return 1 on success, 0 otherwise
  */
 uint8_t robokit_make_drive_command_bwd(S_command *cmd, T_Speed speed);
 
 /**
- * @brief Creates a drive command from a given vector.
+ * @brief Constructs a drive command for moving in any given direction specified by a vector.
  *
- * Initializes the given command structure and sets it up with the vector's angle and speed.
- * Converts the provided vector into motor control signals and updates the command with the motor configurations.
+ * This function creates a drive command using a specified vector.
  *
- * @param [out] cmd S_command* Pointer to the command structure to be initialized and populated.
- * @param [in] vector S_vector The vector containing the angle and speed for the drive command.
- * @return uint8_t Returns 1 if the command was successfully created, 0 otherwise.
+ * @param cmd A pointer to an S_command structure where the drive command
+ * will be stored.
+ * @param vector A S_Vector value indicating the desired direction
+ *
+ * @return 1 on success, 0 otherwise
  */
 uint8_t robokit_make_drive_command_vector(S_command *cmd, S_vector vector);
 
@@ -125,26 +134,26 @@ typedef struct {
 
 
 /**
- * @brief Sets the configuration for the left motor.
- * @param[in] config S_motor_config The desired motor configuration.
+ * @brief Changes the pwm configuration for the left motor
+ * @param config The new configuration
  */
 void robokit_motor_left_set_config(S_motor_config config);
 
 /**
- * @brief Sets the configuration for the right motor.
- * @param [in] config S_motor_config The configuration to be applied to the right motor.
+ * @brief Changes the pwm configuration for the right motor
+ * @param config The new configuration
  */
 void robokit_motor_right_set_config(S_motor_config config);
 
 /**
- * @brief Retrieves the motor configuration for the left motor.
- * @return S_motor_config The configuration settings for the left motor.
+ * @brief Returns the current active pwm configuration for the left motor
+ * @return The current configuration
  */
 S_motor_config robokit_motor_left_get_config(void);
 
 /**
- * @brief Retrieves the motor configuration for the right motor.
- * @return S_motor_config The configuration of the right motor.
+ * @brief Returns the current active pwm configuration for the right motor
+ * @return The current configuration
  */
 S_motor_config robokit_motor_right_get_config(void);
 
