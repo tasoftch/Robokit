@@ -1,0 +1,22 @@
+@startuml
+'https://plantuml.com/state-diagram
+
+state "Use Case #1" as UC1
+state "Use Case #2" as UC2
+state "Use Case #3" as UC3
+state "Use Case #4" as UC4
+state "Use Case #5" as UC5
+
+UC1 : Vorwärts fahren
+UC2 : Kurve fahren
+UC3 : Follow A Line
+UC4 : LED Kette
+UC5 : Geradeaus fahren
+UC5 : nach IMU
+
+UC1 --> UC2 : alle
+UC2 --> UC3 : EIT
+UC2 --> UC4 : ST
+UC3 --> UC5 : alle
+UC4 --> UC5 : alle
+@enduml

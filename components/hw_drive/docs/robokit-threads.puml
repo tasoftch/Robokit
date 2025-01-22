@@ -5,36 +5,36 @@
 
 package "Firmware" #LightGreen {
 	(Robokit Firmware) as HAL
-	(Drive Commands)
-	(Sensors)
+	(Fahr-Kommandos)
+	(Sensoren)
 }
 
 package "Software" #LightBlue {
-	(User Interface) as (GUI)
+	(Benutzer Interface) as (GUI)
 	(WLAN)
 	(Web Server)
 }
 
-(Power On) as Power
-(Bootstrap) as Boot
+(Einschalten) as Power
+(Aufstart "Boot") as Boot
 (Start OS) as OS
 
 
 
 Power --> Boot
 Boot --> OS
-OS -down-> (GUI)
+OS -down-> (GUI) : Task Prio 5
 (GUI) --> (WLAN)
 (GUI) --> (Web Server)
 
-OS --> HAL
-HAL --> (Drive Commands)
-HAL --> (Sensors)
-OS ..> (Sensors) : Task
+OS --> HAL : Task Prio 0
+HAL --> (Fahr-Kommandos)
+HAL --> (Sensoren)
+OS ..> (Sensoren) : Task Prio 3
 
 note right of OS
-Starting FreeRTOS
-intern task scheduler
+FreeRTOS wird gestartet und
+lädt den interner Task Manager
 end note
 
 

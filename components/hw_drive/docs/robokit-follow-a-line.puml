@@ -1,0 +1,28 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+skinparam defaultTextAlignment center
+
+|Software|
+:Send Calibration Command;
+|Firmware|
+:Reset Sensor Cache;
+:Send "Straight Forward" Command;
+:Capture max and min color
+until white color detected
+or 1s passed;
+:Send "Stop" Command;
+|Software|
+if(Calibration successful?) then(YES)
+	:Send Follow A Line Command;
+	|Firmware|
+	repeat
+		:Read Follow A Line;
+		:Interpret FAL Result;
+		|Software|
+		:Translate interpretation
+		into drive commands;
+		|Firmware|
+	repeat while (Is FAL still enabled?)
+else(NO)
+
+@enduml

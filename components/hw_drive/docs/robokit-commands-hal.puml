@@ -3,22 +3,27 @@
 skinparam defaultTextAlignment center
 
 start
-:Initialization of\nGPIO\nDrivers (Motor and LED)\nSensors;
-:Function register;
+:Hardware-Module laden\nGPIO\nLED\nMotor-Treiber;
+:Kommandos mit Funktionen registrieren;
 
 repeat
-	:Wait For Command;
-	if (Is Command valid?) then(YES)
-		if(Is a function registered for command?) then(YES)
-			:Contact HAL;
-			if (Does HAL accept command?) then (YES)
-				:Forward command to HAL;
-			else(NO)
-				:Report Failure;
+	#palegreen:Auf Kommando Warten;
+	note left
+	Alle Kommandos werden hier
+	eingeschleust.
+	====
+	* max <b>8</b> Kommandos pendent
+	end note
+	if (Ist Kommando gültig?) then(JA)
+		if(Ist eine Funktion\nregistriert für Kommando?) then(JA)
+			:Kontaktiere HAL;
+			if (Akzeptiert HAL das Kommando?) then (JA)
+				:Leite Kommando weiter an\nModul in der Hardware;
+			else(NEIN)
+				:Melde einen Fehler;
 			endif
-		else(NO)
+		else(NEIN)
 		endif
-	else(NO)
-
+	else(NEIN)
 
 @enduml
