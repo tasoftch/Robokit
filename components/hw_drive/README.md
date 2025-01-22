@@ -1,9 +1,6 @@
 
 # Komponente hw_drive (Firmware)
 
-<details>
-<summary>Inhaltsverzeichnis</summary>
-
 - [Allgemein](#allgemein)
 - [Verwendung](#verwendung)
 - [Vorgehen in Software](#vorgehen-software)
@@ -13,7 +10,6 @@
 - [Modul LED Streifen](#modul-led-stripe)
 - [Modul Follow A Line](#modul-follow-a-line-sensor)
 
-</details>
 
 ## Allgemein
 Die Firmware des Roboters wird als espressif component hw_drive programmiert.
