@@ -64,6 +64,6 @@ typedef struct {
 	void *callback;
 } _S_Command_Fal;
 
-#define _ROBOKIT_CMD_CAST(TYPE, CMD) ((TYPE)(CMD))
+#define ROBOKIT_CMD_CAST(TYPE, CMD) ((TYPE)(CMD))
 
 #endif //COMMAND_DATA_CONTAINERS_H
