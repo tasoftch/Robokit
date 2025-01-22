@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 
+// Simple lookup table to assign positive vector angles to motors speed ratio
 static const int8_t _motor_lut_pwm_positive_deg[120][2] = {
     {100, 100},
     {100, 99},

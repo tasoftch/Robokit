@@ -79,17 +79,14 @@
 
 
 /**
- * @brief Creates a command to set up a specific LED with the given color parameters.
+ * @brief This function constructs an LED command setup for a single LED with specified color values.
  *
- * This function sets up the command structure to configure a specific LED number with
- * designated red, green, and blue color intensity values.
- *
- * @param [out] cmd S_command* Pointer to the command structure that will be populated.
- * @param [in] LED_number uint8_t The LED number to configure.
- * @param [in] red uint8_t Intensity of the red color component.
- * @param [in] green uint8_t Intensity of the green color component.
- * @param [in] blue uint8_t Intensity of the blue color component.
- * @return uint8_t Result code indicating success or failure of the command setup.
+ * @param cmd A pointer to the S_command structure for holding the LED command setup.
+ * @param LED_number The index of the LED to set up.
+ * @param red The intensity value for the red color component (0-255).
+ * @param green The intensity value for the green color component (0-255).
+ * @param blue The intensity value for the blue color component (0-255).
+ * @return A value indicating the success or failure of creating the LED command setup.
  */
 uint8_t robokit_make_led_command_setup(S_command *cmd, uint8_t LED_number, uint8_t red, uint8_t green, uint8_t blue);
 
@@ -100,11 +97,11 @@ uint8_t robokit_make_led_command_setup(S_command *cmd, uint8_t LED_number, uint8
  * RGB color values in the provided command structure. It initializes the command and
  * assigns the appropriate command type for LED setup.
  *
- * @param[out] cmd S_command* A pointer to the command structure to be configured.
- * @param[in] LED_numbers uint32_t A bit mask representing the LED numbers to be configured.
- * @param[in] red uint8_t The intensity of the red color (0-255) for the LEDs.
- * @param[in] green uint8_t The intensity of the green color (0-255) for the LEDs.
- * @param[in] blue uint8_t The intensity of the blue color (0-255) for the LEDs.
+ * @param cmd A pointer to the command structure to be configured.
+ * @param LED_numbers A bit mask representing the LED numbers to be configured.
+ * @param red The intensity of the red color (0-255) for the LEDs.
+ * @param green The intensity of the green color (0-255) for the LEDs.
+ * @param blue The intensity of the blue color (0-255) for the LEDs.
  *
  * @return uint8_t Returns 1 on successful configuration, 0 if the command structure is null.
  */
@@ -116,19 +113,20 @@ uint8_t robokit_make_led_command_setup_list(S_command *cmd, uint32_t LED_numbers
  * This function initializes the given command structure for flushing LED settings
  * and sets the appropriate command and data values.
  *
- * @param [out] cmd S_command* Pointer to the command structure to be initialized and set for LED flush.
- * @return uint8_t Returns 1 if the command was successfully prepared, otherwise returns 0.
+ * @param cmd Pointer to the command structure to be initialized and set for LED flush.
+ * @return Returns 1 if the command was successfully prepared, otherwise returns 0.
  */
 uint8_t robokit_make_led_command_flush(S_command *cmd);
 
 /**
  * @brief Initializes the LED command to clear the current state.
  *
- * This function prepares a command structure to flush all LED setups.
- * It initializes the command structure with the necessary settings to clear the LED state.
+ * This function initializes a clear LED command for the Robokit system.
+ * It sets up the command structure to flush previously configured LED settings
+ * to the LED strip.
  *
- * @param [out] cmd S_command* Pointer to the command structure to be initialized.
- * @return uint8_t Returns 1 if the command structure is successfully initialized, 0 otherwise.
+ * @param cmd S_command* Pointer to the command structure to be initialized.
+ * @return Returns 1 if the command structure is successfully initialized, 0 otherwise.
  */
 uint8_t robokit_make_led_command_clear(S_command *cmd);
 

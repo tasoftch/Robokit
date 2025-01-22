@@ -26,7 +26,6 @@
 
 #include "device.h"
 #include <esp_log.h>
-#include "hal/fal.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
@@ -39,10 +38,19 @@ static volatile uint8_t command_stack_head = 0;
 static F_command_callback _callback_fn_list[ROBOKIT_MAX_SCHEDULED_COMMANDS] = {0};
 static QueueHandle_t commandQueue;
 
-static volatile uint8_t peripheralsStatus = 0;
+static void(*_callbacks[ ROBOKIT_MAX_SCHEDULED_COMMANDS ])(void);
+static uint8_t _callback_count = 0;
+
+void __robokit_register_loop_callback(void(*cb)(void)) {
+	if(_callback_count < ROBOKIT_MAX_SCHEDULED_COMMANDS) {
+		_callbacks[ _callback_count++ ] = cb;
+	} else {
+		ROBOKIT_LOGE("Maximum number of init modules exceeded");
+	}
+}
 
 /**
- * @brief Hard Fault Handler
+ * @brief Hard fault Handler
  *
  * Falls irgendetwas schiefgeht, wird der Task in diese Funktion geleitet.
  * Mit der Endlosschleife verbleibt er da für Debug Zwecke.
@@ -50,7 +58,6 @@ static volatile uint8_t peripheralsStatus = 0;
 void hal_error_handler() {
 	ROBOKIT_LOGE("!! Hard fault !!");
 	while (1) {
-		;
 	}
 }
 
@@ -67,7 +74,7 @@ void hal_task_handler(S_command *cmd) {
  * @brief Haupt Task für das Einschleusen der Kommandos
  *
  * Dieser Task nimmt die Kommandos aus der Warteschlange und führt sie auf der Hardware aus.
- * Er sucht dabei nach einer registrierten Callback Funktion für ein Kommando und ruft sie auf.
+ * Er sucht dabei nach einer registrierten Callbackfunktion für ein Kommando und ruft sie auf.
  *
  * @param parameters void *
  */
@@ -86,10 +93,9 @@ void _robokit_task_handler(void *parameters) {
 }
 
 /**
- * @brief A 100Hz Task that updates the drive by either follow a line or imu sensors
+ * @brief A 100Hz Task that updates all modules that registered a sensor loop function
  *
- * Das ist der Hardware Loop Task. Er prüft die Einstellungen und kümmert sich um die Ansteuerung
- * der IMU und des Follow a Line Sensors.
+ * The task updates all sensor loops of the modules.
  *
  * @param parameters void * Not used
  */
@@ -98,7 +104,9 @@ void _robokit_task_handler_peripherals(void *parameters) {
 	TickType_t last_wake_time = xTaskGetTickCount();
 
 	while (1) {
-		fal_update();
+		for(int e=0;e<_callback_count;e++) {
+			_callbacks[e]();
+		}
 
 		vTaskDelayUntil(&last_wake_time, period);
 	}

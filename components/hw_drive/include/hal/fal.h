@@ -25,28 +25,22 @@
 #ifndef FAL_H
 #define FAL_H
 
-#define GPIO_RED   10  // GPIO_10 als Ausgang für Rot
-#define GPIO_GREEN 11  // GPIO_11 als Ausgang für Grün
-#define GPIO_BLUE  12  // GPIO_12 als Ausgang für Blau
+#define GPIO_RED   10  // GPIO_10 Output for red LED
+#define GPIO_GREEN 11  // GPIO_11 Output for green LED
+#define GPIO_BLUE  12  // GPIO_12 Output for blue LED
 
 #include <stdint.h>
 
-// Es wird nur eine Option angegeben pro Kommando!
+/**
+ * The internal flags for fal commands
+ * Do not change.
+ */
 enum {
-	E_FAL_OPTION_DISABLE = 0,
-	E_FAL_OPTION_CALIBRATE,
-	E_FAL_OPTION_ENABLE
+	   E_FAL_OPTION_DISABLE = 0,
+	   E_FAL_OPTION_CALIBRATE,
+	   E_FAL_OPTION_ENABLE
 };
 
-
-
-/**
- * @brief Initializes the necessary peripherals and configurations for FAL (Follow A Line) operation.
- *
- * This function sets up the GPIO pins for RGB output and configures the ADC channels
- * for the FAL sensors. Additionally, it registers the command handler for FAL commands.
- */
-void fal_init(void);
 
 /**
  * @brief Checks if the calibration process is completed.
@@ -58,15 +52,6 @@ void fal_init(void);
  */
 uint8_t fal_is_calibrated(void);
 
-/**
- * @brief Updates the status of the fal (feedback and light) system and handles related commands.
- *
- * The function controls the color reading sequence, checks the drive command status,
- * and initiates commands accordingly if the system is running.
- * It alternates between reading red, green, and blue using internal sensor functions
- * and renders the result once the cycle is complete.
- */
-void fal_update(void);
 
 /**
  * @brief Returns the character representation of a color index.

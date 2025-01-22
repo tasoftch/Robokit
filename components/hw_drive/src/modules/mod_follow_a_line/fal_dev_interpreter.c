@@ -27,6 +27,9 @@
 #include <device.h>
 #include <private/robokit_log.h>
 
+/**
+ * @interitDoc
+ */
 void fal_default_line_result_interpreter(S_Fal_Result *result) {
 	S_command cmd;
 	S_vector vector;

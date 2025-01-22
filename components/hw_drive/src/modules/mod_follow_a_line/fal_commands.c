@@ -22,38 +22,52 @@
  * SOFTWARE.
  */
 
-//
-//  commands.c
-//  robokit
-//
-//  Created by Thomas Abplanalp on 07.11.24.
-//
-
-#include "main_commands.h"
-#include <private/robokit_log.h>
+#include "fal_commands.h"
+#include <hal/fal.h>
+#include <modules/robokit_module.h>
 
 /**
- * Initializes the given command structure to zero.
- *
- * This function sets all fields of the provided S_command structure
- * to their default or initial state by zero-initializing the structure.
- *
- * @param cmd Pointer to the S_command structure to be initialized.
- *            If the pointer is null, the function does nothing.
+ * @inheritDoc
  */
-void _robokit_command_init(S_command *cmd) {
-    if(cmd) {
-        *cmd = ((S_command){0});
-    }
+uint8_t robokit_make_command_fal_enable(S_command *cmd) {
+	if(!cmd)
+		return 0;
+
+	ROBOKIT_COMMAND_RESET_P(cmd);
+	_S_Command_Fal *fal_cmd = ROBOKIT_CMD_CAST(_S_Command_Fal *, cmd);
+	fal_cmd->cmd = E_COMMAND_FAL;
+	fal_cmd->flags = E_FAL_OPTION_ENABLE;
+
+	return 1;
 }
 
 /**
- * Initializes the command system for the application.
- *
- * This function logs an informational message indicating that the
- * command system initialization process has started. It is intended
- * to be called during the device initialization sequence.
+ * @inheritDoc
  */
-void _commands_init(void) {
-    ROBOKIT_LOGI("Commands init");
+uint8_t robokit_make_command_fal_disable(S_command *cmd) {
+	if(!cmd)
+		return 0;
+
+	ROBOKIT_COMMAND_RESET_P(cmd);
+	_S_Command_Fal *fal_cmd = ROBOKIT_CMD_CAST(_S_Command_Fal *, cmd);
+	fal_cmd->cmd = E_COMMAND_FAL;
+	fal_cmd->flags = E_FAL_OPTION_DISABLE;
+
+	return 1;
+}
+
+/**
+ * @inheritDoc
+ */
+uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(uint8_t)) {
+	if(!cmd)
+		return 0;
+
+	ROBOKIT_COMMAND_RESET_P(cmd);
+	_S_Command_Fal *fal_cmd = ROBOKIT_CMD_CAST(_S_Command_Fal *, cmd);
+	fal_cmd->cmd = E_COMMAND_FAL;
+	fal_cmd->flags = E_FAL_OPTION_CALIBRATE;
+	fal_cmd->callback = calibrated;
+
+	return 1;
 }

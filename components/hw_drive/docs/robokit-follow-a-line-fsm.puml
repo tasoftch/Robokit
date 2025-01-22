@@ -1,0 +1,19 @@
+@startuml
+'https://plantuml.com/state-diagram
+
+
+[*] --> IDLE
+
+IDLE : Leerlauf\nWartet auf eine Aktion
+IDLE --> IDLE : warten
+
+state Konfiguration {
+    IDLE --> Zurücksetzen : Kdo. Kalibrieren
+    Zurücksetzen : Test
+
+    Zurücksetzen --> "Werte einlesen"
+}
+
+
+
+@enduml

@@ -27,40 +27,43 @@
 #include <private/robokit_log.h>
 #include <stdio.h>
 #include <driver/ledc.h>
+#include <modules/robokit_module.h>
 
 
 // Zu steuernde Pins
 // {M0+, M0-, M1+, M1-, ...}
 #if ROBOKIT_USE_MOTOR_1
-int pwmPins[] = {16, 23, 22, 21, 20, 19, 18, 17};
+static int _pwmPins[] = {16, 23, 22, 21, 20, 19, 18, 17};
 #else
-int pwmPins[] = {22, 21, 20, 19, 18, 17};
+static int _pwmPins[] = {22, 21, 20, 19, 18, 17};
 #endif
 // 16 geht nicht
 // 17 Geht
 
 
-#define NUM_PINS (sizeof(pwmPins) / sizeof(pwmPins[0]))
+#define NUM_PINS (sizeof(_pwmPins) / sizeof(_pwmPins[0]))
 
 void _robokit_setup_pin(uint8_t i) {
 
 	ledc_channel_config_t ledc_channel = {
 		.channel    = i,               // LEDC-Kanalnummer
 		.duty       = PWM_DUTY_CYCLE,  // Anfangs-Duty-Cycle
-		.gpio_num   = pwmPins[i],      // Zu steuernder Pin
+		.gpio_num   = _pwmPins[i],      // Zu steuernder Pin
 		.speed_mode = LEDC_MODE,       // Modus
 		.hpoint     = 0,               // Standardwert
 		.timer_sel  = LEDC_TIMER       // Timer
 	};
 
 	if(ledc_channel_config(&ledc_channel) != ESP_OK) {
-		ROBOKIT_LOGE("SETUP %u %d failed",i,  pwmPins[i]);
+		ROBOKIT_LOGE("SETUP %u %d failed",i,  _pwmPins[i]);
 	}
 }
 
-void _robokit_pwm_motors_init(void) {
-	ROBOKIT_LOGI("robokit_pwm_motors_init");
-
+/**
+ * Registered function to start up the drive motors and pwm controls.
+ */
+ROBOKIT_MODULE_INIT() {
+	printf("robokit_pwm_motors_init\n");
 
 	ledc_timer_config_t ledc_timer = {
 		.duty_resolution = PWM_RESOLUTION, // Auflösung der PWM-Duty
@@ -83,6 +86,14 @@ void _robokit_pwm_motors_init(void) {
 	robokit_pwm_motor_all_off();
 }
 
+/**
+ * @brief Assign motor to configured wires
+ *
+ * @param motor Motor number
+ * @param motor_plus Assigned wire for plus terminal
+ * @param motor_minus Assigned wire for minus terminal
+ * @return 1 on success, 0 otherwise
+ */
 static uint8_t _robokit_assign_pins(E_motor motor, uint8_t *motor_plus, uint8_t *motor_minus) {
 	if(motor < NUM_PINS / 2) {
 		uint8_t mt_idx = motor * 2;
@@ -93,6 +104,12 @@ static uint8_t _robokit_assign_pins(E_motor motor, uint8_t *motor_plus, uint8_t 
 	return 0;
 }
 
+/**
+ * @brief Changes configuration to drive a specified GPIO with a specific duty cycle.
+ *
+ * @param pin Wired GPIO pin to motor driver
+ * @param duty The duty cycle to drive at the specified pin
+ */
 static void _robokit_send_pwm(uint8_t pin, uint8_t duty) {
 	esp_err_t err = ledc_set_duty(LEDC_MODE, pin, duty);
 	if(err == ESP_OK) {
@@ -106,6 +123,9 @@ static void _robokit_send_pwm(uint8_t pin, uint8_t duty) {
 	ROBOKIT_LOGE("PWM error: %d for pin %d and duty %d", err, pin, duty);
 }
 
+/**
+ * @inheritDoc
+ */
 void robokit_pwm_motor_all_off(void) {
 #if ROBOKIT_USE_MOTOR_1
 	robokit_pwm_motor_off(E_DRIVE_MOTOR_1);
@@ -115,10 +135,16 @@ void robokit_pwm_motor_all_off(void) {
 	robokit_pwm_motor_off(E_DRIVE_MOTOR_4);
 }
 
+/**
+ * @inheritDoc
+ */
 void robokit_pwm_motor_on(E_motor motor, uint8_t flags) {
 	robokit_pwm_motor_speed(motor, 255, flags);
 }
 
+/**
+ * @inheritDoc
+ */
 void robokit_pwm_motor_off(E_motor motor) {
 	uint8_t mp=0, mm=0;
 	if(_robokit_assign_pins(motor, &mp, &mm)) {
@@ -127,6 +153,9 @@ void robokit_pwm_motor_off(E_motor motor) {
 	}
 }
 
+/**
+ * @inheritDoc
+ */
 void robokit_pwm_motor_speed(E_motor motor, T_Speed speed, uint8_t flags) {
 	uint8_t mp=0, mm=0;
 	if(_robokit_assign_pins(motor, &mp, &mm)) {
@@ -165,18 +194,32 @@ void robokit_pwm_motor_speed(E_motor motor, T_Speed speed, uint8_t flags) {
 	}
 }
 
+/**
+ * @inheritDoc
+ */
 void robokit_pwm_motor_1_speed(T_Speed speed, uint8_t flags) {
 #if ROBOKIT_USE_MOTOR_1
 	robokit_pwm_motor_speed(E_DRIVE_MOTOR_1, speed, flags);
 #endif
 }
 
+/**
+ * @inheritDoc
+ */
 void robokit_pwm_motor_2_speed(T_Speed speed, uint8_t flags) {
 	robokit_pwm_motor_speed(E_DRIVE_MOTOR_2, speed, flags);
 }
+
+/**
+ * @inheritDoc
+ */
 void robokit_pwm_motor_3_speed(T_Speed speed, uint8_t flags) {
 	robokit_pwm_motor_speed(E_DRIVE_MOTOR_3, speed, flags);
 }
+
+/**
+ * @inheritDoc
+ */
 void robokit_pwm_motor_4_speed(T_Speed speed, uint8_t flags) {
 	robokit_pwm_motor_speed(E_DRIVE_MOTOR_4, speed, flags);
 }

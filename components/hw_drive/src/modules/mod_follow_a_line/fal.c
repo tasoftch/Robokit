@@ -30,8 +30,7 @@
 #include <driver/gpio.h>
 #include <driver/adc.h>
 
-#include "hal/scheduler.h"
-#include <private/command_data_containers.h>
+#include <modules/robokit_module.h>
 
 #define ROBOKIT_FB_LEFT ADC_CHANNEL_0
 #define ROBOKIT_FB_MIDDLE_LEFT ADC_CHANNEL_1
@@ -40,6 +39,7 @@
 #define ROBOKIT_FB_RIGHT ADC_CHANNEL_4
 
 #define ROBOKIT_READ_INTERVAL_US 1000
+#define ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS 500
 
 typedef struct {
 	uint16_t red;
@@ -47,58 +47,104 @@ typedef struct {
 	uint16_t blue;
 } S_color;
 
-static volatile S_color my_colors[5];
+static S_color my_colors[5];
 static volatile S_color my_color_minimums[5] = {0};
 static volatile S_color my_color_maximums[5] = {0};
 
 static void (*my_fal_callback_calibration)(uint8_t);
 static void (*my_fal_line_interpreter)(S_Fal_Result *) = fal_default_line_result_interpreter;
 
+// Marks the FAL system as running.
+// The sensor loop will be active and reads the cells.
 static uint8_t is_running=0;
+
+// Marks the FAL system as calibrated.
+// That means, the threshold is set and the system is ready to
+// proj3E: distinguish between black and white
+// proj4E: distinguish between black, white, red, green and blue.
+//         If possible also combinations yellow, magenta and cyan.
 static uint8_t is_calibrated=0;
+
+// Task separation.
+// The command handler must only set configurations, it is not allowed to
+// push commands into the system.
 static uint8_t make_drive_command=0;
+
+// Calibration counter for 500ms.
 static uint16_t drive_counter=0;
 
+/**
+ * @inheritDoc
+ */
 uint8_t fal_is_calibrated(void) {
 	return is_calibrated;
 }
 
-static char my_color_refs[] = {'S', 'B', 'G', 'C', 'R', 'M', 'Y', 'W'};
-
-
+/**
+ * @inheritDoc
+ */
 void fal_set_line_result_interpreter(void (*interpreter) (S_Fal_Result *)) {
 	my_fal_line_interpreter = interpreter;
 }
 
-
+/**
+ * @inheritDoc
+ */
 unsigned char fal_name_of_color(uint8_t color) {
 	if (color < 8) {
+		static char my_color_refs[] = {'S', 'B', 'G', 'C', 'R', 'M', 'Y', 'W'};
 		return my_color_refs[color];
 	}
 
 	return '-';
 }
 
+/**
+ * @brief Reads the raw sensor value of the left sensor cell
+ * @return The raw sensor value
+ */
 static uint16_t fal_get_sensor_left(void) {
 	return adc1_get_raw(ROBOKIT_FB_LEFT);
 }
 
+/**
+ * @brief Reads the raw sensor value of the middle left sensor cell
+ * @return The raw sensor value
+ */
 static uint16_t fal_get_sensor_middle_left(void) {
 	return adc1_get_raw(ROBOKIT_FB_MIDDLE_LEFT);
 }
 
+/**
+ * @brief Reads the raw sensor value of the middle sensor cell
+ * @return The raw sensor value
+ */
 static uint16_t fal_get_sensor_middle(void) {
 	return adc1_get_raw(ROBOKIT_FB_MIDDLE);
 }
 
+/**
+ * @brief Reads the raw sensor value of the middle right sensor cell
+ * @return The raw sensor value
+ */
 static uint16_t fal_get_sensor_middle_right(void) {
 	return adc1_get_raw(ROBOKIT_FB_MIDDLE_RIGHT);
 }
 
+/**
+ * @brief Reads the raw sensor value of the right sensor cell
+ * @return The raw sensor value
+ */
 static uint16_t fal_get_sensor_right(void) {
 	return adc1_get_raw(ROBOKIT_FB_RIGHT);
 }
 
+/**
+ * @brief Resets the calibration values
+ *
+ * Resets the minimum and maximum color values to calculate a new threshold
+ * Within the next calibration loop.
+ */
 static void _fal_reset_calibration(void) {
 	for(int e=0; e<5; e++) {
 		my_color_maximums[e] = (S_color){0};
@@ -111,38 +157,13 @@ static void _fal_reset_calibration(void) {
 	is_calibrated = 0;
 }
 
-static void _robokit_cmd_handler(_S_Command_Fal *cmd, uint8_t mode, uint8_t *flags) {
-	if (mode == E_SCHEDULE_MODE_PRECHECK) {
-		if(cmd->flags == E_FAL_OPTION_ENABLE) {
-			if(!fal_is_calibrated()) {
-				ROBOKIT_LOGE("Calibration not yet done.");
-				*flags = 0xFF;
-				return;
-			}
-		}
-		*flags = 0;
-	}
-
-	if(mode == E_SCHEDULE_MODE_PERFORM) {
-		if(cmd->flags == E_FAL_OPTION_CALIBRATE) {
-			_fal_reset_calibration();
-			make_drive_command = 1;
-			drive_counter = 500;
-			is_running = 1;
-			my_fal_callback_calibration = cmd->callback;
-		} else if(cmd->flags == E_FAL_OPTION_ENABLE) {
-			is_running = 1;
-		} else if(cmd->flags == E_FAL_OPTION_DISABLE) {
-			is_running = 0;
-
-			S_command dcmd;
-			robokit_make_drive_command_fwd(&dcmd, 0);
-			robokit_push_command(&dcmd, 0);
-		}
-	}
-}
-
-void fal_init(void) {
+/**
+ * @brief Initializes the necessary peripherals and configurations for FAL (Follow A Line) operation.
+ *
+ * This function sets up the GPIO pins for RGB output and configures the ADC channels
+ * for the FAL sensors.
+ */
+ROBOKIT_MODULE_INIT() {
 	gpio_config_t io_conf;
 	io_conf.intr_type = GPIO_INTR_DISABLE;          // Keine Interrupts
 	io_conf.mode = GPIO_MODE_OUTPUT;                // Als Output konfigurieren
@@ -160,65 +181,82 @@ void fal_init(void) {
 	adc1_config_channel_atten(ROBOKIT_FB_MIDDLE, ADC_ATTEN_DB_0);
 	adc1_config_channel_atten(ROBOKIT_FB_MIDDLE_RIGHT, ADC_ATTEN_DB_0);
 	adc1_config_channel_atten(ROBOKIT_FB_RIGHT, ADC_ATTEN_DB_0);
-
-	robokit_register_command_fn(E_COMMAND_FAL, _robokit_cmd_handler);
 }
 
 
+/**
+ * @brief Helper function to capture the values of all single sensor cells for
+ * a specific color
+ *
+ * @param color The specified color Red, Green or Blue to be captured
+ * @param data_field_1 Data field of cell 1
+ * @param data_field_2 Data field of cell 2
+ * @param data_field_3 Data field of cell 3
+ * @param data_field_4 Data field of cell 4
+ * @param data_field_5 Data field of cell 5
+ */
+static void fal_read_sensor_cells(uint8_t color, uint16_t *data_field_1, uint16_t *data_field_2, uint16_t *data_field_3, uint16_t *data_field_4, uint16_t *data_field_5) {
+	gpio_set_level(GPIO_RED, color & ROBOKIT_FAL_RED ? 1 : 0);
+	gpio_set_level(GPIO_GREEN, color & ROBOKIT_FAL_GREEN ? 1 : 0);
+	gpio_set_level(GPIO_BLUE, color & ROBOKIT_FAL_BLUE ? 1 : 0);
+
+	esp_rom_delay_us(ROBOKIT_READ_INTERVAL_US);
+
+	*data_field_1 = fal_get_sensor_left();
+	*data_field_2 = fal_get_sensor_middle_left();
+	*data_field_3 = fal_get_sensor_middle();
+	*data_field_4 = fal_get_sensor_middle_right();
+	*data_field_5 = fal_get_sensor_right();
+
+	gpio_set_level(GPIO_RED, 0);
+	gpio_set_level(GPIO_GREEN, 0);
+	gpio_set_level(GPIO_BLUE, 0);
+}
+
+/**
+ * @brief Capture values of all sensor cells for Red color
+ */
 static void fal_read_red(void) {
-	gpio_set_level(GPIO_RED, 1);
-	gpio_set_level(GPIO_GREEN, 0);
-	gpio_set_level(GPIO_BLUE, 0);
-
-	esp_rom_delay_us(ROBOKIT_READ_INTERVAL_US);
-
-	my_colors[0].red = fal_get_sensor_left();
-	my_colors[1].red = fal_get_sensor_middle_left();
-	my_colors[2].red = fal_get_sensor_middle();
-	my_colors[3].red = fal_get_sensor_middle_right();
-	my_colors[4].red = fal_get_sensor_right();
-
-	gpio_set_level(GPIO_RED, 0);
-	gpio_set_level(GPIO_GREEN, 0);
-	gpio_set_level(GPIO_BLUE, 0);
+	fal_read_sensor_cells(ROBOKIT_FAL_RED,
+		&my_colors[0].red,
+		&my_colors[1].red,
+		&my_colors[2].red,
+		&my_colors[3].red,
+		&my_colors[4].red
+	);
 }
 
+/**
+ * @brief Capture values of all sensor cells for Green color
+ */
 static void fal_read_green(void) {
-	gpio_set_level(GPIO_RED, 0);
-	gpio_set_level(GPIO_GREEN, 1);
-	gpio_set_level(GPIO_BLUE, 0);
-
-	esp_rom_delay_us(ROBOKIT_READ_INTERVAL_US);
-
-	my_colors[0].green = fal_get_sensor_left();
-	my_colors[1].green = fal_get_sensor_middle_left();
-	my_colors[2].green = fal_get_sensor_middle();
-	my_colors[3].green = fal_get_sensor_middle_right();
-	my_colors[4].green = fal_get_sensor_right();
-
-	gpio_set_level(GPIO_RED, 0);
-	gpio_set_level(GPIO_GREEN, 0);
-	gpio_set_level(GPIO_BLUE, 0);
+	fal_read_sensor_cells(ROBOKIT_FAL_GREEN,
+		&my_colors[0].green,
+		&my_colors[1].green,
+		&my_colors[2].green,
+		&my_colors[3].green,
+		&my_colors[4].green
+	);
 }
 
+/**
+ * @brief Capture values of all sensor cells for Blue color
+ */
 static void fal_read_blue(void) {
-	gpio_set_level(GPIO_RED, 0);
-	gpio_set_level(GPIO_GREEN, 0);
-	gpio_set_level(GPIO_BLUE, 1);
-
-	esp_rom_delay_us(ROBOKIT_READ_INTERVAL_US);
-
-	my_colors[0].blue = fal_get_sensor_left();
-	my_colors[1].blue = fal_get_sensor_middle_left();
-	my_colors[2].blue = fal_get_sensor_middle();
-	my_colors[3].blue = fal_get_sensor_middle_right();
-	my_colors[4].blue = fal_get_sensor_right();
-
-	gpio_set_level(GPIO_RED, 0);
-	gpio_set_level(GPIO_GREEN, 0);
-	gpio_set_level(GPIO_BLUE, 0);
+	fal_read_sensor_cells(ROBOKIT_FAL_BLUE,
+		&my_colors[0].blue,
+		&my_colors[1].blue,
+		&my_colors[2].blue,
+		&my_colors[3].blue,
+		&my_colors[4].blue
+	);
 }
 
+#if ROBOKIT_DEBUG
+/**
+ * @brief Debug function to display a list of colors
+ * @param the_colors A list of colors
+ */
 static void print_fal(S_color *the_colors) {
 	ROBOKIT_LOGI("CD | POS | RED  | GRN  | BLUE");
 	ROBOKIT_LOGI("----+------+------+------|");
@@ -229,9 +267,14 @@ static void print_fal(S_color *the_colors) {
 	ROBOKIT_LOGI("05 | RGT | %04d | %04d | %04d", the_colors[4].red, the_colors[4].green, the_colors[4].blue);
 	ROBOKIT_LOGI("----+------+------+------|");
 }
+#endif
 
-
-void _fal_calibration_done(void) {
+/**
+ * @brief Helper function to calculate threshold of each sensor cell
+ *
+ * It does also call the callback to the software with success flag.
+ */
+static void _fal_calibration_done(void) {
 	for(int e=0;e<5;e++) {
 		my_color_minimums[e].red = (my_color_minimums[e].red + my_color_maximums[e].red) / 2;
 		my_color_minimums[e].green = (my_color_minimums[e].green + my_color_maximums[e].green) / 2;
@@ -246,14 +289,17 @@ void _fal_calibration_done(void) {
 		my_fal_callback_calibration(1);
 }
 
-
-void _fal_calibration_init(void) {
+/**
+ * @brief
+ */
+static void _fal_calibration_init(void) {
 	static uint8_t status = 0;
 
 	if(--drive_counter < 1) {
+#if ROBOKIT_DEBUG
 		print_fal(my_color_minimums);
 		print_fal(my_color_maximums);
-
+#endif
 		is_calibrated = 0;
 		is_running = 0;
 		make_drive_command = 2;
@@ -286,43 +332,68 @@ void _fal_calibration_init(void) {
 	}
 }
 
+ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal) {
+	if (mode == E_SCHEDULE_MODE_PRECHECK) {
+		if(cmd->flags == E_FAL_OPTION_ENABLE) {
+			if(!fal_is_calibrated()) {
+				ROBOKIT_LOGE("Calibration not yet done.");
+				*flags = 0xFF;
+				return;
+			}
+		}
+		*flags = 0;
+	}
 
+	if(mode == E_SCHEDULE_MODE_PERFORM) {
+		if(cmd->flags == E_FAL_OPTION_CALIBRATE) {
+			_fal_reset_calibration();
+			make_drive_command = 1;
+			drive_counter = ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS;
+			is_running = 1;
+			my_fal_callback_calibration = cmd->callback;
+		} else if(cmd->flags == E_FAL_OPTION_ENABLE) {
+			is_running = 1;
+		} else if(cmd->flags == E_FAL_OPTION_DISABLE) {
+			is_running = 0;
+
+			S_command dcmd;
+			robokit_make_drive_command_fwd(&dcmd, 0);
+			robokit_push_command(&dcmd, 0);
+		}
+	}
+}
+
+// Helper macro to assign color values to the FAL_Result
+#define _ROBOKIT_FAL_WRITE_CELL_RESULT(CELL, COLOR_ID) \
+CELL |= my_colors[COLOR_ID].red > my_color_minimums[COLOR_ID].red ? ROBOKIT_FAL_RED : 0;\
+CELL |= my_colors[COLOR_ID].green > my_color_minimums[COLOR_ID].green ? ROBOKIT_FAL_RED : 0;\
+CELL |= my_colors[COLOR_ID].blue > my_color_minimums[COLOR_ID].blue ? ROBOKIT_FAL_RED : 0
+
+/**
+ * @brief Helper function to assign color values to a FAL result.
+ *
+ * This function also calls the result interpreter if available to transform
+ * the follow a line sensor results into Robokit commands.
+ */
 static void _fal_calculate_result(void) {
 	if(!my_fal_line_interpreter)
 		return;
 
-	int e = 0;
 	S_Fal_Result my_fal_result = {0};
 
-	my_fal_result.fb_1_left |= my_colors[e].red > my_color_minimums[e].red ? ROBOKIT_FAL_RED : 0;
-	my_fal_result.fb_1_left |= my_colors[e].green > my_color_minimums[e].green ? ROBOKIT_FAL_GREEN : 0;
-	my_fal_result.fb_1_left |= my_colors[e].blue > my_color_minimums[e].blue ? ROBOKIT_FAL_BLUE : 0;
-
-	e=1;
-	my_fal_result.fb_2_middle_left |= my_colors[e].red > my_color_minimums[e].red ? ROBOKIT_FAL_RED : 0;
-	my_fal_result.fb_2_middle_left |= my_colors[e].green > my_color_minimums[e].green ? ROBOKIT_FAL_GREEN : 0;
-	my_fal_result.fb_2_middle_left |= my_colors[e].blue > my_color_minimums[e].blue ? ROBOKIT_FAL_BLUE : 0;
-
-	e=2;
-	my_fal_result.fb_3_middle |= my_colors[e].red > my_color_minimums[e].red ? ROBOKIT_FAL_RED : 0;
-	my_fal_result.fb_3_middle |= my_colors[e].green > my_color_minimums[e].green ? ROBOKIT_FAL_GREEN : 0;
-	my_fal_result.fb_3_middle |= my_colors[e].blue > my_color_minimums[e].blue ? ROBOKIT_FAL_BLUE : 0;
-
-	e=3;
-	my_fal_result.fb_4_middle_right |= my_colors[e].red > my_color_minimums[e].red ? ROBOKIT_FAL_RED : 0;
-	my_fal_result.fb_4_middle_right |= my_colors[e].green > my_color_minimums[e].green ? ROBOKIT_FAL_GREEN : 0;
-	my_fal_result.fb_4_middle_right |= my_colors[e].blue > my_color_minimums[e].blue ? ROBOKIT_FAL_BLUE : 0;
-
-	e=4;
-	my_fal_result.fb_5_right |= my_colors[e].red > my_color_minimums[e].red ? ROBOKIT_FAL_RED : 0;
-	my_fal_result.fb_5_right |= my_colors[e].green > my_color_minimums[e].green ? ROBOKIT_FAL_GREEN : 0;
-	my_fal_result.fb_5_right |= my_colors[e].blue > my_color_minimums[e].blue ? ROBOKIT_FAL_BLUE : 0;
+	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_1_left,		0);
+	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_2_middle_left,	1);
+	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_3_middle,	2);
+	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_4_middle_right, 3);
+	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_5_right,	4);
 
 	my_fal_line_interpreter(&my_fal_result);
 }
 
-
-void fal_render_result(void) {
+/**
+ * @brief Helper function to handle the end of sensor cell readings.
+ */
+static void fal_render_result(void) {
 	if(!is_calibrated) {
 		_fal_calibration_init();
 	} else {
@@ -330,7 +401,17 @@ void fal_render_result(void) {
 	}
 }
 
-void fal_update(void) {
+/**
+ * @brief Updates the status of the fal (feedback and light) system and handles related commands.
+ *
+ * The function controls the color reading sequence, checks the drive command status,
+ * and initiates commands accordingly if the system is running.
+ * It alternates between reading red, green, and blue using internal sensor functions
+ * and renders the result once the cycle is complete.
+ */
+ROBOKIT_MODULE_SENSOR_LOOP() {
+	// The command handler must not push commands itself.
+	// It is only allowed to make configurations.
 	if(make_drive_command == 1) {
 		make_drive_command = 0;
 		S_command cmd;
@@ -348,12 +429,15 @@ void fal_update(void) {
 	if(!is_running)
 		return;
 
+	// 100Hz interval:
+	// 1 cycle to read red and green,
+	// next cycle to read blue and calculate the next commands.
 	static uint8_t status = 0;
 	switch (status) {
 		case 0:
 			status = 1;
 			fal_read_red();
-		//break;
+		// It must pass.
 		case 1:
 			status = 2;
 			fal_read_green();
@@ -361,9 +445,9 @@ void fal_update(void) {
 		case 2:
 			status = 3;
 			fal_read_blue();
-		//break;
+			fal_render_result();
+		// It must pass.
 		default:
 			status = 0;
-			fal_render_result();
 	}
 }

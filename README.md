@@ -1,35 +1,21 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C6 | ESP32-H2 | ESP32-P4 | ESP32-S2 | ESP32-S3 |
-| ----------------- | ----- | -------- | -------- | -------- | -------- | -------- | -------- | -------- |
+# Robokit MINT pro3E
 
-# _Sample project_
+Die FHNW engagiert sich stark in der Nachwuchsförderung, organisiert Camps, Workshops
+und Nachwuchstage. Oftmals werden dabei externe Bausätze/Plattformen eingesetzt. Warum
+nicht ein interdisziplinäres Studierendenprojekt-Team ins Leben rufen, um eigene FHWN MINT-
+Bausätze zu konzipieren, entwickeln, fertigen und das Ganze als Marketing-Plattform zu nutzen?
+Low-Cost-Bausätze im MINT-Bereich gibt es viele, teils von Spiele-Firmen oder direkt aus China.
+Konzept, Mechanik, Qualität und Datenzugang sind praktisch immer ungenügend. Im High-
+End Bereich gibt es z.B. mobile Lern-Roboter, die mit Anwendung und Konzept überzeugen,
+aber diese sind nicht oder kaum erweiterbar, teuer und HW/SW Daten nicht verfügbar. Soweit
+bekannt, bietet keine andere FH solche Bausätze an.
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+## Organisation
 
-This is the simplest buildable example. The example is used by command `idf.py create-project`
-that copies the project to user specified path and set it's name. For more information follow the [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project)
+Dieses Repository enthält die benötigte und entwickelte Software zur Ansteuerung des Roboters.
 
-
-
-## How to use example
-We encourage the users to use the example as a template for the new projects.
-A recommended way is to follow the instructions on a [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project).
-
-## Example folder contents
-
-The project **sample_project** contains one source file in C language [main.c](main/main.c). The file is located in folder [main](main).
-
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt`
-files that provide set of directives and instructions describing the project's source files and targets
-(executable, library, or both). 
-
-Below is short explanation of remaining files in the project folder.
-
-```
-├── CMakeLists.txt
-├── main
-│   ├── CMakeLists.txt
-│   └── main.c
-└── README.md                  This is the file you are currently reading
-```
-Additionally, the sample project contains Makefile and component.mk files, used for the legacy Make based build system. 
-They are not used or needed when building with CMake and idf.py.
+Es ist unterteilt in
+- Software, zu finden im [```main```](main) Verzeichnis  
+    Alles, was mit der Kommunikation nach aussen zu tun hat.
+- Firmware, zu finden im [```components/hw_drive```](components/hw_drive) Verzeichnis  
+  Steuert die Hardwarekomponenten an.

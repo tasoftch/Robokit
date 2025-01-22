@@ -27,21 +27,36 @@
 
 #include "main_commands.h"
 
-
+/**
+ * The interaction callback function of modules are called by passing one
+ * of the following modes to distinguish between checking mode and real,
+ * executing mode.
+ */
 enum {
-	E_SCHEDULE_MODE_PRECHECK = 1,
-	E_SCHEDULE_MODE_PERFORM
+    // Passed during enqueue.
+    // If the precheck fails, the command is not enqueued for the firmware.
+    E_SCHEDULE_MODE_PRECHECK = 1,
+
+    // Passed for signalize to execute the
+    // command now in the firmware
+    E_SCHEDULE_MODE_PERFORM
 };
 
-// This method gets called whenever a command get pushed into the stack.
+// This function gets called whenever a command gets pushed into the stack.
 // In This case the mode is E_SCHEDULE_MODE_PRECHECK.
 // In execution time, the function gets called once more with the mode E_SCHEDULE_MODE_PERFORM.
 typedef void(*F_command_callback)(S_command *cmd, uint8_t mode, uint8_t *flags);
 
-// If there is any problem in the HW, call this function.
-// It contains an endless loop to holt cpu for debug.
+// If there is any problem in the HW, this function is called.
+// It contains an endless loop to hold cpu for debug.
 void hal_error_handler(void);
 
+/**
+ * @brief This function registers interest of a module on a specified command.
+ *
+ * @param cb A callback to contact the firmware's abstraction layer
+ * @return Returns 1 on success, 0 otherwise
+ */
 uint8_t robokit_register_command_fn(T_cmd cmd, F_command_callback cb);
 
 #endif //SCHEDULER_H
