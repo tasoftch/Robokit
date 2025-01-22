@@ -52,7 +52,7 @@ typedef void(*F_command_callback)(S_command *cmd, uint8_t mode, uint8_t *flags);
 void hal_error_handler(void);
 
 /**
- * @brief This function registers interesst of a module on a specified command.
+ * @brief This function registers interest of a module on a specified command.
  *
  * @param cb A callback to contact the firmware's abstraction layer
  * @return Returns 1 on success, 0 otherwise
