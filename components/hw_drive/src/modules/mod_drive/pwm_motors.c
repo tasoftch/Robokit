@@ -33,29 +33,29 @@
 // Zu steuernde Pins
 // {M0+, M0-, M1+, M1-, ...}
 #if ROBOKIT_USE_MOTOR_1
-int pwmPins[] = {16, 23, 22, 21, 20, 19, 18, 17};
+static int _pwmPins[] = {16, 23, 22, 21, 20, 19, 18, 17};
 #else
-int pwmPins[] = {22, 21, 20, 19, 18, 17};
+static int _pwmPins[] = {22, 21, 20, 19, 18, 17};
 #endif
 // 16 geht nicht
 // 17 Geht
 
 
-#define NUM_PINS (sizeof(pwmPins) / sizeof(pwmPins[0]))
+#define NUM_PINS (sizeof(_pwmPins) / sizeof(_pwmPins[0]))
 
 void _robokit_setup_pin(uint8_t i) {
 
 	ledc_channel_config_t ledc_channel = {
 		.channel    = i,               // LEDC-Kanalnummer
 		.duty       = PWM_DUTY_CYCLE,  // Anfangs-Duty-Cycle
-		.gpio_num   = pwmPins[i],      // Zu steuernder Pin
+		.gpio_num   = _pwmPins[i],      // Zu steuernder Pin
 		.speed_mode = LEDC_MODE,       // Modus
 		.hpoint     = 0,               // Standardwert
 		.timer_sel  = LEDC_TIMER       // Timer
 	};
 
 	if(ledc_channel_config(&ledc_channel) != ESP_OK) {
-		ROBOKIT_LOGE("SETUP %u %d failed",i,  pwmPins[i]);
+		ROBOKIT_LOGE("SETUP %u %d failed",i,  _pwmPins[i]);
 	}
 }
 
@@ -63,7 +63,7 @@ void _robokit_setup_pin(uint8_t i) {
  * Registered function to start up the drive motors and pwm controls.
  */
 ROBOKIT_MODULE_INIT() {
-	ROBOKIT_LOGI("robokit_pwm_motors_init");
+	printf("robokit_pwm_motors_init\n");
 
 	ledc_timer_config_t ledc_timer = {
 		.duty_resolution = PWM_RESOLUTION, // Auflösung der PWM-Duty

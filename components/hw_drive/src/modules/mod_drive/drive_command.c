@@ -24,10 +24,9 @@
 
 #include "drive_command.h"
 
-#include <stdio.h>
-#include <private/motor_logic.h>
 #include <hal/pwm_motors.h>
 #include <modules/robokit_module.h>
+#include <private/motor_logic.h>
 
 /**
  * @brief Default pwm configuration for left motor
@@ -97,7 +96,7 @@ static void _robokit_motor_set_speed(const S_motor_config *cfg, const S_motor_ct
  * The handler will accept all commands according to the flags themselves.
  * If the perform mode is selectec, it will forward the command to the motor pwm configuration.
  */
-ROBOKIT_REGISTER_COMMAND_HANDLER(E_COMMAND_VECTOR, _S_command_drive) {
+ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_VECTOR, _S_command_drive) {
 	if(mode == E_SCHEDULE_MODE_PRECHECK) {
 		*flags = cmd->flags;
 	}
@@ -134,6 +133,7 @@ uint8_t robokit_make_drive_command_bwd(S_command *cmd, const T_Speed speed) {
 	return 0;
 }
 
+
 /**
  * @inheritDoc
  */
@@ -142,7 +142,7 @@ uint8_t robokit_make_drive_command_vector(S_command *cmd, const S_vector vector)
 		return 0;
 
 	ROBOKIT_COMMAND_RESET_P(cmd);
-	_S_command_drive *drive_cmd = _ROBOKIT_CMD_CAST(_S_command_drive*, cmd);
+	_S_command_drive *drive_cmd = ROBOKIT_CMD_CAST(_S_command_drive*, cmd);
 	drive_cmd->command = E_COMMAND_VECTOR;
 	drive_cmd->angle = vector.angle;
 	drive_cmd->speed = vector.speed;
