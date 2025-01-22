@@ -6,9 +6,12 @@
 
 - [Allgemein](#allgemein)
 - [Verwendung](#verwendung)
-- [Verwendung](#verwendung)
-- [Beitrag leisten](#beitrag-leisten)
-- [Lizenz](#lizenz)
+- [Vorgehen in Software](#vorgehen-software)
+- [Module](#module)
+- [Modul Test](#modul-test)
+- [Modul Fahren](#modul-fahren)
+- [Modul LED Streifen](#modul-led-stripe)
+- [Modul Follow A Line](#modul-follow-a-line-sensor)
 
 </details>
 
@@ -333,7 +336,7 @@ void app_main()
 }
 ```
 
-### Follow a Line Sensor
+### Modul "Follow a Line Sensor"
 Das Follow A Line System folgt einer schwarzen Linie auf hellem Grund mit maximalen Winkeln von 40°. Die Geschwindigkeit ist auf 50% fix eingestellt.  
 Bevor das System funktioniert, muss es kalibriert werden. Dabei soll es von weissem Grund über eine mindestens 3cm breite schwarze Fläche fahren.  
 Das Fahrzeug fährt von alleine los, wenn ein Kalibrierungskommando ankommt.
