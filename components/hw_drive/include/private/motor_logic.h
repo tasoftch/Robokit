@@ -28,23 +28,23 @@
 #include "config.h"
 #include "vector.h"
 
-// Strukturen dieser Art liegen der Motorsteuerung an.
-// Sie definiert die Richtung und Geschwindigkeit des Motors.
+// Structures S_motor_ctl define how fast and in which direction (forward or backward)
+// a target motor must be controlled.
 typedef struct {
-    uint8_t direction:1;            // 1: vorwärts, 0: rückwärts
-    uint8_t speed:7;                // 0 Stillstand, 100 Vollgas
+    uint8_t direction:1;            // 1: forward, 0: backward
+    uint8_t speed:7;                // 0 Hold, 100 As fast as possible
 } S_motor_ctl;
 
 /**
- * @brief Converts a vector into motor speed and direction commands for two motors.
+ * @brief Converts a vector into motor speed and direction controls for two motors.
  *
  * This function translates the input vector, consisting of angle and speed,
  * into control signals for two motors, controlling their speed and direction.
  *
- * @param[in] vector S_vector The input vector with angle and speed.
- * @param[out] pwm_motor_left S_motor_ctl* Pointer to the motor control structure for the left motor.
- * @param[out] pwm_motor_right S_motor_ctl* Pointer to the motor control structure for the right motor.
- * @return uint8_t Returns 1 if the conversion is successful, otherwise returns 0.
+ * @param vector The input vector with angle and speed.
+ * @param pwm_motor_left A Pointer to the motor control structure for the left motor.
+ * @param pwm_motor_right A Pointer to the motor control structure for the right motor.
+ * @return Returns 1 if the conversion is successful, otherwise returns 0.
  */
 uint8_t robokit_vector_to_motor(S_vector vector, S_motor_ctl *pwm_motor_left, S_motor_ctl *pwm_motor_right);
 

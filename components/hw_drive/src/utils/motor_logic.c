@@ -28,17 +28,7 @@
 #include "private/n_lut.h"
 
 /**
- * Converts a given vector of speed and angle into motor control commands for left and right motors.
- *
- * The function ensures that the vector's speed does not exceed ROBOKIT_MAX_SPEED or fall below ROBOKIT_MIN_SPEED.
- * It also ensures that the vector's angle does not exceed 60 degrees in either direction.
- * If the conditions are satisfied, the function calculates the corresponding motor control parameters
- * from a predefined lookup table and assigns them to the provided motor control structures.
- *
- * @param vector The input vector containing the speed and angle for conversion to motor commands.
- * @param pwm_motor_left Pointer to the structure where the left motor control command will be stored.
- * @param pwm_motor_right Pointer to the structure where the right motor control command will be stored.
- * @return Returns 1 if the conversion is successful, otherwise 0 if the vector is invalid.
+ * @inheritDoc
  */
 uint8_t robokit_vector_to_motor(S_vector vector, S_motor_ctl *pwm_motor_left, S_motor_ctl *pwm_motor_right) {
     int8_t l, r;
