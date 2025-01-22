@@ -29,6 +29,7 @@
 
 #include <private/robokit_log.h>
 #include <led_strip.h>
+#include <modules/robokit_module.h>
 
 #ifndef LED_PIN
 #define LED_PIN 8
@@ -37,8 +38,6 @@
 #if !ROBOKIT_USE_BUILTIN_LED
 #include "driver/gpio.h"
 #endif
-
-extern void _robokit_command_init(S_command *cmd);
 
 static volatile uint8_t _test_led_current_state = 0;
 static led_strip_handle_t _my_test_led_strip;
@@ -58,12 +57,12 @@ static led_strip_handle_t _my_test_led_strip;
  * @param flags Pointer to a flags variable which gets reset (set to zero) at the start of the function,
  *              used for returning status flags if necessary.
  */
-void __robokit_my_callback(S_command *cmd, uint8_t mode, uint8_t *flags) {
+ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_TEST, _S_Command_test) {
 	*flags = 0;
 
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
 #if ROBOKIT_USE_BUILTIN_LED
-		if(_ROBOKIT_CMD_CAST(_S_Command_test*, cmd)->reserved1) {
+		if(ROBOKIT_CMD_CAST(_S_Command_test*, cmd)->reserved1) {
 			ROBOKIT_LOGI("Test LED ON");
 			led_strip_set_pixel(_my_test_led_strip, 0, 16, 16, 16);
 			led_strip_refresh(_my_test_led_strip);
@@ -87,7 +86,7 @@ void __robokit_my_callback(S_command *cmd, uint8_t mode, uint8_t *flags) {
 /**
  * Initializes the test commands for the Robokit platform.
  *
- * This function registers the test command callback and configures the LED control settings
+ * This function configures the LED control settings
  * depending on whether a built-in LED is being used. If `ROBOKIT_USE_BUILTIN_LED` is defined, it
  * initializes the LED strip configuration for a DevkitC board, specifying pin, maximum number
  * of LEDs, and resolution. If the built-in LED is not used, it sets the direction of the LED pin
@@ -95,9 +94,7 @@ void __robokit_my_callback(S_command *cmd, uint8_t mode, uint8_t *flags) {
  *
  * This setup is necessary for handling test commands related to LED control operations.
  */
-void _test_commands_init(void) {
-	robokit_register_command_fn(E_COMMAND_TEST, __robokit_my_callback);
-
+ROBOKIT_MODULE_INIT() {
 #if ROBOKIT_USE_BUILTIN_LED
 	// DevkitC Board configuration
 	led_strip_config_t strip_config = {
@@ -115,33 +112,23 @@ void _test_commands_init(void) {
 #endif
 }
 
-
 /**
- * Creates and initializes a test command for the robokit system.
- *
- * This function initializes the provided command structure, sets its command type to
- * E_COMMAND_TEST, and toggles the internal state of the test LED. Depending on the LED's
- * state, the function sets the appropriate value in the command's reserved section to
- * reflect the LED state.
- *
- * @param cmd Pointer to an S_command structure to be initialized and configured as a test command.
- *            This pointer must not be null.
- * @return Returns 1 on successful command initialization, or 0 if the provided
- *         command pointer is null.
+ * @inheritDoc
  */
 uint8_t robokit_make_test_command(S_command *cmd) {
 	if(!cmd)
 		return 0;
 
-	_robokit_command_init(cmd);
+	ROBOKIT_COMMAND_RESET_P(cmd);
+
 	cmd->cmd = E_COMMAND_TEST;
 
 	if(_test_led_current_state) {
 		_test_led_current_state = 0;
-		_ROBOKIT_CMD_CAST(_S_Command_test *, cmd)->reserved1 = 0;
+		ROBOKIT_CMD_CAST(_S_Command_test *, cmd)->reserved1 = 0;
 	} else {
 		_test_led_current_state = 1;
-		_ROBOKIT_CMD_CAST(_S_Command_test *, cmd)->reserved1 = 1;
+		ROBOKIT_CMD_CAST(_S_Command_test *, cmd)->reserved1 = 1;
 	}
 	return 1;
 }

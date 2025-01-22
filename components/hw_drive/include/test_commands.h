@@ -37,8 +37,8 @@
  * The command structure is updated with a test command, and the internal state affects
  * the reserved fields of the command.
  *
- * @param [out] command S_command* Pointer to the command structure that will be initialized and modified.
- * @return uint8_t Returns 1 if the command structure is successfully initialized and modified, otherwise 0.
+ * @param command S_command* Pointer to the command structure that will be initialized and modified.
+ * @return Returns 1 if the command structure is successfully initialized and modified, otherwise 0.
  */
 uint8_t robokit_make_test_command(S_command *command);
 
