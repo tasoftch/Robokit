@@ -22,47 +22,52 @@
  * SOFTWARE.
  */
 
-#ifndef FAL_H
-#define FAL_H
-
-#define GPIO_RED   10  // GPIO_10 Output for red LED
-#define GPIO_GREEN 11  // GPIO_11 Output for green LED
-#define GPIO_BLUE  12  // GPIO_12 Output for blue LED
-
-#include <stdint.h>
+#include "fal_commands.h"
+#include <hal/fal.h>
+#include <modules/robokit_module.h>
 
 /**
- * The internal flags for fal commands
- * Do not change.
+ * @inheritDoc
  */
-enum {
-	   E_FAL_OPTION_DISABLE = 0,
-	   E_FAL_OPTION_CALIBRATE,
-	   E_FAL_OPTION_ENABLE
-};
+uint8_t robokit_make_command_fal_enable(S_command *cmd) {
+	if(!cmd)
+		return 0;
 
+	ROBOKIT_COMMAND_RESET_P(cmd);
+	_S_Command_Fal *fal_cmd = ROBOKIT_CMD_CAST(_S_Command_Fal *, cmd);
+	fal_cmd->cmd = E_COMMAND_FAL;
+	fal_cmd->flags = E_FAL_OPTION_ENABLE;
+
+	return 1;
+}
 
 /**
- * @brief Checks if the calibration process is completed.
- *
- * This function returns the current calibration status of the system,
- * indicating whether the calibration has been successfully finished or not.
- *
- * @return uint8_t Non-zero if calibrated, zero if not calibrated.
+ * @inheritDoc
  */
-uint8_t fal_is_calibrated(void);
+uint8_t robokit_make_command_fal_disable(S_command *cmd) {
+	if(!cmd)
+		return 0;
 
+	ROBOKIT_COMMAND_RESET_P(cmd);
+	_S_Command_Fal *fal_cmd = ROBOKIT_CMD_CAST(_S_Command_Fal *, cmd);
+	fal_cmd->cmd = E_COMMAND_FAL;
+	fal_cmd->flags = E_FAL_OPTION_DISABLE;
+
+	return 1;
+}
 
 /**
- * @brief Returns the character representation of a color index.
- *
- * This function maps a color index to a character representation based on a predefined array
- * of colors. The mapping is defined for indices from 0 to 7.
- *
- * @param[in] color uint8_t The index of the color.
- *
- * @return unsigned char The character representing the color if the index is valid, otherwise '-'.
+ * @inheritDoc
  */
-unsigned char fal_name_of_color(uint8_t color);
+uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(uint8_t)) {
+	if(!cmd)
+		return 0;
 
-#endif //FAL_H
+	ROBOKIT_COMMAND_RESET_P(cmd);
+	_S_Command_Fal *fal_cmd = ROBOKIT_CMD_CAST(_S_Command_Fal *, cmd);
+	fal_cmd->cmd = E_COMMAND_FAL;
+	fal_cmd->flags = E_FAL_OPTION_CALIBRATE;
+	fal_cmd->callback = calibrated;
+
+	return 1;
+}

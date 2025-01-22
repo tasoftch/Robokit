@@ -36,45 +36,60 @@
 #define ROBOKIT_FAL_CYAN			0b011
 #define ROBOKIT_FAL_WHITE			0b111
 
+/**
+ * @brief The FAL_Result structure holds the color for each sensor cell.
+ * Please note that the cells are assigned from left to right in forward drive direction.
+ *
+ * In pro3E, the FAL_Result has only black or white colors available.
+ */
 typedef struct {
- uint16_t fb_1_left:3;
- uint16_t fb_2_middle_left:3;
- uint16_t fb_3_middle:3;
- uint16_t fb_4_middle_right:3;
- uint16_t fb_5_right:3;
+    uint16_t fb_1_left:3;
+    uint16_t fb_2_middle_left:3;
+    uint16_t fb_3_middle:3;
+    uint16_t fb_4_middle_right:3;
+    uint16_t fb_5_right:3;
 } S_Fal_Result;
+
 
 typedef void (*Fal_Interpreter_Callback)(S_Fal_Result *result);
 
 /**
- * @brief Constructs a FAL (Follow A Line) calibrate command.
- * @param[out] cmd S_command* Pointer to the command structure to be initialized.
- * @param[in] calibrated void(*)(uint8_t) Function pointer for the calibration callback.
- * @return uint8_t Returns 1 if the command is successfully constructed, 0 otherwise.
+ * @brief Constructs a FAL (Follow A Line) calibration command.
+ *
+ * The system assumes, that the drive will pass a black line that fully covers all sensor cells.
+ *
+ * For the calibration, the follow a line system will reset the current color references and enqueues
+ * a forward drive command with 50%.
+ * It will capture the maximum and minimum values of each sensor cell for a maximum time of 1s.
+ * As soon as there is a difference, it will calculate a threshold and sends a stop command.
+ * Depending, if 1s passed or the threshold could be calculated it will call the callback function with 1
+ * as parameter, if the calibration was successful or 0 otherwise.
+ *
+ * @param cmd A Pointer to the command structure to be initialized.
+ * @param calibrated A Function pointer for the calibration callback.
+ * @return Returns 1 if the command was successfully configured, 0 if the input pointer was null.
  */
 uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(uint8_t));
 
 /**
- * @brief Initializes and enables a follow a line (FAL) command.
+ * @brief Constructs a drive forward command using the follow a line (FAL) sensor.
  *
  * This function initializes the given command structure to prepare it
- * for enabling the follow a line function. The command is set to
- * E_COMMAND_FAL and the option is set to enable.
+ * for enabling the follow a line sensor.
  *
- * @param[out] cmd S_command* Pointer to the command structure to initialize and enable.
- * @return uint8_t Returns 1 if the operation is successful, or 0 if the cmd pointer is null.
+ * @param cmd A Pointer to the command structure to be initialized.
+ * @return Returns 1 if the command was successfully configured, 0 if the input pointer was null.
  */
 uint8_t robokit_make_command_fal_enable(S_command *cmd);
 
 /**
- * @brief Disables the Follow A Line (FAL) sensor command.
+ * @brief Constructs a stop immediately command disabling the follow a line (FAL) sensor.
  *
  * This function initializes and configures the command structure `cmd`
- * to disable the Follow A Line (FAL) sensor. It sets the appropriate
- * command and flags within the structure.
+ * to disable the Follow A Line (FAL) sensor. Once enqueued, it will also immediately stop the drive.
  *
- * @param [out] cmd S_command* Pointer to the command structure to be configured.
- * @return uint8_t Returns 1 if the command was successfully configured, 0 if the input pointer was null.
+ * @param cmd A Pointer to the command structure to be configured.
+ * @return Returns 1 if the command was successfully configured, 0 if the input pointer was null.
  */
 uint8_t robokit_make_command_fal_disable(S_command *cmd);
 
@@ -84,14 +99,15 @@ uint8_t robokit_make_command_fal_disable(S_command *cmd);
  * This function gets frequently called upon the follow a line sensors measurement result.
  * It is responsible to translate the result into drive commands for adjusting the direction.
  *
- * @param [in] interpreter void(*)(S_Fal_Result*) Function pointer to be used as the new line result interpreter.
+ * @param interpreter A Function pointer to transform follow a line results into drive commands.
  */
 void fal_set_line_result_interpreter(Fal_Interpreter_Callback interpreter);
 
 
 /**
- * @brief Interprets the line following sensor result and issues appropriate drive commands.
- * @param [in] result S_Fal_Result* Pointer to the sensor data structure containing readings from five sensors.
+ * @brief Interprets the line following sensor result and issues default drive commands.
+ *
+ * @param result A Pointer to the sensor data structure containing readings from five sensors.
  */
 void fal_default_line_result_interpreter(S_Fal_Result *result);
 
