@@ -271,7 +271,7 @@ void main() {
 ```
 
 #### Beispiel code
-Während 5 Minuten zufällig LEDs von 1 bis 8 mit zufüllig Rot, Grün oder Blau ansteuern.
+Während 5 Minuten zufällig LEDs von 1 bis 8 mit zufällig Rot, Grün oder Blau ansteuern.
 ```c++
 void app_main()
 {
@@ -306,7 +306,7 @@ void app_main()
     }
 }
 ```
-LEDs 1, 5 und 8 Rot machen und nach 2 Sekunden alles ausschalten
+LEDs 1, 5 und 8 rot machen und nach 2 Sekunden alles ausschalten
 ```c++
 void app_main()
 {

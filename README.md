@@ -19,3 +19,26 @@ Es ist unterteilt in
     Alles, was mit der Kommunikation nach aussen zu tun hat.
 - Firmware, zu finden im [```components/hw_drive```](components/hw_drive) Verzeichnis  
   Steuert die Hardwarekomponenten an.
+
+### Installation
+
+Wir empfehlen die offizielle IDE von espressif zu installieren. [Espressif IDE Getting started](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html)  
+Danach clonen Sie dieses Repository auf Ihren Rechner und starten Sie die espressif IDE:
+
+```bin
+git clone https://github.com/tasoftch/Robokit.git
+cd Robokit
+. ../path/to/esp-idf/export.sh
+```
+Danach steht Ihnen die IDF von espressif zur Verfügung:
+
+```bin
+idf.py flash
+```
+Baut das project und lädt das Programm auf den Flash.
+
+```bin
+idf.py monitor
+```
+Baut das project auch und lädt das Programm auf den Flash.  
+Danach startet die Konsole und alle printf() ANweisungen werden auf dem Terminal ausgegeben.
