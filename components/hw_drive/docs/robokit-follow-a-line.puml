@@ -3,26 +3,26 @@
 skinparam defaultTextAlignment center
 
 |Software|
-:Send Calibration Command;
+:Kdo. Kalibrierung senden;
 |Firmware|
-:Reset Sensor Cache;
-:Send "Straight Forward" Command;
-:Capture max and min color
-until white color detected
-or 1s passed;
-:Send "Stop" Command;
+:Farbwerte der Sensorzellen zurücksetzen;
+:Kdo. Vorwärts mit 50% senden;
+:Farben pro Zelle einlesen und
+minimum und maximum speichern
+oder 500ms vertreichen lassen;
+:Kdo. Anhalten senden;
 |Software|
-if(Calibration successful?) then(YES)
-	:Send Follow A Line Command;
+if(Konnte ein Schwellenwert\nermittelt werden?) then(JA)
+	:Kdo. "Der Linie folgen";
 	|Firmware|
 	repeat
-		:Read Follow A Line;
-		:Interpret FAL Result;
+		:Farben Rohwerte einlesen;
+		:Resultat berechnen;
 		|Software|
-		:Translate interpretation
-		into drive commands;
+		:Resultat in korrigierende
+		Fahrkommandos umwandeln;
 		|Firmware|
-	repeat while (Is FAL still enabled?)
-else(NO)
+	repeat while (Ist FAL noch eingeschaltet?)
+else(NEIN)
 
 @enduml

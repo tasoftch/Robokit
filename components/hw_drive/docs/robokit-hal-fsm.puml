@@ -1,0 +1,16 @@
+@startuml
+'https://plantuml.com/state-diagram
+
+[*] --> Warten
+
+Warten: "Auf eine Aktion warten"
+
+Warten --> Kalibration: "Kdo. Kalibrierung"
+
+state Kalibration {
+	[*] --> Start
+	Start: Alles zurücksetzen
+
+	Start --> Werte_einlesen : Kdo. Vorwärts 50%
+}
+@enduml
