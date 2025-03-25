@@ -3,6 +3,8 @@
 //
 
 #include <modules/robokit_module.h>
+#include <modules/specs.h>
+
 #include "hal/imu.h"
 
 #include <private/robokit_log.h>
@@ -45,7 +47,7 @@ static void imu_add_acceleration(int16_t acceleration) {
 
 }
 
-static void imu_interpret(void) {
+static void imu_interpret(void) ROBOKIT_SPECIFICATION( SC01_0 ) {
 	int16_t dir = (old_direction - reference_direction + 2880) % 5760;
 	if (dir < 0) {
 		dir += 5760;
