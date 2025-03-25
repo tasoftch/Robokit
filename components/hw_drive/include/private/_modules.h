@@ -45,7 +45,6 @@ void __robokit_register_loop_callback(void(*)(void));
 #define ROBOKIT_MODULE_INIT_EX(NAME, ...)\
 	static void _ROBOKIT_MAKE_NAME(_robokit_init_, __LINE__) (void);\
 	__attribute__((constructor(101))) static void _ROBOKIT_MAKE_NAME(_robokit_init_register, __LINE__)(void) { \
-		printf("ROBOKIT MODULE INIT\n");\
 		__robokit_register_init_callback(_ROBOKIT_MAKE_NAME(_robokit_init_, __LINE__)); \
 	}    \
 	static void _ROBOKIT_MAKE_NAME(_robokit_init_, __LINE__) (void)
