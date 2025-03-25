@@ -47,7 +47,7 @@
  * It will expand this to the function signature F_command_callback
  * defined in schedule.h
  */
-#define ROBOKIT_MODULE_COMMAND_HANDLER( CMD_NR, CMD_TYPE )	ROBOKIT_REGISTER_COMMAND_HANDLER_EX( CMD_NR, CMD_TYPE, CMD_NR )
+#define ROBOKIT_MODULE_COMMAND_HANDLER( CMD_NR, ... )	ROBOKIT_REGISTER_COMMAND_HANDLER_EX( CMD_NR, __VA_ARGS__ )
 
 /**
  * Defines a function that is called at the bootstrap of the system.

@@ -46,7 +46,7 @@ static led_strip_handle_t _my_test_led_strip;
  * @param flags A pointer to a uint8_t to store additional status or result flags
  *              after executing the LED setup. The function initializes the flags to 0.
  */
-ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_LED_SETUP, _S_Command_LED) {
+ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_LED_SETUP, _S_Command_LED *cmd, uint8_t mode, uint8_t *flags) {
 	*flags = 0;
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
 		for(int e=0;e<LED_MAX_COUNT;e++) {
@@ -68,7 +68,7 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_LED_SETUP, _S_Command_LED) {
  * @param flags A pointer to a uint8_t where additional status or result flags
  *              may be stored. The function sets these flags to 0.
  */
-ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_LED_FLUSH, S_command) {
+ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_LED_FLUSH, S_command *cmd, uint8_t mode, uint8_t *flags) {
 	*flags = 0;
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
 		if(cmd->data[0]) {

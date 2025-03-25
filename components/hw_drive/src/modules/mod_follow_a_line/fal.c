@@ -332,7 +332,7 @@ static void _fal_calibration_init(void) {
 	}
 }
 
-ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal) {
+ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode, uint8_t *flags) {
 	if (mode == E_SCHEDULE_MODE_PRECHECK) {
 		if(cmd->flags == E_FAL_OPTION_ENABLE) {
 			if(!fal_is_calibrated()) {

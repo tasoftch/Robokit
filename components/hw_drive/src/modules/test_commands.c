@@ -57,7 +57,7 @@ static led_strip_handle_t _my_test_led_strip;
  * @param flags Pointer to a flags variable which gets reset (set to zero) at the start of the function,
  *              used for returning status flags if necessary.
  */
-ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_TEST, _S_Command_test) {
+ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_TEST, _S_Command_test *cmd, uint8_t mode, uint8_t *flags) {
 	*flags = 0;
 
 	if(mode == E_SCHEDULE_MODE_PERFORM) {

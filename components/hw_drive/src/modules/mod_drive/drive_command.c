@@ -96,7 +96,7 @@ static void _robokit_motor_set_speed(const S_motor_config *cfg, const S_motor_ct
  * The handler will accept all commands according to the flags themselves.
  * If the perform mode is selectec, it will forward the command to the motor pwm configuration.
  */
-ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_VECTOR, _S_command_drive) {
+ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_VECTOR, _S_command_drive *cmd, uint8_t mode, uint8_t *flags) {
 	if(mode == E_SCHEDULE_MODE_PRECHECK) {
 		*flags = cmd->flags;
 	}
