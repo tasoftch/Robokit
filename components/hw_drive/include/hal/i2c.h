@@ -9,6 +9,9 @@
 
 typedef uint8_t i2c_addr_t;
 
+void i2c_init();
+void i2c_scan();
+
 esp_err_t i2c_write_register(i2c_addr_t chip_addr, uint8_t reg_addr);
 esp_err_t i2c_write_register_byte(i2c_addr_t chip_addr, uint8_t reg_addr, uint8_t data);
 esp_err_t i2c_write_register_bytes(i2c_addr_t chip_addr, uint8_t reg_addr, uint8_t *data, uint8_t length);
