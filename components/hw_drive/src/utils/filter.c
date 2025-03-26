@@ -49,6 +49,13 @@ void filter_angle_dereference(S_filter *filter) {
 	}
 }
 
+int16_t filter_angle_get_reference(S_filter *filter) {
+	if (filter && filter->mode & S_FILTER_MODE_ANGULAR) {
+		return _ROBOKIT_FILTER_CAST(S_filter_angular*, filter)->ref_angle;
+	}
+	return 0;
+}
+
 void filter_angle_put_value(S_filter *filter, int16_t angle) {
 	if (filter && filter->mode & S_FILTER_MODE_ANGULAR) {
 		S_filter_angular *f = (S_filter_angular *) filter;

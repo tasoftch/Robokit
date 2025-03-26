@@ -16,4 +16,6 @@ typedef enum {
 	E_IMU_STATUS_FLAG_CALIBRATION = 1<<1,
 } E_imu_status;
 
+void imu_calibration(void(*callback)(void));
+
 #endif //IMU_H
