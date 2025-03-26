@@ -25,7 +25,7 @@
 #ifndef commands_h
 #define commands_h
 
-#include "config.h"
+#include <config.h>
 
 typedef uint8_t T_cmd;
 
@@ -55,7 +55,9 @@ enum {
 	E_PUSH_STATUS_OK,
 	E_PUSH_STATUS_UNKNOWN_COMMAND,
 	E_PUSH_STATUS_STACK_FULL,
-	E_PUSH_PRECHECK_FAILED
+	E_PUSH_PRECHECK_FAILED,
+
+	E_PUSH_CHAIN_FULL
 };
 
 typedef struct {
