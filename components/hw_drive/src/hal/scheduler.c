@@ -210,7 +210,7 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	taskENABLE_INTERRUPTS();
 
 	ROBOKIT_LOGI("Command %d enqueued at index %d.", cmd->cmd, cmd_idx);
-	return 1;
+	return E_PUSH_STATUS_OK;
 }
 
 /**
