@@ -24,9 +24,12 @@
 
 #include "drive_command.h"
 
+#include <portmacro.h>
 #include <hal/pwm_motors.h>
 #include <modules/robokit_module.h>
 #include <private/motor_logic.h>
+
+#include <values.h>
 
 /**
  * @brief Default pwm configuration for left motor
@@ -57,6 +60,8 @@ S_motor_config robokit_motor_left_get_config(void) { return left_config; }
  * @inheritDoc
  */
 S_motor_config robokit_motor_right_get_config(void) { return right_config; }
+
+static volatile S_vector _current_vector = {0};
 
 /**
  * @brief Helper function to apply motor configuration and motor control into according pwm signals.
@@ -102,6 +107,12 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_VECTOR, _S_command_drive *cmd, uint8_t 
 	}
 
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
+		portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;
+		portENTER_CRITICAL(&myMutex);
+		_current_vector.angle = cmd->angle;
+		_current_vector.speed = cmd->speed;
+		portEXIT_CRITICAL(&myMutex);
+
 		if(cmd->speed == 0) {
 			robokit_pwm_motor_all_off();
 			return;
@@ -153,4 +164,12 @@ uint8_t robokit_make_drive_command_vector(S_command *cmd, const S_vector vector)
 		return 1;
 	}
 	return 0;
+}
+
+/**
+ *
+ * @return S_vector The current vector
+ */
+S_vector robokit_get_current_vector(void) {
+	return _current_vector;
 }

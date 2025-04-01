@@ -28,31 +28,18 @@
 #include "config.h"
 #include "vector.h"
 
-enum {
-    ROBOKIT_MODE_DRIVE_NONE,
-    ROBOKIT_MODE_DRIVE_IMU,
-    ROBOKIT_MODE_DRIVE_VECTOR,
-    ROBOKIT_MODE_DRIVE_FAL,
-};
-typedef uint8_t T_mode;
-
 
 #define ROBOKIT_DIRECTION_FORWARD (1)
 #define ROBOKIT_DIRECTION_BACKWARD (0)
-typedef uint8_t T_direction;
 
-/* DRIVE VALUES */
-T_mode robokit_get_current_drive_mode(void);
-
+// Returns the current vector that the drive is running now.
 S_vector robokit_get_current_vector(void);
-uint8_t robokit_get_current_speed(void);
-T_direction robokit_get_current_direction(void);
 
 // IMU value
 // Only available after imu calibration and imu enable commands
 
 // Returns the current orientation regarding the calibration.
-//
+// If IMU is not running, returns INT16_MIN.
 int16_t robokit_get_current_orientation(void);
 
 
