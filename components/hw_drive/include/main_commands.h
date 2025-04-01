@@ -42,6 +42,8 @@ enum {
 
 	E_COMMAND_FAL,								// Call follow a line sensor command
 
+	E_COMMAND_IMU,								// IMU commands
+
 	E_COMMAND_TEST = ROBOKIT_MAX_SCHEDULED_COMMANDS - 1
 };
 

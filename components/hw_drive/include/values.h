@@ -48,4 +48,13 @@ S_vector robokit_get_current_vector(void);
 uint8_t robokit_get_current_speed(void);
 T_direction robokit_get_current_direction(void);
 
+// IMU value
+// Only available after imu calibration and imu enable commands
+
+// Returns the current orientation regarding the calibration.
+//
+int16_t robokit_get_current_orientation(void);
+
+
+
 #endif /* values_h */
