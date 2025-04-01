@@ -28,6 +28,34 @@
 #include <main_commands.h>
 #include <hal/timed_commands_impl.h>
 
+/**
+ * @brief Returns a free command chain to be filled by software.
+ *
+ * Please note that this function return 0 and chain = NULL if no chain is available.
+ *
+ * @param chain The memory space to alloc the chain in it.
+ *
+ * @return If no chain available, this function returns 0 otherwise 1
+ */
+uint8_t robokit_tc_get_empty_chain(S_T_chain *chain) ROBOKIT_WL_PACKAGE( 3.4 );
 
+// Use this function to add timed commands to a valid chain.
+// If the list is not ready to receive commands, this function returns
+// The return values are the same as described in robokit_push_command().
+// The only exception is E_PUSH_CHAIN_FULL if the chain can not accept further commands (Stack, occupied)
+uint8_t robokit_tc_push_command(
+ S_T_chain *chain,
+ int16_t timeout_ms,
+ S_command command,
+ uint8_t flags
+) ROBOKIT_WL_PACKAGE( 3.4 );
 
+// Pushes a callback to the list.
+// Use the callbacks to get informed when the list passes a specific position.
+uint8_t robokit_tc_push_callback(S_T_chain *chain, void (*callback)(void));
+
+/*
+ * @brief Pushes the command chain to the firmware, which will start to execute it
+ */
+uint8_t robokit_tc_push_command_list(S_T_chain *chain, uint8_t flags) ROBOKIT_WL_PACKAGE( 3.4 );
 #endif //TIMED_COMMANDS_H

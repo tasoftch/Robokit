@@ -42,6 +42,9 @@ enum {
 
 	E_COMMAND_FAL,								// Call follow a line sensor command
 
+
+	E_COMMAND_TIMED_LIST,						// Reserved command to use with the timed lists
+												// declared in timed_commands.h
 	E_COMMAND_TEST = ROBOKIT_MAX_SCHEDULED_COMMANDS - 1
 };
 

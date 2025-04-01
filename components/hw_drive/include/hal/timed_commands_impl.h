@@ -29,17 +29,35 @@
 #include <main_commands.h>
 #include <modules/specs.h>
 
-#define ROBOKIT_TIMED_COMMAND_SET_COUNT 5
+/*
+ * A command list is a construct that holds one or more native commands
+ * in a time scheduled sequence.
+ *
+ * You can add commands to the list by defining an interval (in ms) before or after the command
+ * When the list is prepared, you can push it to the firmware to be executed immediately.
+ *
+ * There exist several commands to control the lists and its executation in the firmware.
+ */
 
-#define ROBOKIT_TIMED_COMMAND_CHAIN_LENGTH 50
+// Specifies the amount of independent lists, that can be prepared and executed.
+#define ROBOKIT_TIMED_COMMAND_LISTS_COUNT 5
+
+// A list has only as many items as required.
+// A list with one command only uses one stack item. another with 130 uses 130.
+// Therefore, the stack items can be organized accordingly.
+#define ROBOKIT_TIMED_COMMAND_LISTS_ITEMS_STACK_COUNT 200
 
 typedef struct {
 	// positive intervals in ms mean waiting after command,
 	// negative intervals in ms mean waiting before command
+	// You can wait for maximum 30 seconds before or after the command.
 	int16_t interval_ms;
 
 	// The flags for pushing the command
 	uint8_t flags;
+
+	// unused field.
+	uint8_t reserved1;
 
 	// The command to be pushed to the firmware
 	S_command command;
@@ -68,21 +86,7 @@ typedef enum {
 	TCMD_FLAG_RUNNING						= 1<<2,
 } E_internal_T_chain_flags;
 
-// Returns a free command chain to be filled by software.
-// If no chain available, this function returns 0 otherwise 1
-uint8_t robokit_tcommand_get_empty_chain(S_T_chain *chain) ROBOKIT_WL_PACKAGE( 3.4 );
-
 // Returns the number of available (free, not in use) chains.
-uint8_t robokit_tcommand_get_available_chain_count(void);
+uint8_t robokit_tc_get_available_chain_count(void);
 
-// Use this function to add timed commands to a valid chain.
-// If the list is not ready to receive commands, this function returns
-// The return values are the same as described in robokit_push_command().
-// The only exception is E_PUSH_CHAIN_FULL if the chain can not accept further commands (Maximum defined by ROBOKIT_TIMED_COMMAND_CHAIN_LENGTH)
-uint8_t robokit_tcommand_push_command(S_T_chain *chain, int16_t timeout_ms, S_command command, uint8_t flags) ROBOKIT_WL_PACKAGE( 3.4 );
-
-// This function creates a command to be pushed to the firmware's main function robokit_push_command()
-// As soon as the command gets into the firmware, it will be processed in time.
-// The firmware will automatically push the commands in the chain accordingly to their timeout.
-uint8_t robokit_make_chain_timer_command(S_command *cmd, S_T_chain *my_chain);
 #endif //TIMED_COMMANDS_IMPL_H
