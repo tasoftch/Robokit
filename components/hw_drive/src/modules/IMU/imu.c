@@ -30,7 +30,9 @@ static IMU_Interpreter_Callback imu_callback;
  * @inheritDoc
  */
 int16_t robokit_get_current_orientation(void) {
-	return current_filtered_angle;
+	if(imu_status > E_IMU_STATUS_FLAG_NONE)
+		return current_filtered_angle;
+	return INT16_MIN;
 }
 
 /**
