@@ -1,5 +1,5 @@
 /*
- * MIT License
+* MIT License
  *
  * Copyright (c) 2024 Th. Abplanalp, F. Romer
  *
@@ -22,47 +22,26 @@
  * SOFTWARE.
  */
 
-#ifndef commands_h
-#define commands_h
+#ifndef IMU_COMMANDS_H
+#define IMU_COMMANDS_H
 
-#include "config.h"
+#include "main_commands.h"
 
-typedef uint8_t T_cmd;
+// The IMU must be enabled for obtaining information in values.h
+uint8_t robokit_make_command_imu_enable(S_command *command);
+uint8_t robokit_make_command_imu_disable(S_command *command);
 
-enum {
-	E_COMMAND_NONE = 0,							// None or invalid command
+// The calibration is one cycle only to reset the current orientation to 0.
+// Turning the device to the left reduces the angle until 1800° (10 rounds).
+// Turning the device to the right increases the angle until 1800° (10 rounds).
 
-	/* DRIVE COMMANDS */
-	E_COMMAND_VECTOR,							// Drive using arg1 as X vector
-												// and arg2 as Y vector.
+uint8_t robokit_make_command_imu_calibration(S_command *command, void (*done_callback)(void));
 
-	/* LED COMMANDS */
-	E_COMMAND_LED_SETUP,						// Choose a LED number and set its color
-	E_COMMAND_LED_FLUSH,						// Sends all LED setups to strip
+// Giving a drive command enables the IMU and applies a calibration.
+// The system will now follow 0° and inject commands to correct the angle.
+uint8_t robokit_make_command_imu_drive_forward(S_command *command, T_Speed speed);
+uint8_t robokit_make_command_imu_drive_backward(S_command *command, T_Speed speed);
 
-	E_COMMAND_FAL,								// Call follow a line sensor command
+uint8_t robokit_make_command_imu_stop(S_command *command);
 
-	E_COMMAND_IMU,								// IMU commands
-
-	E_COMMAND_TEST = ROBOKIT_MAX_SCHEDULED_COMMANDS - 1
-};
-
-enum {
-	E_COMMAND_FLAG_BLOCK                = 1<<0,		// Wait until command is enqueued
-	E_COMMAND_FLAG_WAIT_UNTIL_DONE      = 1<<1,		// Wait until command is done by hardware
-	E_COMMAND_FLAG_IMU                  = 1<<2		// Enables IMU
-};
-
-enum {
-	E_PUSH_STATUS_OK,
-	E_PUSH_STATUS_UNKNOWN_COMMAND,
-	E_PUSH_STATUS_STACK_FULL,
-	E_PUSH_PRECHECK_FAILED
-};
-
-typedef struct {
-	uint8_t cmd;                // Eindeutige Kennung des Kommandos
-	uint8_t data[7];			// Datencontainer
-} S_command;
-
-#endif /* commands_h */
+#endif //IMU_COMMANDS_H

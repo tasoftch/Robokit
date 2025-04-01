@@ -26,7 +26,7 @@
 #include "test_unit.h"
 #include "vector.h"
 #include "motor_logic.h"
-
+#include "private/filter.h"
 
 TEST_SUITE("Vectors Test") {
     S_vector vector = robokit_make_vector(0, 100);
@@ -127,6 +127,88 @@ TEST_SUITE("Motor Controller") {
 
     TAAssertMotorForward(motor_left, 50);
     TAAssertMotorForward(motor_right, 25);
+}
+
+TEST_SUITE("Filter tests") {
+	S_filter filter;
+	filter_angle_init(&filter, 5, 5);
+
+	filter_angle_put_value(&filter, 1);
+	TAAssertEqual(filter_angle_get_value(&filter), 1);
+
+	filter_angle_put_value(&filter, 2);
+	TAAssertEqual(filter_angle_get_value(&filter), 2);
+
+	filter_angle_put_value(&filter, 4);
+	TAAssertEqual(filter_angle_get_value(&filter), 4);
+
+	filter_angle_put_value(&filter, 8);
+	TAAssertEqual(filter_angle_get_value(&filter), 8);
+
+	filter_angle_put_value(&filter, 2);
+	TAAssertEqual(filter_angle_get_value(&filter), 8);
+
+	filter_angle_put_value(&filter, 2);
+	TAAssertEqual(filter_angle_get_value(&filter), 8);
+
+	filter_angle_put_value(&filter, 9);
+	TAAssertEqual(filter_angle_get_value(&filter), 9);
+
+	filter_angle_put_value(&filter, 3);
+	TAAssertEqual(filter_angle_get_value(&filter), 9);
+
+	filter_angle_put_value(&filter, 3);
+	TAAssertEqual(filter_angle_get_value(&filter), 9);
+
+	filter_angle_put_value(&filter, 3);
+	TAAssertEqual(filter_angle_get_value(&filter), 9);
+
+	filter_angle_put_value(&filter, 3);
+	TAAssertEqual(filter_angle_get_value(&filter), 9);
+
+	filter_angle_put_value(&filter, 3);
+	TAAssertEqual(filter_angle_get_value(&filter), 3);
+
+	filter_angle_put_value(&filter, -3);
+	TAAssertEqual(filter_angle_get_value(&filter), 3);
+
+	filter_angle_put_value(&filter, -3);
+	TAAssertEqual(filter_angle_get_value(&filter), 3);
+
+	filter_angle_put_value(&filter, -3);
+	TAAssertEqual(filter_angle_get_value(&filter), 3);
+
+	filter_angle_put_value(&filter, -3);
+	TAAssertEqual(filter_angle_get_value(&filter), 3);
+
+	filter_angle_put_value(&filter, -3);
+	TAAssertEqual(filter_angle_get_value(&filter), -3);
+
+	filter_angle_put_reference(&filter);
+
+	filter_angle_put_value(&filter, -3);
+	TAAssertEqual(filter_angle_get_value(&filter), 0);
+
+	filter_angle_put_value(&filter, -1);
+	TAAssertEqual(filter_angle_get_value(&filter), 2);
+
+	filter_angle_put_value(&filter, 1);
+	TAAssertEqual(filter_angle_get_value(&filter), 4);
+
+	filter_angle_put_value(&filter, -5);
+	TAAssertEqual(filter_angle_get_value(&filter), 4);
+
+	filter_angle_put_value(&filter, -5);
+	TAAssertEqual(filter_angle_get_value(&filter), 4);
+
+	filter_angle_put_value(&filter, -5);
+	TAAssertEqual(filter_angle_get_value(&filter), 4);
+
+	filter_angle_put_value(&filter, -5);
+	TAAssertEqual(filter_angle_get_value(&filter), 4);
+
+	filter_angle_put_value(&filter, -5);
+	TAAssertEqual(filter_angle_get_value(&filter), -2);
 }
 
 int main() {

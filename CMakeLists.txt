@@ -10,6 +10,7 @@ if ( "$ENV{__TEST__}" STREQUAL "1")
             "components/hw_drive/Tests/*.c"
         "components/hw_drive/src/vector.c"
         "components/hw_drive/src/utils/motor_logic.c"
+            "components/hw_drive/src/utils/filter.c"
     )
     set(TARGET Robo_Test.bin)
     add_executable(${TARGET} ${all_SRC})
