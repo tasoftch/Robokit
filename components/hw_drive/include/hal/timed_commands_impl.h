@@ -45,9 +45,9 @@
 // A list has only as many items as required.
 // A list with one command only uses one stack item. another with 130 uses 130.
 // Therefore, the stack items can be organized accordingly.
-#define ROBOKIT_TIMED_COMMAND_LISTS_ITEMS_STACK_COUNT 200
+#define ROBOKIT_TIMED_COMMAND_LISTS_ITEMS_STACK_COUNT 5
 
-typedef struct {
+typedef struct _S_T_cmd {
 	// positive intervals in ms mean waiting after command,
 	// negative intervals in ms mean waiting before command
 	// You can wait for maximum 30 seconds before or after the command.
@@ -61,6 +61,9 @@ typedef struct {
 
 	// The command to be pushed to the firmware
 	S_command command;
+
+	// Points to the next command
+	struct _S_T_cmd *next_command;
 } S_T_cmd;
 
 
@@ -75,8 +78,11 @@ typedef struct {
 	// For internal usage
 	uint8_t flags;
 
-	// The list of the commands assigned to the chain
-	S_T_cmd *tcmd_list;
+	// The first command to be executed by the list
+	S_T_cmd *first_command;
+
+	// The last command in the list
+	S_T_cmd *last_command;
 } S_T_chain;
 
 typedef enum {
@@ -87,6 +93,11 @@ typedef enum {
 } E_internal_T_chain_flags;
 
 // Returns the number of available (free, not in use) chains.
-uint8_t robokit_tc_get_available_chain_count(void);
+uint8_t tc_get_available_chain_count(void);
+
+S_T_cmd *tc_alloc_command(void);
+void tc_free_command(S_T_cmd *tc);
+uint16_t tc_get_available_command_stack_count(void);
+
 
 #endif //TIMED_COMMANDS_IMPL_H

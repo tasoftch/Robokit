@@ -26,6 +26,7 @@
 #include "test_unit.h"
 #include "vector.h"
 #include "motor_logic.h"
+#include "timed_commands_impl.h"
 
 
 TEST_SUITE("Vectors Test") {
@@ -127,6 +128,44 @@ TEST_SUITE("Motor Controller") {
 
     TAAssertMotorForward(motor_left, 50);
     TAAssertMotorForward(motor_right, 25);
+}
+
+TEST_SUITE("Timed Commands") {
+	// Reduce ROBOKIT_TIMED_COMMAND_LISTS_ITEMS_STACK_COUNT to 5
+	TAAssertEqual(5, tc_get_available_command_stack_count());
+	S_T_cmd *cmd = tc_alloc_command();
+
+	TAAssertEqual(4, tc_get_available_command_stack_count());
+	TAAssertNotEqual(NULL, cmd);
+
+	S_T_cmd *cmd1 = tc_alloc_command();
+	S_T_cmd *cmd2 = tc_alloc_command();
+	S_T_cmd *cmd3 = tc_alloc_command();
+
+	TAAssertNotEqual(cmd1, cmd3);
+
+	TAAssertEqual(1, tc_get_available_command_stack_count());
+
+	TAAssertEqual(2, cmd2 - cmd);
+
+	tc_free_command(NULL);
+	tc_free_command(cmd);
+	tc_free_command(cmd1);
+
+	TAAssertEqual(3, tc_get_available_command_stack_count());
+	cmd = tc_alloc_command();
+	TAAssertNotEqual(NULL, cmd);
+
+	cmd = tc_alloc_command();
+	TAAssertNotEqual(NULL, cmd);
+
+	cmd = tc_alloc_command();
+	TAAssertNotEqual(NULL, cmd);
+
+	TAAssertEqual(0, tc_get_available_command_stack_count());
+
+	cmd = tc_alloc_command();
+	TAAssertEqual(NULL, cmd);
 }
 
 int main() {
