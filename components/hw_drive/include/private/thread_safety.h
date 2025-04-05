@@ -33,6 +33,9 @@
 	CODE ; \
 	} while(0)
 
+#define ROBOKIT_THREAD_SAFE_BLOCK_START() do {
+#define ROBOKIT_THREAD_SAFE_BLOCK_END() } while(0)
+
 #else
 #include <portmacro.h>
 #define ROBOKIT_THREAD_SAFE(CODE) do { \
@@ -40,6 +43,13 @@
 	portENTER_CRITICAL(&myMutex); \
 	CODE; \
 	portEXIT_CRITICAL(&myMutex); \
+	} while(0)
+
+#define ROBOKIT_THREAD_SAFE_BLOCK_START() do { \
+	portMUX_TYPE myMutex = portMUX_INITIALIZER_UNLOCKED;\
+	portENTER_CRITICAL(&myMutex); \
+
+#define ROBOKIT_THREAD_SAFE_BLOCK_END() portEXIT_CRITICAL(&myMutex); \
 	} while(0)
 
 #endif

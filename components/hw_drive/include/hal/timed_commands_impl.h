@@ -87,7 +87,7 @@ typedef struct {
 
 typedef enum {
 	TCMD_FLAG_NONE							= 0,
-	TCMD_FLAG_FREE							= 1<<0,
+	TCMD_FLAG_PREPARE						= 1<<0,
 	TCMD_FLAG_RESERVED						= 1<<1,
 	TCMD_FLAG_RUNNING						= 1<<2,
 } E_internal_T_chain_flags;
@@ -95,9 +95,17 @@ typedef enum {
 // Returns the number of available (free, not in use) chains.
 uint8_t tc_get_available_chain_count(void);
 
-S_T_cmd *tc_alloc_command(void);
-void tc_free_command(S_T_cmd *tc);
-uint16_t tc_get_available_command_stack_count(void);
+S_T_cmd *tc_command_alloc(void);
+void tc_command_free(S_T_cmd *tc);
+uint16_t tc_command_get_available(void);
 
+void tc_command_init(S_T_cmd *tc);
 
+// Gets the next free chain.
+// Returns NULL, if no chain is available.
+S_T_chain *tc_chain_alloc(void);
+void tc_chain_free(S_T_chain *tc);
+uint8_t tc_chain_get_available(void);
+
+void tc_chain_init(S_T_chain *tc);
 #endif //TIMED_COMMANDS_IMPL_H
