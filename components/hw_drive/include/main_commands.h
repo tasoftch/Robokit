@@ -54,15 +54,6 @@ enum {
 	E_COMMAND_FLAG_IMU                  = 1<<2		// Enables IMU
 };
 
-enum {
-	E_PUSH_STATUS_OK,
-	E_PUSH_STATUS_UNKNOWN_COMMAND,
-	E_PUSH_STATUS_STACK_FULL,
-	E_PUSH_PRECHECK_FAILED,
-
-	E_PUSH_CHAIN_FULL
-};
-
 typedef struct {
 	uint8_t cmd;                // Eindeutige Kennung des Kommandos
 	uint8_t data[7];			// Datencontainer
