@@ -32,6 +32,7 @@
 #include "main_commands.h"
 #include "fal_commands.h"
 #include "values.h"
+#include "robokit_err.h"
 
 /**
  * @brief Initializes the device components required for operation.
@@ -55,7 +56,7 @@ void device_init(void);
  *                 E_PUSH_STATUS_OK, E_PUSH_STATUS_UNKNOWN_COMMAND, E_PUSH_STATUS_STACK_FULL,
  *                 or E_PUSH_PRECHECK_FAILED.
  */
-uint8_t robokit_push_command(S_command *cmd, uint8_t flags);
+robokit_err_t robokit_push_command(S_command *cmd, uint8_t flags);
 
 /**
  * @brief Retrieves the number of available spaces in the command queue.
