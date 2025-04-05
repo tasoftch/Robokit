@@ -24,6 +24,35 @@
 
 #include "timed_commands.h"
 
-void timed_commands_init(void) {
+#include <robokit_err.h>
 
+robokit_err_t robokit_tc_get_empty_chain(robokit_chain_ref_t *chain) ROBOKIT_WL_PACKAGE( 3.4 ) {
+	if(tc_chain_get_available() > 0) {
+		if(chain) {
+			*chain = tc_chain_alloc();
+			tc_chain_init(*chain);
+		}
+		return ROBOKIT_OK;
+	}
+	return ROBOKIT_ERR_TC_NO_CHAIN_MEM;
+}
+
+uint8_t robokit_tc_push_command(
+ S_T_chain *chain,
+ int16_t timeout_ms,
+ S_command command,
+ uint8_t flags
+) ROBOKIT_WL_PACKAGE( 3.4 ) {
+
+	return ROBOKIT_OK;
+}
+
+robokit_err_t robokit_tc_push_callback(S_T_chain *chain, void (*callback)(void)) {
+
+	return ROBOKIT_OK;
+}
+
+robokit_err_t robokit_tc_discard_list(S_T_chain *chain) {
+
+	return ROBOKIT_OK;
 }
