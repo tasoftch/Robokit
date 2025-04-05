@@ -182,22 +182,22 @@ uint8_t robokit_register_command_fn(T_cmd cmd, F_command_callback cb) {
  * @return 1|0
  * @see E_COMMAND_FLAG_* Konstanten
  */
-uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
+robokit_err_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	T_cmd tcmd = cmd->cmd;
 	uint8_t cmd_idx;
 
 	if(_callback_fn_list[tcmd] == NULL) {
 		ROBOKIT_LOGE("No command found %d.", cmd->cmd);
-		return E_PUSH_STATUS_UNKNOWN_COMMAND;
+		return ROBOKIT_ERR_UNKNOWN_COMMAND;
 	}
 
 	_callback_fn_list[tcmd](cmd, E_SCHEDULE_MODE_PRECHECK, &flags);
 	if(flags == 0xFF)
-		return E_PUSH_PRECHECK_FAILED;
+		return ROBOKIT_ERR_PRECHECK_FAILED;
 
 	if( robokit_get_free_stack_count() < 1 && !(flags & E_COMMAND_FLAG_BLOCK) ) {
 		ROBOKIT_LOGW("Stack is full");
-		return E_PUSH_STATUS_STACK_FULL;
+		return ROBOKIT_ERR_FULL_PUSH_STACK;
 	}
 
 	taskDISABLE_INTERRUPTS();
@@ -210,7 +210,7 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 	taskENABLE_INTERRUPTS();
 
 	ROBOKIT_LOGI("Command %d enqueued at index %d.", cmd->cmd, cmd_idx);
-	return E_PUSH_STATUS_OK;
+	return ROBOKIT_OK;
 }
 
 /**
