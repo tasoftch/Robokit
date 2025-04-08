@@ -22,7 +22,10 @@
  * SOFTWARE.
  */
 
+#include <robokit_module.h>
 #include <stdio.h>
+#include <timed_commands.h>
+
 #include "test_unit.h"
 #include "vector.h"
 #include "motor_logic.h"
@@ -132,40 +135,78 @@ TEST_SUITE("Motor Controller") {
 
 TEST_SUITE("Timed Commands") {
 	// Reduce ROBOKIT_TIMED_COMMAND_LISTS_ITEMS_STACK_COUNT to 5
-	TAAssertEqual(5, tc_get_available_command_stack_count());
-	S_T_cmd *cmd = tc_alloc_command();
+	TAAssertEqual(5, tc_command_get_available());
+	S_T_cmd *cmd = tc_command_alloc();
 
-	TAAssertEqual(4, tc_get_available_command_stack_count());
+	TAAssertEqual(4, tc_command_get_available());
 	TAAssertNotEqual(NULL, cmd);
 
-	S_T_cmd *cmd1 = tc_alloc_command();
-	S_T_cmd *cmd2 = tc_alloc_command();
-	S_T_cmd *cmd3 = tc_alloc_command();
+	S_T_cmd *cmd1 = tc_command_alloc();
+	S_T_cmd *cmd2 = tc_command_alloc();
+	S_T_cmd *cmd3 = tc_command_alloc();
 
 	TAAssertNotEqual(cmd1, cmd3);
 
-	TAAssertEqual(1, tc_get_available_command_stack_count());
+	TAAssertEqual(1, tc_command_get_available());
 
 	TAAssertEqual(2, cmd2 - cmd);
 
-	tc_free_command(NULL);
-	tc_free_command(cmd);
-	tc_free_command(cmd1);
+	tc_command_free(NULL);
+	tc_command_free(cmd);
+	tc_command_free(cmd1);
 
-	TAAssertEqual(3, tc_get_available_command_stack_count());
-	cmd = tc_alloc_command();
+	TAAssertEqual(3, tc_command_get_available());
+	S_T_cmd *cmd4 = tc_command_alloc();
 	TAAssertNotEqual(NULL, cmd);
 
-	cmd = tc_alloc_command();
+	S_T_cmd *cmd5 = tc_command_alloc();
 	TAAssertNotEqual(NULL, cmd);
 
-	cmd = tc_alloc_command();
+	S_T_cmd *cmd6 = tc_command_alloc();
 	TAAssertNotEqual(NULL, cmd);
 
-	TAAssertEqual(0, tc_get_available_command_stack_count());
+	TAAssertEqual(0, tc_command_get_available());
 
-	cmd = tc_alloc_command();
+	cmd = tc_command_alloc();
 	TAAssertEqual(NULL, cmd);
+
+	tc_command_free(cmd);
+	tc_command_free(cmd1);
+	tc_command_free(cmd2);
+	tc_command_free(cmd3);
+	tc_command_free(cmd4);
+	tc_command_free(cmd5);
+	tc_command_free(cmd6);
+
+	TAAssertEqual(5, tc_command_get_available());
+
+
+
+	// Test chain
+	S_T_chain *chain = tc_chain_alloc();
+	tc_chain_init(chain);
+
+	S_command command = ROBOKIT_COMMAND_INIT;
+
+	TAAssertNotEqual(NULL, chain);
+	command.cmd = 15;
+	command.data[2] = 8;
+	tc_chain_push_command(chain, 100, &command, 0);
+
+	command = ROBOKIT_COMMAND_INIT;
+	command.cmd = 5;
+	command.data[1] = 3;
+	tc_chain_push_command(chain, -100, &command, 0);
+
+	command = ROBOKIT_COMMAND_INIT;
+	command.cmd = 99;
+	command.data[5] = 9;
+	tc_chain_push_command(chain, 50, &command, 0);
+
+	TAAssertEqual(3, chain->length);
+	TAAssertEqual(250, chain->duration_ms);
+
+	TAAssertEqual(0, tc_runtime_free_buffer_count());
 }
 
 int main() {

@@ -24,9 +24,6 @@
 
 #include "hal/timed_commands_impl.h"
 
-#include <portmacro.h>
-
-#define __TEST__
 #include "private/thread_safety.h"
 
 #include "timed_commands.h"
@@ -103,6 +100,15 @@ void tc_chain_free(S_T_chain *tc) {
 	if(tc != NULL && tc->flags & TCMD_FLAG_RESERVED) {
 		ROBOKIT_THREAD_SAFE( tc->flags &= ~TCMD_FLAG_RESERVED );
 		ROBOKIT_THREAD_SAFE( _commands_chain_free_count++ );
+
+		S_T_cmd *cmd = tc->first_command;
+		while(cmd) {
+			tc_command_free(cmd);
+			cmd = cmd->next_command;
+		}
+		tc->first_command = NULL;
+		tc->last_command = NULL;
+		tc->length = 0;
 	}
 }
 
@@ -113,5 +119,57 @@ uint8_t tc_chain_get_available(void) {
 void tc_chain_init(S_T_chain *tc) {
 	if(tc != NULL && tc->flags & TCMD_FLAG_RESERVED) {
 		tc->flags |= TCMD_FLAG_PREPARE;
+		tc->first_command = NULL;
+		tc->last_command = NULL;
+		tc->length = 0;
 	}
+}
+
+robokit_err_t tc_chain_push_command(
+ S_T_chain *chain,
+ int16_t timeout_ms,
+ S_command *command,
+ uint8_t flags
+) ROBOKIT_WL_PACKAGE( 3.4 ) {
+	if(chain && command && chain->flags & TCMD_FLAG_PREPARE) {
+		chain->duration_ms += timeout_ms < 0 ? -timeout_ms : timeout_ms;
+		S_T_cmd *cmd = tc_command_alloc();
+		if(!cmd)
+			return ROBOKIT_ERR_TC_NO_CHAIN_MEM;
+
+		cmd->interval_ms = timeout_ms;
+		cmd->flags = flags;
+		cmd->command = *command;
+
+		if(!chain->first_command) {
+			chain->first_command = cmd;
+			chain->last_command = cmd;
+			chain->length = 1;
+		} else {
+			chain->length++;
+			chain->last_command->next_command = cmd;
+			chain->last_command = cmd;
+		}
+		return ROBOKIT_OK;
+	}
+	return ROBOKIT_ERR_TC_NO_CHAIN_MEM;
+}
+
+robokit_err_t tc_chain_pop_command(S_T_chain *chain) {
+	if(chain && chain->flags & TCMD_FLAG_PREPARE) {
+		if(chain->first_command == chain->last_command) {
+			chain->last_command = chain->first_command = NULL;
+			chain->length = 0;
+		} else {
+			chain->length--;
+			S_T_cmd *cmd = chain->first_command;
+			while(cmd->next_command != chain->last_command) {
+				cmd = cmd->next_command;
+			}
+			tc_command_free(chain->last_command);
+			chain->last_command = cmd;
+		}
+		return ROBOKIT_OK;
+	}
+	return ROBOKIT_FAIL;
 }

@@ -66,7 +66,8 @@
 /**
  * Helper macro to reset commands.
  */
-#define ROBOKIT_COMMAND_RESET(CMD) ( CMD = (S_command){0} )
-#define ROBOKIT_COMMAND_RESET_P(CMD) if(CMD) { *CMD = (S_command){0}; }
+#define ROBOKIT_COMMAND_INIT ( (S_command){0} )
+#define ROBOKIT_COMMAND_RESET(CMD) ( CMD = ROBOKIT_COMMAND_INIT )
+#define ROBOKIT_COMMAND_RESET_P(CMD) if(CMD) { *CMD = ROBOKIT_COMMAND_INIT; }
 
 #endif //ROBOKIT_MODULE_H

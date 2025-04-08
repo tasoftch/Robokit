@@ -23,8 +23,23 @@
  */
 
 #include "timed_commands.h"
-
 #include <robokit_err.h>
+#include <stdlib.h>
+#include <modules/robokit_module.h>
+
+enum {
+	E_COMMAND_MODE_CALLBACK = 1,
+	E_COMMAND_MODE_CHAIN = 2
+};
+
+typedef struct {
+	T_cmd cmd;
+	// Mode E_COMMAND_MODE_CALLBACK = simple callback, Mode E_COMMAND_MODE_CHAIN = timed chain
+	uint8_t mode;
+	uint8_t reserved1;
+	uint8_t reserved2;
+	void (*callback)(void);
+} _S_command_callback;
 
 robokit_err_t robokit_tc_get_empty_chain(robokit_chain_ref_t *chain) ROBOKIT_WL_PACKAGE( 3.4 ) {
 	if(tc_chain_get_available() > 0) {
@@ -37,22 +52,87 @@ robokit_err_t robokit_tc_get_empty_chain(robokit_chain_ref_t *chain) ROBOKIT_WL_
 	return ROBOKIT_ERR_TC_NO_CHAIN_MEM;
 }
 
-uint8_t robokit_tc_push_command(
+robokit_err_t robokit_tc_push_command(
  S_T_chain *chain,
  int16_t timeout_ms,
- S_command command,
+ S_command *command,
  uint8_t flags
 ) ROBOKIT_WL_PACKAGE( 3.4 ) {
-
-	return ROBOKIT_OK;
+	return tc_chain_push_command(chain, timeout_ms, command, flags);
 }
 
 robokit_err_t robokit_tc_push_callback(S_T_chain *chain, void (*callback)(void)) {
+	S_command command = ROBOKIT_COMMAND_INIT;
 
+	if(ROBOKIT_OK != robokit_make_command_callback(&command, callback))
+		return ROBOKIT_ERR_TC_NO_CHAIN_MEM;
+
+	return robokit_tc_push_command(chain, 0, &command, 0);
+}
+
+
+robokit_err_t robokit_tc_discard_list(S_T_chain *chain) {
+	if(chain) {
+		tc_chain_free(chain);
+		return ROBOKIT_OK;
+	}
+	return ROBOKIT_FAIL;
+}
+
+robokit_err_t robokit_tc_push_command_list(S_T_chain *chain, uint8_t flags) ROBOKIT_WL_PACKAGE( 3.4 ) {
+	if(chain && chain->flags & TCMD_FLAG_PREPARE) {
+		S_command command = ROBOKIT_COMMAND_INIT;
+		_S_command_callback *cbcmd = ROBOKIT_CMD_CAST(_S_command_callback *, &command);
+		cbcmd->callback = (void *)chain;
+		cbcmd->cmd = E_COMMAND_TIMED_LIST;
+		cbcmd->mode = E_COMMAND_MODE_CHAIN;
+		return robokit_push_command(&command, flags);
+	}
+	return ROBOKIT_FAIL;
+}
+
+robokit_err_t robokit_make_command_callback(S_command *command, void (*callback)(void)) {
+	if(!command || !callback)
+		return ROBOKIT_FAIL;
+	ROBOKIT_COMMAND_RESET_P(command);
+	_S_command_callback *cbcmd = ROBOKIT_CMD_CAST(_S_command_callback *, command);
+	cbcmd->callback = callback;
+	cbcmd->cmd = E_COMMAND_TIMED_LIST;
+	cbcmd->mode = E_COMMAND_MODE_CALLBACK;
 	return ROBOKIT_OK;
 }
 
-robokit_err_t robokit_tc_discard_list(S_T_chain *chain) {
+ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_TIMED_LIST, S_command *cmd, uint8_t mode, uint8_t *flags) {
+	if(mode == E_SCHEDULE_MODE_PRECHECK) {
+		if(!cmd) {
+			*flags |= 0xFF;
+			return;
+		}
 
-	return ROBOKIT_OK;
+		_S_command_callback *cbcmd = ROBOKIT_CMD_CAST(_S_command_callback *, cmd);
+
+		switch(cbcmd->mode) {
+			case 1:
+			case 2:
+			if(!cbcmd->callback)
+				*flags |= 0xFF;
+			break;
+			default:
+				*flags |= 0xFF;
+		}
+	}
+
+	if(mode == E_SCHEDULE_MODE_PERFORM) {
+		_S_command_callback *cbcmd = ROBOKIT_CMD_CAST(_S_command_callback *, cmd);
+		if(cbcmd->mode == 1) {
+			void (*callback)(void) = cbcmd->callback;
+			if(callback)
+				callback();
+			return;
+		}
+
+		if(cbcmd->mode == 2) {
+			// TODO: Chain handler
+		}
+	}
 }

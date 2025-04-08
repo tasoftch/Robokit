@@ -46,10 +46,10 @@ robokit_err_t robokit_tc_get_empty_chain(robokit_chain_ref_t *chain) ROBOKIT_WL_
 // If the list is not ready to receive commands, this function returns
 // The return values are the same as described in robokit_push_command().
 // The only exception is E_PUSH_CHAIN_FULL if the chain can not accept further commands (Stack, occupied)
-uint8_t robokit_tc_push_command(
+robokit_err_t robokit_tc_push_command(
  S_T_chain *chain,
  int16_t timeout_ms,
- S_command command,
+ S_command *command,
  uint8_t flags
 ) ROBOKIT_WL_PACKAGE( 3.4 );
 
@@ -63,4 +63,8 @@ robokit_err_t robokit_tc_push_callback(S_T_chain *chain, void (*callback)(void))
 robokit_err_t robokit_tc_push_command_list(S_T_chain *chain, uint8_t flags) ROBOKIT_WL_PACKAGE( 3.4 );
 
 robokit_err_t robokit_tc_discard_list(S_T_chain *chain);
+
+// Make specific commands to control the device
+
+robokit_err_t robokit_make_command_callback(S_command *command, void (*callback)(void));
 #endif //TIMED_COMMANDS_H

@@ -27,7 +27,9 @@
 
 #include <stdint.h>
 #include <main_commands.h>
+#include <robokit_err.h>
 #include <modules/specs.h>
+#include <stddef.h>
 
 /*
  * A command list is a construct that holds one or more native commands
@@ -45,7 +47,11 @@
 // A list has only as many items as required.
 // A list with one command only uses one stack item. another with 130 uses 130.
 // Therefore, the stack items can be organized accordingly.
+#ifdef __TEST__
 #define ROBOKIT_TIMED_COMMAND_LISTS_ITEMS_STACK_COUNT 5
+#else
+#define ROBOKIT_TIMED_COMMAND_LISTS_ITEMS_STACK_COUNT 200
+#endif
 
 typedef struct _S_T_cmd {
 	// positive intervals in ms mean waiting after command,
@@ -108,4 +114,34 @@ void tc_chain_free(S_T_chain *tc);
 uint8_t tc_chain_get_available(void);
 
 void tc_chain_init(S_T_chain *tc);
+
+robokit_err_t tc_chain_push_command(
+	S_T_chain *chain,
+	int16_t timeout_ms,
+	S_command *command,
+	uint8_t flags
+) ROBOKIT_WL_PACKAGE( 3.4 );
+
+robokit_err_t tc_chain_pop_command(S_T_chain *chain);
+
+
+// Runtime
+
+// This function gets called by the internal timer (triggered by tc_runtime_update()).
+// Anythime that a command needs to be performed, this function gets called with the actual command.
+void tc_runtime_command_handler(void (*handler)(S_command *command, uint8_t flags));
+
+void tc_runtime_make_current_chain(S_T_chain *chain);
+S_T_chain *tc_runtime_current_chain(void);
+
+void tc_runtime_abort_current_chain(void);
+
+robokit_err_t tc_runtime_replace_chain(S_T_chain *chain);
+
+uint8_t tc_runtime_free_buffer_count(void);
+robokit_err_t tc_runtime_append_command_list(S_T_chain *chain);
+
+// Moves the time forward by ms
+void tc_runtime_update(uint8_t ms);
+
 #endif //TIMED_COMMANDS_IMPL_H
