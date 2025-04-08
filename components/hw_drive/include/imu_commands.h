@@ -27,8 +27,23 @@
 
 #include "main_commands.h"
 
-// The IMU must be enabled for obtaining information in values.h
+/**
+ * @brief Enables the IMU flag in the drive command.
+ * @param [out] command S_command* Pointer to the command structure to modify.
+ * @return uint8_t Returns 1 if successful, 0 if the command pointer is null.
+ */
 uint8_t robokit_make_command_imu_enable(S_command *command);
+
+/**
+ * @brief Disables the IMU flag for the given command.
+ *
+ * This function modifies the provided command to disable the IMU flag.
+ * It accesses the flags field of the command and clears the IMU bit,
+ * effectively disabling the IMU functionality for this command.
+ *
+ * @param[out] command S_command* A pointer to the command structure that will be modified.
+ * @return uint8_t Returns 1 if the operation is successful, and 0 if the cmd is null.
+ */
 uint8_t robokit_make_command_imu_disable(S_command *command);
 
 // The calibration is one cycle only to reset the current orientation to 0.

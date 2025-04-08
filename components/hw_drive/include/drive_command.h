@@ -109,23 +109,5 @@ S_motor_config robokit_motor_left_get_config(void);
  */
 S_motor_config robokit_motor_right_get_config(void);
 
-/**
- * @brief Enables the IMU flag in the drive command.
- * @param [out] cmd S_command* Pointer to the command structure to modify.
- * @return uint8_t Returns 1 if successful, 0 if the command pointer is null.
- */
-uint8_t robokit_drive_command_enable_imu(S_command *cmd);
-
-/**
- * @brief Disables the IMU flag for the given command.
- *
- * This function modifies the provided command to disable the IMU flag.
- * It accesses the flags field of the command and clears the IMU bit,
- * effectively disabling the IMU functionality for this command.
- *
- * @param[out] cmd S_command* A pointer to the command structure that will be modified.
- * @return uint8_t Returns 1 if the operation is successful, and 0 if the cmd is null.
- */
-uint8_t robokit_drive_command_disable_imu(S_command *cmd);
 
 #endif //DRIVE_COMMAND_H
