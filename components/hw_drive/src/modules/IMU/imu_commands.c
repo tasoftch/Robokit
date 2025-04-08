@@ -36,8 +36,6 @@ void imu_commands_drive_interpreter(int16_t deviation_angle) {
 		drive_vector.angle += neg ? -3 : 3;
 	}
 
-	printf("drive_vector.angle = %d, drive_vector.speed = %d\n", drive_vector.angle, drive_vector.speed);
-
 	if(!robokit_vector_equals(old_drive_vector, drive_vector)) {
 		S_command command;
 		robokit_make_drive_command_vector(&command, drive_vector);
@@ -121,7 +119,7 @@ uint8_t robokit_make_command_imu_drive_backward(S_command *command, T_Speed spee
 		_S_imu_cmd * cmd = (_S_imu_cmd *)command;
 		cmd->cmd = E_COMMAND_IMU;
 		cmd->flags = E_IMU_STATUS_FLAG_ENABLED | E_IMU_STATUS_FLAG_CALIBRATION | E_IMU_STATUS_FLAG_INTERPRET_CALLBACK;
-		cmd->imu_drive_info.direction = speed;
+		cmd->imu_drive_info.speed = speed;
 		cmd->imu_drive_info.direction = ROBOKIT_DIRECTION_BACKWARD;
 		return 1;
 	}
