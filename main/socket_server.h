@@ -13,7 +13,7 @@
 // Interpreter function to be called on incoming message
 // Must return the length of bytes to send from changed msg string.
 // Returning 0 will send "OK\n"
-typedef uint8_t (*server_interpreter_t)(char *msg, uint8_t len);
+typedef uint8_t (*server_interpreter_t)(uint8_t *data, uint8_t len);
 
 void socket_server_init(void);
 
