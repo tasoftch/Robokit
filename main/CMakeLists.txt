@@ -1,6 +1,7 @@
 idf_component_register(SRCS "main.c"
                             "wlan_ap.c"
                             "socket_server.c"
+                        "hc_sr04.c"
         "tcp_command_interpreter.c"
         ".")
                     
