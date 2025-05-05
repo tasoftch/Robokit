@@ -59,6 +59,7 @@ static led_strip_handle_t _my_test_led_strip;
  */
 ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_TEST, _S_Command_test *cmd, uint8_t mode, uint8_t *flags) {
 	*flags = 0;
+	return;
 
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
 #if ROBOKIT_USE_BUILTIN_LED
@@ -95,6 +96,7 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_TEST, _S_Command_test *cmd, uint8_t mod
  * This setup is necessary for handling test commands related to LED control operations.
  */
 ROBOKIT_MODULE_INIT() {
+	return;
 #if ROBOKIT_USE_BUILTIN_LED
 	// DevkitC Board configuration
 	led_strip_config_t strip_config = {

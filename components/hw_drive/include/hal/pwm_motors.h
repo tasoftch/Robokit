@@ -34,18 +34,9 @@
 #define LEDC_TIMER      LEDC_TIMER_1
 #define LEDC_MODE       LEDC_LOW_SPEED_MODE
 
-// Motor 1 covers USB port.
-// If used, no debug information will be sent to console.
-// idf.py monitor will not work anymore.
-#define ROBOKIT_USE_MOTOR_1 0
-
 typedef enum {
-#if ROBOKIT_USE_MOTOR_1
 	E_DRIVE_MOTOR_1,
-#endif
-	E_DRIVE_MOTOR_2,
-	E_DRIVE_MOTOR_3,
-	E_DRIVE_MOTOR_4
+	E_DRIVE_MOTOR_2
 } E_motor;
 
 enum {
@@ -130,35 +121,4 @@ void robokit_pwm_motor_1_speed(T_Speed speed, uint8_t flags);
 	* @param [in] flags uint8_t Bitmask flags to specify motor control options, such as direction and decay mode.
 	*/
 void robokit_pwm_motor_2_speed(T_Speed speed, uint8_t flags);
-
-/**
-	* @brief Sets the speed of PWM motor 3.
-	*
-	* This function controls the speed and direction of motor 3 using PWM signals.
-	* It utilizes the given speed and flags to adjust the motor's behavior according
-	* to the specified directives.
-	*
-	* @param[in] speed T_Speed The desired speed of the motor, ranging from 0 to 100.
-	* @param[in] flags uint8_t Configuration flags to control motor behavior, such as
-	*                direction and decay settings.
-	* @return void
-	*/
-void robokit_pwm_motor_3_speed(T_Speed speed, uint8_t flags);
-
-/**
-	* @brief Sets the speed and control flags for Motor 4.
-	*
-	* This function adjusts the speed and control parameters of Motor 4 based on
-	* the specified speed and flags. The function uses predefined flags to
-	* control the direction, drive mode, and connector settings of the motor.
-	*
-	* @param [in] speed T_Speed Desired speed of Motor 4 ranging from 0 (stopped)
-	*                    to 100 (full speed).
-	* @param [in] flags uint8_t Bitmask for controlling motor direction, drive
-	*                    mode, and connector settings.
-	*
-	* @return void
-	*/
-void robokit_pwm_motor_4_speed(T_Speed speed, uint8_t flags);
-
 #endif //PWM_MOTORS_H

@@ -164,6 +164,7 @@ static void _fal_reset_calibration(void) {
  * for the FAL sensors.
  */
 ROBOKIT_MODULE_INIT() {
+	return;
 	gpio_config_t io_conf;
 	io_conf.intr_type = GPIO_INTR_DISABLE;          // Keine Interrupts
 	io_conf.mode = GPIO_MODE_OUTPUT;                // Als Output konfigurieren
@@ -333,6 +334,7 @@ static void _fal_calibration_init(void) {
 }
 
 ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode, uint8_t *flags) {
+	return;
 	if (mode == E_SCHEDULE_MODE_PRECHECK) {
 		if(cmd->flags == E_FAL_OPTION_ENABLE) {
 			if(!fal_is_calibrated()) {
@@ -410,6 +412,7 @@ static void fal_render_result(void) {
  * and renders the result once the cycle is complete.
  */
 ROBOKIT_MODULE_SENSOR_LOOP() {
+	return;
 	// The command handler must not push commands itself.
 	// It is only allowed to make configurations.
 	if(make_drive_command == 1) {

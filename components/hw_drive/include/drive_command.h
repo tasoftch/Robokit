@@ -78,8 +78,6 @@ uint8_t robokit_make_drive_command_vector(S_command *cmd, S_vector vector);
 typedef struct {
     uint8_t motor_1:1;
     uint8_t motor_2:1;
-    uint8_t motor_3:1;
-    uint8_t motor_4:1;
     uint8_t fast_decay:1;
     uint8_t switch_direction:1;
 } S_motor_config;

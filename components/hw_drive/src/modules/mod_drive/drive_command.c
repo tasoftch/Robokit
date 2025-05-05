@@ -34,12 +34,12 @@
 /**
  * @brief Default pwm configuration for left motor
  */
-static S_motor_config left_config = {.motor_1 = 0, .motor_2 = 0, .motor_3 = 1, .motor_4 = 0, .fast_decay = 0, .switch_direction = 0};
+static S_motor_config left_config = {.motor_1 = 1, .motor_2 = 0, .fast_decay = 0, .switch_direction = 0};
 
 /**
  * @brief Default pwm configuration for right motor
  */
-static S_motor_config right_config = {.motor_1 = 0, .motor_2 = 1, .motor_3 = 0, .motor_4 = 0, .fast_decay = 0, .switch_direction = 0};
+static S_motor_config right_config = {.motor_1 = 0, .motor_2 = 1, .fast_decay = 0, .switch_direction = 0};
 
 /**
  * @inheritDoc
@@ -84,14 +84,6 @@ static void _robokit_motor_set_speed(const S_motor_config *cfg, const S_motor_ct
 
 	if(cfg->motor_2) {
 		robokit_pwm_motor_2_speed(ctl->speed, flags);
-	}
-
-	if(cfg->motor_3) {
-		robokit_pwm_motor_3_speed(ctl->speed, flags);
-	}
-
-	if(cfg->motor_4) {
-		robokit_pwm_motor_4_speed(ctl->speed, flags);
 	}
 }
 

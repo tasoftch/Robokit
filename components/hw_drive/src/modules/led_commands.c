@@ -30,7 +30,7 @@
 
 
 #ifndef LED_PIN_ST
-#define LED_PIN_ST 13
+#define LED_PIN_ST 16
 #endif
 
 static led_strip_handle_t _my_test_led_strip;
@@ -48,6 +48,7 @@ static led_strip_handle_t _my_test_led_strip;
  */
 ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_LED_SETUP, _S_Command_LED *cmd, uint8_t mode, uint8_t *flags) {
 	*flags = 0;
+	return;
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
 		for(int e=0;e<LED_MAX_COUNT;e++) {
 			if(cmd->LEDs & (1 << e)) {
@@ -70,6 +71,7 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_LED_SETUP, _S_Command_LED *cmd, uint8_t
  */
 ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_LED_FLUSH, S_command *cmd, uint8_t mode, uint8_t *flags) {
 	*flags = 0;
+	return;
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
 		if(cmd->data[0]) {
 			led_strip_clear(_my_test_led_strip);
@@ -91,6 +93,7 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_LED_FLUSH, S_command *cmd, uint8_t mode
  * incoming LED commands.
  */
 ROBOKIT_MODULE_INIT() {
+	return;
 	led_strip_config_t strip_config = {
 		 .strip_gpio_num = LED_PIN_ST,
 		.max_leds = LED_MAX_COUNT,

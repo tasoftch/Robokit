@@ -29,16 +29,13 @@
 #include <driver/ledc.h>
 #include <modules/robokit_module.h>
 
-
-// Zu steuernde Pins
-// {M0+, M0-, M1+, M1-, ...}
-#if ROBOKIT_USE_MOTOR_1
-static int _pwmPins[] = {16, 23, 22, 21, 20, 19, 18, 17};
-#else
-static int _pwmPins[] = {22, 21, 20, 19, 18, 17};
-#endif
-// 16 geht nicht
-// 17 Geht
+/*
+ *		20: MOTOR 1 -
+ *		21: MOTOR 1 +
+ *		22: MOTOR 0 -
+ *		23: MOTOR 0 +
+ */
+static int _pwmPins[] = {20, 21, 22, 23};
 
 
 #define NUM_PINS (sizeof(_pwmPins) / sizeof(_pwmPins[0]))
@@ -127,12 +124,8 @@ static void _robokit_send_pwm(uint8_t pin, uint8_t duty) {
  * @inheritDoc
  */
 void robokit_pwm_motor_all_off(void) {
-#if ROBOKIT_USE_MOTOR_1
 	robokit_pwm_motor_off(E_DRIVE_MOTOR_1);
-#endif
 	robokit_pwm_motor_off(E_DRIVE_MOTOR_2);
-	robokit_pwm_motor_off(E_DRIVE_MOTOR_3);
-	robokit_pwm_motor_off(E_DRIVE_MOTOR_4);
 }
 
 /**
@@ -198,9 +191,7 @@ void robokit_pwm_motor_speed(E_motor motor, T_Speed speed, uint8_t flags) {
  * @inheritDoc
  */
 void robokit_pwm_motor_1_speed(T_Speed speed, uint8_t flags) {
-#if ROBOKIT_USE_MOTOR_1
 	robokit_pwm_motor_speed(E_DRIVE_MOTOR_1, speed, flags);
-#endif
 }
 
 /**
@@ -208,18 +199,4 @@ void robokit_pwm_motor_1_speed(T_Speed speed, uint8_t flags) {
  */
 void robokit_pwm_motor_2_speed(T_Speed speed, uint8_t flags) {
 	robokit_pwm_motor_speed(E_DRIVE_MOTOR_2, speed, flags);
-}
-
-/**
- * @inheritDoc
- */
-void robokit_pwm_motor_3_speed(T_Speed speed, uint8_t flags) {
-	robokit_pwm_motor_speed(E_DRIVE_MOTOR_3, speed, flags);
-}
-
-/**
- * @inheritDoc
- */
-void robokit_pwm_motor_4_speed(T_Speed speed, uint8_t flags) {
-	robokit_pwm_motor_speed(E_DRIVE_MOTOR_4, speed, flags);
 }

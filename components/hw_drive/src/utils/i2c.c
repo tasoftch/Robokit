@@ -5,9 +5,9 @@
 #include "hal/i2c.h"
 
 
-#define I2C_MASTER_SDA 6   // Dein SDA-Pin (ändern je nach ESP32-C6 Board)
-#define I2C_MASTER_SCL 7   // Dein SCL-Pin (ändern je nach Board)
-#define I2C_MASTER_FREQ_HZ 100000  // 100 kHz für schnellen Zugriff
+#define I2C_MASTER_SDA 6
+#define I2C_MASTER_SCL 7
+#define I2C_MASTER_FREQ_HZ 100000
 #define I2C_PORT I2C_NUM_0
 
 void i2c_init() {
