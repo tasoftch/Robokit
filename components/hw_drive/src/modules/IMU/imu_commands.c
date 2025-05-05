@@ -5,7 +5,6 @@
 #include <imu_commands.h>
 #include "hal/pwm_motors.h"
 #include <modules/robokit_module.h>
-#include <private/robokit_log.h>
 #include "hal/imu.h"
 
 typedef struct {
