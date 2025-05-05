@@ -16,7 +16,7 @@ void socket_server_interpreter(server_interpreter_t interpreter) {
 }
 
 void tcp_server_task(void *pvParameters) {
-	char rx_buffer[RECV_BUF_SIZE];
+	uint8_t rx_buffer[RECV_BUF_SIZE];
 	struct sockaddr_in server_addr, client_addr;
 	socklen_t addr_len = sizeof(client_addr);
 
