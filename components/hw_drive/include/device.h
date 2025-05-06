@@ -31,6 +31,7 @@
 #include "test_commands.h"
 #include "main_commands.h"
 #include "fal_commands.h"
+#include "buzzer_commands.h"
 #include "values.h"
 
 /**
@@ -62,5 +63,15 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags);
  * @return uint8_t The number of free slots available in the command queue.
  */
 uint8_t robokit_get_free_stack_count(void);
+
+/**
+ *
+ */
+void robokit_start_system_indication(void);
+
+/**
+*
+*/
+void robokit_system_ready_indication(void);
 
 #endif /* device_h */

@@ -44,6 +44,8 @@ enum {
 
 	E_COMMAND_IMU,								// IMU commands
 
+	E_COMMAND_BUZZER,							// Buzzer Commands
+
 	E_COMMAND_TEST = ROBOKIT_MAX_SCHEDULED_COMMANDS - 1
 };
 
