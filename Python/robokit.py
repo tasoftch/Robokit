@@ -4,7 +4,7 @@ import socket
 
 # IP und Port des ESP32
 ESP32_IP = "192.168.4.1"
-ESP32_PORT = 8080
+ESP32_PORT = 5210
 
 class Robokit(object):
     def __init__(self, ip: str, port: int):
@@ -88,3 +88,6 @@ class Robokit(object):
 
     def led_clear(self):
         self.__send_raw(bytes([3, 1, 0, 0, 0, 0, 0, 0]))
+
+    def buzzer(self, frequency):
+        self.__send_raw(bytes([6, 0, 0, 0, frequency & 0xFF, frequency >> 8 & 0xFF, 0, 0]))

@@ -4,7 +4,6 @@ import robokit as RK
 ESP32_IP = "192.168.4.1"
 ESP32_PORT = 8080
 
-
 Robokit = RK.Robokit(ESP32_IP, ESP32_PORT)
 
 def print_help():
@@ -23,6 +22,7 @@ def print_help():
     print("led <n> <cl>| n is the selected led and cl the color as 0xRGB")
     print("flush       | Flushes the LED setting to the drive")
     print("clear       | Clears the LED.")
+    print("buz <freq>  | Launches the buzzer with given frequency. All < 250Hz will disable.")
 
 try:
     Robokit.connect()
@@ -81,6 +81,9 @@ try:
                 Robokit.led_flush()
             elif cmd == "clear":
                 Robokit.led_clear()
+            elif cmd == "buz":
+                num = int(args[0])
+                Robokit.buzzer(num)
         except Exception as e:
             print(e)
             continue
