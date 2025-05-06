@@ -4,7 +4,7 @@ import robokit as RK
 ESP32_IP = "192.168.4.1"
 ESP32_PORT = 8080
 
-# ich bin jetzt do
+
 Robokit = RK.Robokit(ESP32_IP, ESP32_PORT)
 
 def print_help():
