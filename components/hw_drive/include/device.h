@@ -74,4 +74,10 @@ void robokit_start_system_indication(void);
 */
 void robokit_system_ready_indication(void);
 
+/**
+ * This function immediately reads the state of the config switch on the device.
+ *
+* Returns 1 if the system is in configuration mode
+*/
+uint8_t robokit_system_in_config_mode(void);
 #endif /* device_h */
