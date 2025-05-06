@@ -221,3 +221,35 @@ uint8_t robokit_push_command(S_command *cmd, uint8_t flags) {
 uint8_t robokit_get_free_stack_count(void) {
 	return uxQueueSpacesAvailable(commandQueue);
 }
+
+
+
+void robokit_start_system_indication(void) {
+	S_command cmd;
+	robokit_make_command_buzzer_beep(&cmd, 500, 0);
+	robokit_push_command(&cmd, 0);
+	vTaskDelay(50 / portTICK_PERIOD_MS);
+
+	robokit_make_command_buzzer_beep(&cmd, 0, 0);
+	robokit_push_command(&cmd, 0);
+	vTaskDelay(50 / portTICK_PERIOD_MS);
+
+	robokit_make_command_buzzer_beep(&cmd, 500, 0);
+	robokit_push_command(&cmd, 0);
+	vTaskDelay(50 / portTICK_PERIOD_MS);
+
+	robokit_make_command_buzzer_beep(&cmd, 0, 0);
+	robokit_push_command(&cmd, 0);
+	vTaskDelay(50 / portTICK_PERIOD_MS);
+}
+
+void robokit_system_ready_indication(void) {
+	S_command cmd;
+
+	robokit_make_command_buzzer_beep(&cmd, 750, 0);
+	robokit_push_command(&cmd, 0);
+	vTaskDelay(100 / portTICK_PERIOD_MS);
+
+	robokit_make_command_buzzer_beep(&cmd, 0, 0);
+	robokit_push_command(&cmd, 0);
+}

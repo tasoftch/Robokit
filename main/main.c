@@ -16,16 +16,13 @@ void app_main()
     device_init();
     //hc_sr04_init();
 
-    S_command cmd;
-    robokit_make_test_command(&cmd);
-    robokit_push_command(&cmd, 0);
+    robokit_start_system_indication();
 
     wifi_init_softap();
     socket_server_init();
     socket_server_interpreter(tcp_command_interpreter);
 
-    robokit_make_test_command(&cmd);
-    robokit_push_command(&cmd, 0);
+   robokit_system_ready_indication();
 
     /*
     while (1) {
