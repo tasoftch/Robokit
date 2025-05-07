@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, List
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import sys
@@ -43,6 +43,15 @@ class LEDRequest(BaseModel):
     blue: int; # 0-255
     green: int; # 0-255
     red: int; # 0-255
+    
+class LEDsRequest(BaseModel):
+    leds: List[int]; # Liste von LEDs  
+    blue: int; # 0-255
+    green: int; # 0-255
+    red: int; # 0-255
+    
+class ledclearRequest(BaseModel):
+    pass
     
 
 class DriveRequest(BaseModel):
@@ -147,9 +156,19 @@ def post_drivecurve(req: DrivecircleRequest):
 @app.post("/led")
 def led(req: LEDRequest):
     robot.led_setup(req.led_nr, req.red, req.green, req.blue)
+    robot.led_flush()
     return {"status": "ok", "led_nr": req.led_nr, "red": req.red, "green": req.green, "blue": req.blue}
-
+   
 @app.post("/leds")
+def leds(req: LEDsRequest):
+    robot.leds_setup(req.leds, req.red, req.green, req.blue)
+    robot.led_flush()
+    return {"status": "ok", "leds": req.leds, "red": req.red, "green": req.green, "blue": req.blue}
+
+@app.post("/ledclear")
+def ledclear(req: ledclearRequest):
+    robot.led_clear()
+    return {"status": "ok"} 
 
 @app.get("/ping")
 def ping():
