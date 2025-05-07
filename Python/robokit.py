@@ -1,6 +1,7 @@
 
 
 import socket
+import struct
 
 # IP und Port des ESP32
 ESP32_IP = "192.168.4.1"
@@ -51,7 +52,7 @@ class Robokit(object):
             self.__send_raw(bytes([1, 60, speed, 0, 0, 0, 0, 0]))
     def drive_curve(self, angle, speed):
         if -180 <= angle <= 180 and 0 <= speed <= 100:
-            self.__send_raw(bytes([1, angle // 3, speed, 0, 0, 0, 0, 0]))
+            self.__send_raw(bytes([1, struct.pack("b", angle // 3)[0], speed, 0, 0, 0, 0, 0]))
 
     def drive_stop(self):
         self.__send_raw(bytes([1, 0, 0, 0, 0, 0, 0, 0]))
@@ -93,8 +94,8 @@ class Robokit(object):
         self.__send_raw(bytes([6, 0, 0, 0, frequency & 0xFF, frequency >> 8 & 0xFF, 0, 0]))
 
     def approximate(self, distance_in_cm):
-        if distance_in_cm > 255:
-            distance_in_cm = 255
+        if distance_in_cm > 400:
+            distance_in_cm = 400
         if distance_in_cm < 5:
             distance_in_cm = 5
-        self.__send_raw(bytes([7, distance_in_cm, 0, 0, 0, 0, 0, 0]))
+        self.__send_raw(bytes([7, 0, distance_in_cm & 0xFF, distance_in_cm >> 8 & 0xFF, 0, 0, 0, 0]))

@@ -10,8 +10,8 @@
 
 typedef struct {
 	T_cmd cmd;
-	uint8_t distance;
 	uint8_t reserve1;
+	uint16_t distance;
 	uint8_t reserve2;
 	uint8_t reserve3;
 	uint8_t reserve4;
@@ -20,7 +20,7 @@ typedef struct {
 } _S_command_US;
 
 static uint8_t ultrasonic_status = 0;
-static uint8_t ultrasonic_distance = 0;
+static uint16_t ultrasonic_distance = 0;
 
 #define ULTRASONIC_TIMER_STAT 5
 
@@ -58,7 +58,7 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 
 
 
-uint8_t robokit_make_command_us_stop_at_distance(S_command *cmd, uint8_t distance_cm) {
+uint8_t robokit_make_command_us_stop_at_distance(S_command *cmd, uint16_t distance_cm) {
 	if(!cmd)
 		return 0;
 

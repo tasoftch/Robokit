@@ -8,7 +8,7 @@
 #include "main_commands.h"
 
 
-uint8_t robokit_make_command_us_stop_at_distance(S_command *cmd, uint8_t distance_cm);
+uint8_t robokit_make_command_us_stop_at_distance(S_command *cmd, uint16_t distance_cm);
 
 
 #endif //ULTRASONIC_SENSOR_COMMANDS_H
