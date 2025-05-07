@@ -228,6 +228,17 @@ void robokit_start_system_indication(void) {
 	S_command cmd;
 	robokit_make_command_buzzer_beep(&cmd, 500, 0);
 	robokit_push_command(&cmd, 0);
+
+	robokit_make_led_command_clear(&cmd);
+	robokit_push_command(&cmd, 0);
+	uint32_t leds;
+	ROBOKIT_MAKE_LED_LIST(leds, 0, 1, 2);
+
+	robokit_make_led_command_setup_list(&cmd, leds, 0x60, 0x0, 0x0);
+	robokit_push_command(&cmd, 0);
+	robokit_make_led_command_flush(&cmd);
+	robokit_push_command(&cmd, 0);
+
 	vTaskDelay(50 / portTICK_PERIOD_MS);
 
 	robokit_make_command_buzzer_beep(&cmd, 0, 0);
@@ -246,10 +257,24 @@ void robokit_start_system_indication(void) {
 void robokit_system_ready_indication(void) {
 	S_command cmd;
 
+	uint32_t leds;
+	ROBOKIT_MAKE_LED_LIST(leds, 0, 1, 2);
+
+	robokit_make_led_command_clear(&cmd);
+	robokit_push_command(&cmd, 0);
+
+	robokit_make_led_command_setup_list(&cmd, leds, 0x0, 0x60, 0x0);
+	robokit_push_command(&cmd, 0);
+	robokit_make_led_command_flush(&cmd);
+	robokit_push_command(&cmd, 0);
+
 	robokit_make_command_buzzer_beep(&cmd, 750, 0);
 	robokit_push_command(&cmd, 0);
 	vTaskDelay(100 / portTICK_PERIOD_MS);
 
 	robokit_make_command_buzzer_beep(&cmd, 0, 0);
+	robokit_push_command(&cmd, 0);
+
+	robokit_make_led_command_clear(&cmd);
 	robokit_push_command(&cmd, 0);
 }

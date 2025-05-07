@@ -32,6 +32,7 @@
 #include "main_commands.h"
 #include "fal_commands.h"
 #include "buzzer_commands.h"
+#include "ultrasonic_commands.h"
 #include "values.h"
 
 /**
