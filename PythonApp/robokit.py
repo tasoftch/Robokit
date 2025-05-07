@@ -51,7 +51,10 @@ class Robokit(object):
             self.__send_raw(bytes([1, 60, speed, 0, 0, 0, 0, 0]))
     def drive_curve(self, angle, speed):
         if -180 <= angle <= 180 and 0 <= speed <= 100:
+            print(angle//3)
+            
             self.__send_raw(bytes([1, angle // 3, speed, 0, 0, 0, 0, 0]))
+        
 
     def drive_stop(self):
         self.__send_raw(bytes([1, 0, 0, 0, 0, 0, 0, 0]))
