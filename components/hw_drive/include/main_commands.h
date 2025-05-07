@@ -46,6 +46,8 @@ enum {
 
 	E_COMMAND_BUZZER,							// Buzzer Commands
 
+	E_COMMAND_ULTRASONIC,						// Ultrasonic sensors command
+
 	E_COMMAND_TEST = ROBOKIT_MAX_SCHEDULED_COMMANDS - 1
 };
 
