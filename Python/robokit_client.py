@@ -84,6 +84,9 @@ try:
             elif cmd == "buz":
                 num = int(args[0])
                 Robokit.buzzer(num)
+            elif cmd == 'dist':
+                num = int(args[0])
+                Robokit.approximate(num)
         except Exception as e:
             print(e)
             continue

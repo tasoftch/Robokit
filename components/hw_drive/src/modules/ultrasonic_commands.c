@@ -44,7 +44,6 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 		if(intern_timer-- < 1) {
 			intern_timer = ULTRASONIC_TIMER_STAT;
 			float distance = hc_sr04_read_distance_cm();
-			printf("Distance: %.1f\n", distance);
 
 			if(distance < ultrasonic_distance) {
 				S_command cmd;
@@ -52,7 +51,6 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 				robokit_push_command(&cmd, 0);
 				intern_timer = ULTRASONIC_TIMER_STAT;
 				ultrasonic_status = 0;
-				return;
 			}
 		}
 	}

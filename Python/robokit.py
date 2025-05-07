@@ -91,3 +91,10 @@ class Robokit(object):
 
     def buzzer(self, frequency):
         self.__send_raw(bytes([6, 0, 0, 0, frequency & 0xFF, frequency >> 8 & 0xFF, 0, 0]))
+
+    def approximate(self, distance_in_cm):
+        if distance_in_cm > 255:
+            distance_in_cm = 255
+        if distance_in_cm < 5:
+            distance_in_cm = 5
+        self.__send_raw(bytes([7, distance_in_cm, 0, 0, 0, 0, 0, 0]))
