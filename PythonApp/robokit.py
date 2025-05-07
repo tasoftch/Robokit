@@ -18,30 +18,30 @@ class Robokit(object):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.connect((self.ip, self.port))
-            print(f"✅ Connected to {self.ip}:{self.port}")
+            print(f"Connected to {self.ip}:{self.port}")
 
             info = self.__send_raw(b"\xF3\x00\x00\x00\x00\x00\x00\x00")
             if info[0] != 0xF3:
-                print(f"❌ Illegal Connection. Header missmatch: {info}")
+                print(f" Illegal Connection. Header missmatch: {info}")
                 self.sock = None
         except Exception as e:
-            print(f"❌ Connection failed: {e}")
+            print(f" Connection failed: {e}")
             self.sock = None
 
     def __send_raw(self, data: bytes):
         if self.sock is None:
-            print("⚠️ No connection. Please call connect() first.")
+            print("No connection. Please call connect() first.")
             return
 
         if len(data) != 8:
-            print("❌ Unexpected data length. Please provide data with length of 8 bytes.")
+            print(" Unexpected data length. Please provide data with length of 8 bytes.")
             return
 
         try:
             self.sock.sendall(data)
             return self.sock.recv(1024)
         except Exception as e:
-            print(f"❌ sending failed: {e}")
+            print(f" sending failed: {e}")
 
     def drive_forward(self, speed):
         if 0 <= speed <= 100:

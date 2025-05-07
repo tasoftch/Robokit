@@ -87,7 +87,7 @@ try:
     while True:
         msg = input(">> ")
         if msg.lower() in ("exit", "quit"):
-            print("🔌 Disconnect now.")
+            print("Disconnect now.")
             print("Goodbye.")
             break
 
@@ -109,4 +109,4 @@ try:
         if len(response):
             print(f"<< Antwort: {response}")
 except Exception as e:
-    print(f"❌ Fehler: {e}")
+    print(f"Fehler: {e}")
