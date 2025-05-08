@@ -17,6 +17,8 @@ void filter_init(S_filter *filter);
 void filter_angle_init(S_filter *filter, uint8_t deviation_threshold, uint8_t trust_threshold);
 
 void filter_angle_put_reference(S_filter *filter);
+void filter_angle_deviate_reference(S_filter *filter, int8_t deviation);
+
 void filter_angle_dereference(S_filter *filter);
 int16_t filter_angle_get_reference(S_filter *filter);
 

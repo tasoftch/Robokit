@@ -7,19 +7,30 @@
 #include <modules/robokit_module.h>
 #include "hal/imu.h"
 
+enum {
+	E_IMU_STATUS_FLAG_DISABLE			= 0,
+	E_IMU_STATUS_FLAG_ENABLE			= 1<<0,
+	E_IMU_STATUS_FLAG_REFERENCE			= 1<<1,
+	E_IMU_STATUS_FLAG_INTERPRET			= 1<<2,
+	E_IMU_STATUS_FLAG_STOP				= 1<<3,
+	E_IMU_STATUS_FLAG_REF_MOD			= 1<<4
+};
+
 typedef struct {
 	T_cmd cmd;
 	uint8_t flags;
 	S_motor_ctl imu_drive_info;
-	uint8_t reserved;
+	int8_t deviation;
 	void (*callback)(void);
 } _S_imu_cmd;
 
 static S_motor_ctl imu_drive_info = {0};
 static S_vector old_drive_vector = {0};
 
-void imu_commands_drive_interpreter(int16_t deviation_angle) {
+void imu_commands_drive_interpreter(const S_imu_stack_t *stack) {
 	uint8_t neg = 0;
+	robokit_degree16_dev_t deviation_angle = stack->orientation;
+
 	if (deviation_angle < 0) {
 		neg = 1;
 		deviation_angle = -deviation_angle;
@@ -28,11 +39,11 @@ void imu_commands_drive_interpreter(int16_t deviation_angle) {
 	S_vector drive_vector = {.speed = imu_drive_info.speed, .angle = 0};
 
 	if( deviation_angle > 20 ) {
-		drive_vector.angle += neg ? -9 : 9;
+		drive_vector.angle -= neg ? -9 : 9;
 	} else if(deviation_angle > 10) {
-		drive_vector.angle += neg ? -6 : 6;
+		drive_vector.angle -= neg ? -6 : 6;
 	} else if(deviation_angle != 0) {
-		drive_vector.angle += neg ? -3 : 3;
+		drive_vector.angle -= neg ? -3 : 3;
 	}
 
 	if(!robokit_vector_equals(old_drive_vector, drive_vector)) {
@@ -45,17 +56,35 @@ void imu_commands_drive_interpreter(int16_t deviation_angle) {
 }
 
 ROBOKIT_MODULE_INIT() {
-	imu_deviation_interpreter(imu_commands_drive_interpreter);
+	imu_set_interpreter(imu_commands_drive_interpreter);
 }
 
 ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_IMU, _S_imu_cmd *cmd, uint8_t mode, uint8_t *flags) {
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
-		imu_set_imu_status( cmd->flags );
-		if(cmd->flags & E_IMU_STATUS_FLAG_CALIBRATION) {
-			imu_calibration(cmd->callback);
+		if(cmd->flags < 1) {
+			imu_stop();
+		} else {
+			if(cmd->flags & E_IMU_STATUS_FLAG_ENABLE) {
+				imu_start();
+			}
+			if(cmd->flags & E_IMU_STATUS_FLAG_REFERENCE) {
+				if(cmd->flags & E_IMU_STATUS_FLAG_REF_MOD) {
+					if(cmd->deviation) {
+						robokit_degree16_dev_t dev = imu_get_fixed_orientation();
+						imu_fix_orientation(dev + cmd->deviation);
+					}
+				} else {
+					imu_fix_current_orientation();
+				}
+			}
+			if(cmd->flags & E_IMU_STATUS_FLAG_INTERPRET) {
+				imu_enable_interpreter();
+				imu_drive_info = cmd->imu_drive_info;
+			}
+			if(cmd->flags & E_IMU_STATUS_FLAG_STOP) {
+				imu_disable_interpreter();
+			}
 		}
-
-		imu_drive_info = cmd->imu_drive_info;
 	}
 }
 
@@ -64,7 +93,7 @@ uint8_t robokit_make_command_imu_enable(S_command *command) {
 		ROBOKIT_COMMAND_RESET_P(command);
 		_S_imu_cmd * cmd = (_S_imu_cmd *)command;
 		cmd->cmd = E_COMMAND_IMU;
-		cmd->flags = E_IMU_STATUS_FLAG_ENABLED;
+		cmd->flags = E_IMU_STATUS_FLAG_ENABLE;
 		return 1;
 	}
 	return 0;
@@ -75,7 +104,7 @@ uint8_t robokit_make_command_imu_disable(S_command *command) {
 		ROBOKIT_COMMAND_RESET_P(command);
 		_S_imu_cmd * cmd = (_S_imu_cmd *)command;
 		cmd->cmd = E_COMMAND_IMU;
-		cmd->flags = E_IMU_STATUS_FLAG_NONE;
+		cmd->flags = E_IMU_STATUS_FLAG_DISABLE;
 		return 1;
 	}
 	return 0;
@@ -85,13 +114,12 @@ uint8_t robokit_make_command_imu_disable(S_command *command) {
 // Turning the device to the left reduces the angle until 1800° (10 rounds).
 // Turning the device to the right increases the angle until 1800° (10 rounds).
 
-uint8_t robokit_make_command_imu_calibration(S_command *command, void (*done_callback)(void)) {
+uint8_t robokit_make_command_imu_reference(S_command *command) {
 	if(command) {
 		ROBOKIT_COMMAND_RESET_P(command);
 		_S_imu_cmd * cmd = (_S_imu_cmd *)command;
 		cmd->cmd = E_COMMAND_IMU;
-		cmd->flags = E_IMU_STATUS_FLAG_ENABLED | E_IMU_STATUS_FLAG_CALIBRATION;
-		cmd->callback = done_callback;
+		cmd->flags = E_IMU_STATUS_FLAG_ENABLE | E_IMU_STATUS_FLAG_REFERENCE;
 		return 1;
 	}
 	return 0;
@@ -104,7 +132,7 @@ uint8_t robokit_make_command_imu_drive_forward(S_command *command, T_Speed speed
 		ROBOKIT_COMMAND_RESET_P(command);
 		_S_imu_cmd * cmd = (_S_imu_cmd *)command;
 		cmd->cmd = E_COMMAND_IMU;
-		cmd->flags = E_IMU_STATUS_FLAG_ENABLED | E_IMU_STATUS_FLAG_CALIBRATION | E_IMU_STATUS_FLAG_INTERPRET_CALLBACK;
+		cmd->flags = E_IMU_STATUS_FLAG_ENABLE | E_IMU_STATUS_FLAG_REFERENCE | E_IMU_STATUS_FLAG_INTERPRET;
 		cmd->imu_drive_info.speed = speed;
 		cmd->imu_drive_info.direction = ROBOKIT_DIRECTION_FORWARD;
 
@@ -113,14 +141,14 @@ uint8_t robokit_make_command_imu_drive_forward(S_command *command, T_Speed speed
 	return 0;
 }
 
-uint8_t robokit_make_command_imu_drive_backward(S_command *command, T_Speed speed) {
+uint8_t robokit_make_command_imu_deviate(S_command *command, int8_t deviation) {
 	if(command) {
 		ROBOKIT_COMMAND_RESET_P(command);
 		_S_imu_cmd * cmd = (_S_imu_cmd *)command;
 		cmd->cmd = E_COMMAND_IMU;
-		cmd->flags = E_IMU_STATUS_FLAG_ENABLED | E_IMU_STATUS_FLAG_CALIBRATION | E_IMU_STATUS_FLAG_INTERPRET_CALLBACK;
-		cmd->imu_drive_info.speed = speed;
-		cmd->imu_drive_info.direction = ROBOKIT_DIRECTION_BACKWARD;
+		cmd->flags = E_IMU_STATUS_FLAG_ENABLE | E_IMU_STATUS_FLAG_REFERENCE | E_IMU_STATUS_FLAG_REF_MOD;
+		cmd->deviation = deviation;
+
 		return 1;
 	}
 	return 0;
