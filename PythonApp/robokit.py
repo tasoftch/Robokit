@@ -57,21 +57,36 @@ class Robokit(object):
     def drive_stop(self):
         self.__send_raw(bytes([1, 0, 0, 0, 0, 0, 0, 0]))
 
+# IMU Konzept:
+# Die IMU muss laufen (enable) wenn:
+# - Nach Winkel gefahren werden will.
+# - über status_imu_read Werte verlangt werden
+
+    def imu_enable(self):
+        self.__send_raw(bytes([5, 0x1, 0, 0, 0, 0, 0, 0]))
+
+    def imu_disable(self):
+        self.__send_raw(bytes([5, 0x0, 0, 0, 0, 0, 0, 0]))
+
     def drive_imu_straight_forward(self, speed):
         if 0 <= speed <= 100:
-            self.__send_raw(bytes([5, 0x7, 0x80 | speed, 0, 0, 0, 0, 0]))
+            self.__send_raw(bytes([5, 0x7, 0x1 | speed<<1, 0, 0, 0, 0, 0]))
 
-    def drive_imu_straight_backward(self, speed):
-        if 0 <= speed <= 100:
-            self.__send_raw(bytes([5, 0x7, 0x00 | speed, 0, 0, 0, 0, 0]))
+    def drive_imu_reset_orientation(self):
+        self.__send_raw(bytes([5, 0x3, 0, 0, 0, 0, 0, 0]))
 
-    def test(self):
-        if self.test_signal:
-            self.__send_raw(bytes([31, 0, 0, 0, 0, 0, 0, 0]))
-            self.test_signal = False
-        else:
-            self.__send_raw(bytes([31, 1, 0, 0, 0, 0, 0, 0]))
-            self.test_signal = True
+    def drive_imu_orientation_deviate(self, deviation):
+        if -100 <= deviation <= 100:
+            self.__send_raw(bytes([5, 0x13, 0, struct.pack("b", deviation)[0], 0, 0, 0, 0]))
+
+    def status_imu_read(self):
+        self.imu_enable()
+        info = self.__send_raw(bytes([0xF4, 0, 0, 0, 0, 0, 0, 0]))
+        return {
+            "position": struct.unpack('>h', bytes([info[0], info[1]]))[0] / 16.0,
+            "orientation": struct.unpack('>h', bytes([info[2], info[3]]))[0] / 16.0,
+            "deviation": struct.unpack('>h', bytes([info[4], info[5]]))[0] / 16.0,
+        }
 
     def led_setup(self, led_number, red, green, blue):
         if 0 <= led_number <= 31:

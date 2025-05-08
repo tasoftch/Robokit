@@ -1,10 +1,5 @@
 
 #include <device.h>
-#include <portmacro.h>
-#include <freertos/FreeRTOS.h>
-#include <private/robokit_log.h>
-
-#include "hal/hc_sr04.h"
 
 #include "wlan_ap.h"
 #include "socket_server.h"

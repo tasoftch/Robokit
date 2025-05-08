@@ -40,8 +40,21 @@ S_vector robokit_get_current_vector(void);
 
 // Returns the current orientation regarding the calibration.
 // If IMU is not running, returns INT16_MIN.
-int16_t robokit_get_current_orientation(void);
 
+// Degree 16 is an internal usage of degrees from 0 to 5760
+// To transform into real degrees, divide by 16.
+// It represents a circle from 0 to 360 degrees.
+// 0 and 5760 is the same angle.
+typedef int16_t robokit_degree16_t;
 
+// Degree 16 dev is also an internal usage of degrees from -2880 to 2800
+// To transform into real degrees, divide by 16.
+// It represents also a circle from -180 to +180
+// -2880 and +2880 is the same angle (opposite of "in front of")
+typedef int16_t robokit_degree16_dev_t;
+
+robokit_degree16_t robokit_imu_get_position(void);
+robokit_degree16_dev_t robokit_imu_get_orientation(void);
+robokit_degree16_dev_t robokit_imu_get_deviation(void);
 
 #endif /* values_h */

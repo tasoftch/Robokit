@@ -8,6 +8,12 @@
 #include <imu_commands.h>
 #include <string.h>
 #include <private/robokit_log.h>
+#include <values.h>
+
+enum {
+	E_STATUS_MOTOR_CONFIG	= 0xF3,
+	E_STATUS_READ_IMU		= 0xF4
+};
 
 uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 	uint8_t cmd = buffer[0];
@@ -21,7 +27,7 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 			if(speed < 1) {
 				robokit_make_drive_command_fwd(&command, 0);
 				robokit_push_command(&command, 0);
-				robokit_make_command_imu_stop(&command);
+				robokit_make_command_imu_disable(&command);
 				robokit_push_command(&command, 0);
 			} else {
 				robokit_make_drive_command_vector(&command, vec);
@@ -40,7 +46,7 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 	} else {
 		ROBOKIT_LOGI("Status command %02X", cmd);
 		switch (cmd) {
-			case 0xF3:
+			case E_STATUS_MOTOR_CONFIG:
 				uint32_t info = 0x257;
 
 			S_motor_config lcfg = robokit_motor_left_get_config();
@@ -51,6 +57,19 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 			buffer[3] = 0x0;
 			memcpy(buffer+4, &info, sizeof(uint32_t));
 			return 8;
+			case E_STATUS_READ_IMU:
+				int16_t pos = robokit_imu_get_position();
+				buffer[0] = pos >> 8 & 0xff;
+				buffer[1] = pos & 0xff;
+
+				pos = robokit_imu_get_orientation();
+				buffer[2] = pos >> 8 & 0xff;
+				buffer[3] = pos & 0xff;
+
+				pos = robokit_imu_get_deviation();
+				buffer[4] = pos >> 8 & 0xff;
+				buffer[5] = pos & 0xff;
+				return 6;
 			default:
 		}
 	}
