@@ -6,6 +6,8 @@ import uvicorn
 import sys
 import os
 import time  # Importiere das Modul für die Wartezeit
+import logging
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'PythonApp')))
 from robokit import Robokit
@@ -15,6 +17,7 @@ ESP32_PORT = 8080
 
 TEST_IP = "127.0.0.1"
 TEST_PORT = 7000
+
 
 
 
@@ -224,12 +227,11 @@ def ledclear(req: ledclearRequest):
 
 
 @app.post("/approximate")
-def approximate(distanc_req: distanceRequest, drive_req: DriveRequest):
+def approximate(req: distanceRequest,):
   
-  response = driveforward_noTimeRequest(power=drive_req.power)
-  robot.approximate(distanc_req.distance)
+  robot.approximate(req.distance)
   
-  return {"status": "ok", "distance": distanc_req.distance, "Power": drive_req.power}
+  return {"status": "ok", "distance": req.distance}
 
 
 
