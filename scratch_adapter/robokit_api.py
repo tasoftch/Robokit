@@ -46,9 +46,9 @@ class LEDRequest(BaseModel):
     
 class LEDsRequest(BaseModel):
     leds: List[int]; # Liste von LEDs  
-    blue: int; # 0-255
-    green: int; # 0-255
-    red: int; # 0-255
+    blue: int;  # 0-255 recomandet max 60 
+    green: int; # 0-255 recomandet max 60 
+    red: int;   # 0-255 recomandet max 60 
     
 class ledclearRequest(BaseModel):
     pass
@@ -96,36 +96,86 @@ def buzzer(req: BuzzerRequest):
     
     return {"status": "ok", "enable": req.enable, "frequency": req.frequency}
 
-# Fahren vorwärts mit Zeit
-@app.post("/driveforward")
-def driveforward(req: DriveRequest):
 
-    robot.drive_forward(req.power,)
-    time.sleep(req.duration)  # Warte für die angegebene Dauer
-    robot.drive_stop()
-          
+#Fahren vorwärts mit Zeit
+@app.post("/driveforward")
+def drivevorward_noTime(req: DriveRequest):
+    if req.power >= 50 and req.power <= 100:
+        duration_differenz = req.duration
+        for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+            robot.drive_forward(i)  # Fahre mit der aktuellen Leistung
+            time.sleep(0.02)
+            duration_differenz-= 0.02  # Verringere die verbleibende Zeit um 0.02 Sekunden
+            print(i)
+        time.sleep(duration_differenz)  # Warte für die angegebene Dauer
+        robot.drive_stop()
+    
+    else:
+        robot.drive_forward(req.power,)
+        time.sleep(req.duration)  # Warte für die angegebene Dauer
+        robot.drive_stop()
+        
     return {"status": "ok", "power": req.power, "time": req.duration}
+
+
 
 #Fahren vorwärts ohne Zeit
 @app.post("/driveforward_noTime")
 def drivevorward_noTime(req: drive_noTimeRequest):
-    robot.drive_forward(req.power,)
+    if req.power >= 50 and req.power <= 100:
+       
+        for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+            robot.drive_forward(i)  # Fahre mit der aktuellen Leistung
+            time.sleep(0.02)
+            duration_differenz-= 0.02  # Verringere die verbleibende Zeit um 0.02 Sekunden
+            print(i)
+        robot.drive_stop()
+    
+    else:
+        robot.drive_forward(req.power)
+    
+        
     return {"status": "ok", "power": req.power}
+    
 
 #Fahren rückwärts mit Zeit
 @app.post("/drivebackward")
 def drivebackward(req: DriveRequest):
-
-    robot.drive_backwards(req.power,)
-    time.sleep(req.duration)
-    robot.drive_stop()
-  
+    
+    if req.power >= 50 and req.power <= 100:
+        duration_differenz = req.duration
+        for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+            robot.drive_backwards(i)  # Fahre mit der aktuellen Leistung
+            time.sleep(0.02)
+            duration_differenz-= 0.02  # Verringere die verbleibende Zeit um 0.02 Sekunden
+            print(i)
+        time.sleep(duration_differenz)  # Warte für die angegebene Dauer
+        robot.drive_stop()
+    
+    else:
+        robot.drive_backwards(req.power)
+        time.sleep(req.duration)  # Warte für die angegebene Dauer
+        robot.drive_stop()
+        
     return {"status": "ok", "power": req.power, "time": req.duration}
 
 #Fahren rückwärts ohne Zeit
 @app.post("/drivebackward_noTime")
 def drivebackward_noTime(req: drive_noTimeRequest):
-    robot.drive_backwards(req.power,)
+    
+    if req.power >= 50 and req.power <= 100:
+       
+        for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+            robot.drive_backwards(i)  # Fahre mit der aktuellen Leistung
+            time.sleep(0.02)
+            duration_differenz-= 0.02  # Verringere die verbleibende Zeit um 0.02 Sekunden
+            print(i)
+        robot.drive_stop()
+    
+    else:
+        robot.drive_backwards(req.power)
+    
+        
     return {"status": "ok", "power": req.power}
 
 # Fahren stoppen
