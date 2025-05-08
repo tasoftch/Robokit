@@ -11,7 +11,6 @@
 
 #include "hal/i2c.h"
 #include "hal/bno055.h"
-#include "private/filter.h"
 
 #include "values.h"
 
