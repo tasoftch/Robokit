@@ -118,6 +118,7 @@ class Robokit(object):
     def status_battery(self):
         info = self.__send_raw(bytes([0xF5, 0, 0, 0, 0, 0, 0, 0]))
         return {
+            # Voltage in Volts
             "voltage": (info[0]<<8 | info[1]) / 1000,
             # Charge in percent
             "charge": info[2] / 100.0,
