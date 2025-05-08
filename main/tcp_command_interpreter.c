@@ -6,13 +6,15 @@
 
 #include <device.h>
 #include <imu_commands.h>
+#include <stdio.h>
 #include <string.h>
 #include <private/robokit_log.h>
 #include <values.h>
 
 enum {
-	E_STATUS_MOTOR_CONFIG	= 0xF3,
-	E_STATUS_READ_IMU		= 0xF4
+	E_STATUS_MOTOR_CONFIG					= 0xF3,
+	E_STATUS_READ_IMU						= 0xF4,
+	E_STATUS_READ_BATTERY_VOLTAGE			= 0xF5
 };
 
 uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
@@ -70,6 +72,16 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 				buffer[4] = pos >> 8 & 0xff;
 				buffer[5] = pos & 0xff;
 				return 6;
+			case E_STATUS_READ_BATTERY_VOLTAGE:
+				robokit_voltage_mV_t volts = robokit_battery_get_voltage();
+				uint8_t charge = robokit_battery_get_charge_percent();
+				uint8_t status = robokit_battery_get_status();
+
+				buffer[0] = volts >> 8 & 0xff;
+				buffer[1] = volts & 0xff;
+				buffer[2] = charge & 0xff;
+				buffer[3] = status & 0xff;
+			return 4;
 			default:
 		}
 	}

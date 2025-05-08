@@ -114,3 +114,17 @@ class Robokit(object):
         if distance_in_cm < 5:
             distance_in_cm = 5
         self.__send_raw(bytes([7, 0, distance_in_cm & 0xFF, distance_in_cm >> 8 & 0xFF, 0, 0, 0, 0]))
+
+    def status_battery(self):
+        info = self.__send_raw(bytes([0xF5, 0, 0, 0, 0, 0, 0, 0]))
+        return {
+            "voltage": (info[0]<<8 | info[1]) / 1000,
+            # Charge in percent
+            "charge": info[2] / 100.0,
+            # Status:
+            # 0: Emergency (Roboter does not respond to anything.
+            # 1: Critical
+            # 2: Warning
+            # 3: OK
+            "status": info[3],
+        }

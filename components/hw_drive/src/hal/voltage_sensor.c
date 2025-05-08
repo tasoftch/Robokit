@@ -27,3 +27,33 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 		voltage /= 2;
 	}
 }
+
+robokit_voltage_mV_t robokit_battery_get_voltage(void) {
+	return voltage;
+}
+
+uint8_t robokit_battery_get_charge_percent(void) {
+	robokit_voltage_mV_t volts = robokit_battery_get_voltage();
+	if(volts >= ROBOKIT_VOLTAGE_CHARGE_UPPER_LIMIT)
+		return 100;
+
+	if(volts >= ROBOKIT_VOLTAGE_CHARGE_LOWER_LIMIT) {
+		return 10 + (90 * (volts - ROBOKIT_VOLTAGE_CHARGE_LOWER_LIMIT) ) / (ROBOKIT_VOLTAGE_CHARGE_UPPER_LIMIT - ROBOKIT_VOLTAGE_CHARGE_LOWER_LIMIT);
+	}
+
+	if(volts >= ROBOKIT_VOLTAGE_CHARGE_CRITICAL_LOWER_LIMIT) {
+		return (10 * (volts - ROBOKIT_VOLTAGE_CHARGE_CRITICAL_LOWER_LIMIT)) / (ROBOKIT_VOLTAGE_CHARGE_LOWER_LIMIT - ROBOKIT_VOLTAGE_CHARGE_CRITICAL_LOWER_LIMIT);
+	}
+	return 0;
+}
+
+uint8_t robokit_battery_get_status(void) {
+	robokit_voltage_mV_t volts = robokit_battery_get_voltage();
+	if(volts >= ROBOKIT_VOLTAGE_CHARGE_UPPER_LIMIT)
+		return ROBOKIT_BATTERY_STATUS_OK;
+	if(volts >= ROBOKIT_VOLTAGE_CHARGE_LOWER_LIMIT)
+		return ROBOKIT_BATTERY_STATUS_WARNING;
+	if(volts >= ROBOKIT_VOLTAGE_CHARGE_CRITICAL_LOWER_LIMIT)
+		return ROBOKIT_BATTERY_STATUS_CRITICAL;
+	return ROBOKIT_BATTERY_STATUS_EMERGENCY;
+}

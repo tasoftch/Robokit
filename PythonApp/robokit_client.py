@@ -15,14 +15,18 @@ def print_help():
     print("crv <angle> | Makes a curve maintaining speed before")
     print("            | <angle> in degrees of 3° from -180 to 180")
     print("imu <speed> | Drive straight forward using the IMU")
+    print("imur        | Reads IMU's current position, orientation and deviation.")
+    print("imud <deg_u>| Adjusts the fixed imu orientation by deg_u * 16 degrees.")
+    print("imu-        | Completly disables the IMU.")
+
     print("stop        | Stops the drive immediately")
-    print("fal start   | Starts the FAL sensor's calibration")
-    print("fal <speed> | Follow a line with specified speed <speed>")
     print("led <n> <cl>| n is the selected led and cl the color as 0xRGB")
     print("flush       | Flushes the LED setting to the drive")
     print("clear       | Clears the LED.")
     print("buz <freq>  | Launches the buzzer with given frequency. All < 250Hz will disable.")
     print("dist <cm>   | Stopps if distance to any object is below specification")
+
+    print("bat         | Reads the battery status.")
 
 def perform_command(cmd, args):
     global old_speed, Robokit
@@ -73,6 +77,9 @@ def perform_command(cmd, args):
         elif cmd == 'dist':
             num = int(args[0])
             Robokit.approximate(num)
+        elif cmd == 'bat':
+            bat = Robokit.status_battery()
+            print(bat)
     except Exception as e:
         print(e)
 

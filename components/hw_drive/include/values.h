@@ -57,4 +57,18 @@ robokit_degree16_t robokit_imu_get_position(void);
 robokit_degree16_dev_t robokit_imu_get_orientation(void);
 robokit_degree16_dev_t robokit_imu_get_deviation(void);
 
+
+typedef uint16_t robokit_voltage_mV_t;
+
+enum {
+	ROBOKIT_BATTERY_STATUS_EMERGENCY,
+	ROBOKIT_BATTERY_STATUS_CRITICAL,
+	ROBOKIT_BATTERY_STATUS_WARNING,
+	ROBOKIT_BATTERY_STATUS_OK
+};
+
+robokit_voltage_mV_t robokit_battery_get_voltage(void);
+uint8_t robokit_battery_get_charge_percent(void);
+uint8_t robokit_battery_get_status(void);
+
 #endif /* values_h */
