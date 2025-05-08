@@ -12,6 +12,7 @@
 #include <values.h>
 
 enum {
+	E_STATUS_READ_DRIVE_VECTOR				= 0xF0,
 	E_STATUS_MOTOR_CONFIG					= 0xF3,
 	E_STATUS_READ_IMU						= 0xF4,
 	E_STATUS_READ_BATTERY_VOLTAGE			= 0xF5
@@ -82,6 +83,11 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 				buffer[2] = charge & 0xff;
 				buffer[3] = status & 0xff;
 			return 4;
+			case E_STATUS_READ_DRIVE_VECTOR:
+				S_vector vec = robokit_get_current_vector();
+				buffer[0] = vec.angle;
+				buffer[1] = vec.speed;
+				return 2;
 			default:
 		}
 	}

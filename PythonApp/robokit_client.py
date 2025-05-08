@@ -80,6 +80,9 @@ def perform_command(cmd, args):
         elif cmd == 'bat':
             bat = Robokit.status_battery()
             print(bat)
+        elif cmd == 'vec':
+            vec = Robokit.status_drive_vector()
+            print(vec)
     except Exception as e:
         print(e)
 

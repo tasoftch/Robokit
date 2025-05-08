@@ -129,3 +129,11 @@ class Robokit(object):
             # 3: OK
             "status": info[3],
         }
+
+    def status_drive_vector(self):
+        info = self.__send_raw(bytes([0xF0, 0, 0, 0, 0, 0, 0, 0]))
+        angle = struct.unpack('b', bytes([info[0]]))[0]
+        return {
+            "angle": angle * 3,
+            "speed": info[1],
+        }
