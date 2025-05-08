@@ -31,6 +31,8 @@
 
 #include <values.h>
 
+ROBOKIT_CHECK_COMMAND_STRUCT(_S_command_drive);
+
 /**
  * @brief Default pwm configuration for left motor
  */

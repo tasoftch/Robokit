@@ -16,8 +16,9 @@ typedef struct {
 	uint8_t reserve3;
 	uint8_t reserve4;
 	uint8_t reserve5;
-	uint8_t reserve6;
 } _S_command_US;
+
+ROBOKIT_CHECK_COMMAND_STRUCT(_S_command_US);
 
 static uint8_t ultrasonic_status = 0;
 static uint16_t ultrasonic_distance = 0;

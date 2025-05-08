@@ -24,6 +24,9 @@ typedef struct {
 	void (*callback)(void);
 } _S_imu_cmd;
 
+ROBOKIT_CHECK_COMMAND_STRUCT(_S_imu_cmd);
+
+
 static S_motor_ctl imu_drive_info = {0};
 static S_vector old_drive_vector = {0};
 

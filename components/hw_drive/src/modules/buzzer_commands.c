@@ -24,6 +24,8 @@ typedef struct {
 	uint16_t period_ms;
 } _S_buzzer_cmd;
 
+ROBOKIT_CHECK_COMMAND_STRUCT(_S_buzzer_cmd);
+
 uint8_t robokit_make_command_buzzer_beep(S_command *cmd, uint16_t freq, uint16_t duration_ms) {
 	if(!cmd)
 		return 0;

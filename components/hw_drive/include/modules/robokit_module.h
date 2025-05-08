@@ -38,6 +38,7 @@
 #include <device.h>
 #include <private/command_data_containers.h>
 #include <hal/scheduler.h>
+#include <assert.h>
 
 #include <private/_modules.h>
 
@@ -69,4 +70,6 @@
 #define ROBOKIT_COMMAND_RESET(CMD) ( CMD = (S_command){0} )
 #define ROBOKIT_COMMAND_RESET_P(CMD) if(CMD) { *((S_command *) (CMD) ) = (S_command){0}; }
 
+#define ROBOKIT_CHECK_COMMAND_STRUCT(type) \
+	static_assert(sizeof(type) == 8, "Struct " #type " must be exactly 8 bytes in size!")
 #endif //ROBOKIT_MODULE_H

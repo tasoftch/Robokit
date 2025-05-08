@@ -28,6 +28,7 @@
 #include <hal/scheduler.h>
 #include <modules/robokit_module.h>
 
+ROBOKIT_CHECK_COMMAND_STRUCT(_S_Command_LED);
 
 #ifndef LED_PIN_ST
 #define LED_PIN_ST 12

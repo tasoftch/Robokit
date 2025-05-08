@@ -26,6 +26,8 @@
 #include <hal/fal.h>
 #include <modules/robokit_module.h>
 
+ROBOKIT_CHECK_COMMAND_STRUCT(_S_Command_Fal);
+
 /**
  * @inheritDoc
  */

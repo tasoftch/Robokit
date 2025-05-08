@@ -39,6 +39,8 @@
 #include "driver/gpio.h"
 #endif
 
+ROBOKIT_CHECK_COMMAND_STRUCT(_S_Command_test);
+
 static volatile uint8_t _test_led_current_state = 0;
 static led_strip_handle_t _my_test_led_strip;
 
