@@ -84,7 +84,8 @@ class DrivecircleRequest(BaseModel):
     duration: float
     direction: str # left  and Right 
     
-    
+class distanceRequest(BaseModel):
+    distance: int
 
 @app.post("/buzzer")
 def buzzer(req: BuzzerRequest):
@@ -220,14 +221,30 @@ def ledclear(req: ledclearRequest):
     robot.led_clear()
     return {"status": "ok"} 
 
+
+
+@app.post("/approximate")
+def approximate(distanc_req: distanceRequest, drive_req: DriveRequest):
+  
+  response = driveforward_noTimeRequest(power=drive_req.power)
+  robot.approximate(distanc_req.distance)
+  
+  return {"status": "ok", "distance": distanc_req.distance, "Power": drive_req.power}
+
+
+
+
+
+
 @app.get("/ping")
 def ping():
     return {"status": "alive"}
 
+
+
 # Nur lokal starten, nicht im Produktionsumfeld
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=9000)
-
 
 
 
