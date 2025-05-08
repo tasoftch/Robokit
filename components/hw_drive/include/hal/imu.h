@@ -6,54 +6,46 @@
 #define IMU_H
 
 #include <esp_err.h>
+#include <values.h>
 
 #define IMU_FILTER_DIR_THRESHOLD 10
 #define IMU_FILTER_DIR_TRUST_THRESHOLD 30
 
-/**
- * @brief internal description of the command meaning
- */
-typedef enum {
-	// Nothing, disable IMU if running
-	E_IMU_STATUS_FLAG_NONE = 0,
-	// Enable IMU, it will provide orientation values
-	E_IMU_STATUS_FLAG_ENABLED = 1<<0,
-	// Reset orientation to current position
-	E_IMU_STATUS_FLAG_CALIBRATION = 1<<1,
-	// Contact a provided callback each time, the orientation changes
-	E_IMU_STATUS_FLAG_INTERPRET_CALLBACK = 1<<2,
-	// Stop any action of IMU.
-	// This also pushes a stop command, if the drive is running under IMU
-	E_IMU_STATUS_FLAG_STOP = 1<<3,
-} E_imu_status;
 
-/**
- * @brief Interpreter function to transform IMU orientation into drive commands
- */
-typedef void (*IMU_Interpreter_Callback)(int16_t deviation_angle);
+typedef struct {
+	// Initial position of Imu.
+	// During whole uptime, it remains the same
+	robokit_degree16_t position;
 
-/**
- * @brief Sets the IMU current status flags to enable/disable features
- *
- * @param status E_imu_status The Status to be set in IMU Firmware
- */
-void imu_set_imu_status(E_imu_status status);
+	// Currently used orientation.
+	// It can be fixed using the functions below.
+	robokit_degree16_dev_t orientation;
 
-/**
- * @brief Sets the current IMU orientation interpreter
- */
-void imu_deviation_interpreter(IMU_Interpreter_Callback callback);
+	// The deviation holds the difference to the last measurement
+	robokit_degree16_dev_t deviation;
+} S_imu_stack_t;
 
-/**
- * @brief Starts the calibration to reset the current orientation to 0
- *
- * @param callback A callback that gets contacted when done.
- */
-void imu_calibration(void(*callback)(void));
+// The interpreter function can be set and enabled.
+// Then, each orientation change is notified.
+typedef void (*imu_interpreter_fcn_t)(S_imu_stack_t *imu_stack_result);
 
-/**
- * @brief Stops any action of IMU including pushing a drive stop command.
- */
+// Basically start and stop IMU
+// Note: If imu is stopped, no values can be obtained
+// actual values
+void imu_start(void);
 void imu_stop(void);
+
+robokit_degree16_t imu_get_position(void);
+robokit_degree16_dev_t imu_get_orientation(void);
+robokit_degree16_dev_t imu_get_deviation(void);
+
+void imu_fix_orientation(robokit_degree16_t at_position);
+void imu_fix_current_orientation(void);
+
+robokit_degree16_t imu_get_fixed_orientation(void);
+
+void imu_set_interpreter(imu_interpreter_fcn_t imu_interpreter_fcn);
+void imu_enable_interpreter(void);
+void imu_disable_interpreter(void);
 
 #endif //IMU_H

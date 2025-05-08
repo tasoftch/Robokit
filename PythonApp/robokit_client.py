@@ -15,11 +15,9 @@ def print_help():
     print("crv <angle> | Makes a curve maintaining speed before")
     print("            | <angle> in degrees of 3° from -180 to 180")
     print("imu <speed> | Drive straight forward using the IMU")
-    print("imur <speed>| Drive straight backwards using the IMU")
     print("stop        | Stops the drive immediately")
     print("fal start   | Starts the FAL sensor's calibration")
     print("fal <speed> | Follow a line with specified speed <speed>")
-    print("test        | The test command toggles an LED on the board")
     print("led <n> <cl>| n is the selected led and cl the color as 0xRGB")
     print("flush       | Flushes the LED setting to the drive")
     print("clear       | Clears the LED.")
@@ -50,11 +48,15 @@ def perform_command(cmd, args):
         elif cmd == "imu":
             speed = int(args[0])
             Robokit.drive_imu_straight_forward(speed)
-        elif cmd == "imur":
-            speed = int(args[0])
-            Robokit.drive_imu_straight_backward(speed)
-        elif cmd == "test":
-            Robokit.test()
+        elif cmd == "imuc":
+            Robokit.drive_imu_reset_orientation()
+        elif cmd == "imud":
+            Robokit.drive_imu_orientation_deviate(int(args[0]))
+        elif cmd == 'imur':
+            angles = Robokit.status_imu_read()
+            print(angles)
+        elif cmd == 'imu-':
+            Robokit.imu_disable()
         elif cmd == "led":
             num = int(args[0])
             red = int(args[1])

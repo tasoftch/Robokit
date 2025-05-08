@@ -28,7 +28,7 @@
 #include "main_commands.h"
 
 /**
- * @brief Enables the IMU flag in the drive command.
+ * @brief Enables the IMU to obtain current orientation.
  * @param [out] command S_command* Pointer to the command structure to modify.
  * @return uint8_t Returns 1 if successful, 0 if the command pointer is null.
  */
@@ -47,15 +47,17 @@ uint8_t robokit_make_command_imu_enable(S_command *command);
 uint8_t robokit_make_command_imu_disable(S_command *command);
 
 // The calibration is one cycle only to reset the current orientation to 0.
-// Turning the device to the left reduces the angle until 1800° (10 rounds).
-// Turning the device to the right increases the angle until 1800° (10 rounds).
+// It does not affect any driving information.
+uint8_t robokit_make_command_imu_reference(S_command *command);
 
-uint8_t robokit_make_command_imu_calibration(S_command *command, void (*done_callback)(void));
+// Changes the current referenced orientation by deviation
+uint8_t robokit_make_command_imu_deviate(S_command *command, int8_t deviation);
 
-// Giving a drive command enables the IMU and applies a calibration.
-// The system will now follow 0° and inject commands to correct the angle.
+// Giving a drive command enables the IMU and applies a reference.
+// The IMU will now follow 0° and pushes commands to correct the angle.
 uint8_t robokit_make_command_imu_drive_forward(S_command *command, T_Speed speed);
-uint8_t robokit_make_command_imu_drive_backward(S_command *command, T_Speed speed);
+
+
 
 uint8_t robokit_make_command_imu_stop(S_command *command);
 
