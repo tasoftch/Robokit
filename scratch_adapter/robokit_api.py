@@ -42,27 +42,25 @@ class BuzzerRequest(BaseModel):
     frequency: int
 
 class LEDRequest(BaseModel):
-    led_nr: int
+    leds: list[int]  # Liste von LEDs 
     blue: int; # 0-255
     green: int; # 0-255
     red: int; # 0-255
     
-class LEDsRequest(BaseModel):
-    leds: List[int]; # Liste von LEDs  
-    blue: int;  # 0-255 recomandet max 60 
-    green: int; # 0-255 recomandet max 60 
-    red: int;   # 0-255 recomandet max 60 
     
 class ledclearRequest(BaseModel):
     pass
     
 
 class DriveRequest(BaseModel):
+    direction: bool  # "forward" = 1 oder "backward" = 0
     power: int
     duration: float  # Dauer in Sekunden
 
 class drive_noTimeRequest(BaseModel):
+    direction: bool  # "forward" = 1 oder "backward" = 0
     power: int
+    
 
 class DriveforwardRequest(BaseModel):
     power: int
@@ -101,6 +99,64 @@ def buzzer(req: BuzzerRequest):
     return {"status": "ok", "enable": req.enable, "frequency": req.frequency}
 
 
+@app.post("/drive")
+def drive(req: DriveRequest):
+    if req.direction:
+        
+        if req.power >= 50 and req.power <= 100:
+            duration_differenz = req.duration
+            for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+                robot.drive_forward(i)  # Fahre mit der aktuellen Leistung
+                time.sleep(0.02)
+                duration_differenz-= 0.02  # Verringere die verbleibende Zeit um 0.02 Sekunden
+                print(i)
+            time.sleep(duration_differenz)  # Warte für die angegebene Dauer
+            robot.drive_stop()
+        else:
+            robot.drive_forward(req.power,)
+            time.sleep(req.duration)  # Warte für die angegebene Dauer
+            robot.drive_stop()
+    else:
+        if req.power >= 50 and req.power <= 100:
+            duration_differenz = req.duration
+            for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+                robot.drive_backwards(i)  # Fahre mit der aktuellen Leistung
+                time.sleep(0.02)
+                duration_differenz-= 0.02  # Verringere die verbleibende Zeit um 0.02 Sekunden
+                print(i)
+            time.sleep(duration_differenz)  # Warte für die angegebene Dauer
+            robot.drive_stop()
+    
+        else:
+            robot.drive_backwards(req.power)
+            time.sleep(req.duration)  # Warte für die angegebene Dauer
+            robot.drive_stop()
+
+    return {"status": "ok", "direction": req.direction, "power": req.power, "time": req.duration}
+
+@app.post("/drive_notime")
+def drive(req: drive_noTimeRequest):
+    if req.direction:
+        if req.power >= 50 and req.power <= 100:
+            for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+                robot.drive_forward(i)  # Fahre mit der aktuellen Leistung
+                time.sleep(0.02)
+        else:
+            robot.drive_forward(req.power,)
+
+    else:
+        if req.power >= 50 and req.power <= 100:
+  
+            for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+                robot.drive_backwards(i)  # Fahre mit der aktuellen Leistung
+                time.sleep(0.02)
+    
+        else:
+            robot.drive_backwards(req.power)
+            robot.drive_stop()
+
+    return {"status": "ok", "direction": req.direction, "power": req.power}
+
 #Fahren vorwärts mit Zeit
 @app.post("/driveforward")
 def drivevorward_noTime(req: DriveRequest):
@@ -113,7 +169,6 @@ def drivevorward_noTime(req: DriveRequest):
             print(i)
         time.sleep(duration_differenz)  # Warte für die angegebene Dauer
         robot.drive_stop()
-    
     else:
         robot.drive_forward(req.power,)
         time.sleep(req.duration)  # Warte für die angegebene Dauer
@@ -172,7 +227,6 @@ def drivebackward_noTime(req: drive_noTimeRequest):
         for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
             robot.drive_backwards(i)  # Fahre mit der aktuellen Leistung
             time.sleep(0.02)
-            duration_differenz-= 0.02  # Verringere die verbleibende Zeit um 0.02 Sekunden
             print(i)
         robot.drive_stop()
     
@@ -195,29 +249,67 @@ def driving_stop(drive_stop: DrivestopRequest):
 def post_drivecurve(req: DrivecircleRequest):
     
     #robot.drive_forward(req.power,)
-    if req.direction == "right":
-        robot.drive_curve(req.angle, req.power,)
-    
-    if req.direction == "left":
-        robot.drive_curve(-req.angle, req.power,)
-
-    time.sleep(req.duration)
-    robot.drive_stop()    
+    if req.direction == "Rechts":
+        if req.power >= 50 and req.power <= 100:
+            duration_differenz = req.duration
+            for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+                robot.drive_curve(req.angle, i) # Fahre mit der aktuellen Leistung
+                time.sleep(0.02)
+                duration_differenz-= 0.02 
+            time.sleep(duration_differenz)
+            robot.drive_stop()
+                 
+        else: 
+            robot.drive_curve(req.angle, req.power)
+            time.sleep(req.duration)
+            robot.drive_stop()
+            
+            
+            
+    if req.direction == "Links":
+        if req.power >= 50 and req.power <= 100:
+  
+            for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+                robot.drive_curve(req.angle, i) # Fahre mit der aktuellen Leistung
+                time.sleep(0.02)
+                duration_differenz-= 0.02 
+            time.sleep(duration_differenz)
+            robot.drive_stop()
+                
+        else: 
+            robot.drive_curve(-req.angle, req.power)
+            time.sleep(req.duration)
+            robot.drive_stop()
+      
+       
+  
     
     return {"status": "ok", "angle": req.angle, "power": req.power, "time": req.duration, "direction": req.direction}
        
 
-@app.post("/led")
-def led(req: LEDRequest):
-    robot.led_setup(req.led_nr, req.red, req.green, req.blue)
+@app.post("/leds_manuelle")
+def leds(req: LEDRequest):
+    #string to int list
+    red = round((req.red / 100) * 60)  # Dreisatz: 0% = 0, 100% = 60, gerundet
+    blue = round((req.blue / 100) * 60)
+    green = round((req.green / 100) * 600)
+    robot.leds_setup(leds, red, green, blue)
     robot.led_flush()
-    return {"status": "ok", "led_nr": req.led_nr, "red": req.red, "green": req.green, "blue": req.blue}
-   
-@app.post("/leds")
-def leds(req: LEDsRequest):
-    robot.leds_setup(req.leds, req.red, req.green, req.blue)
+    return {"status": "ok", "leds": leds, "red": red, "green": green, "blue": blue}
+
+
+
+
+@app.post("/leds_manu")
+def leds(req: LEDRequest):
+    #string to int list
+    leds = list(map(int, req.leds.split(",")))
+    
+    robot.leds_setup(leds, req.red, req.green, req.blue)
     robot.led_flush()
-    return {"status": "ok", "leds": req.leds, "red": req.red, "green": req.green, "blue": req.blue}
+    return {"status": "ok", "leds": leds, "red": req.red, "green": req.green, "blue": req.blue}
+
+
 
 @app.post("/ledclear")
 def ledclear(req: ledclearRequest):
