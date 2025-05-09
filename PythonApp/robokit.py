@@ -137,3 +137,7 @@ class Robokit(object):
             "angle": angle * 3,
             "speed": info[1],
         }
+
+    def status_distance(self):
+        info = self.__send_raw(bytes([0xF1, 0, 0, 0, 0, 0, 0, 0]))
+        return info[0] << 8 | info[1]

@@ -75,12 +75,12 @@ static esp_err_t hc_sr04_await_response(void) {
 	return timeout > 0 ? ESP_OK : ESP_ERR_TIMEOUT;
 }
 
-float hc_sr04_read_distance_cm() {
+uint16_t hc_sr04_read_distance_cm() {
 	hc_sr04_trigger_sensor();
 
 	if (hc_sr04_await_response() != ESP_OK)
 		return -1;
 
-	float pulse_duration = (float)(echo_end - echo_start); // in µs
-	return pulse_duration / 58.0f; // ~58 µs per cm
+	int64_t pulse_duration = (echo_end - echo_start); // in µs
+	return pulse_duration / 58; // ~58 µs per cm
 }

@@ -22,8 +22,13 @@ ROBOKIT_CHECK_COMMAND_STRUCT(_S_command_US);
 
 static uint8_t ultrasonic_status = 0;
 static uint16_t ultrasonic_distance = 0;
+static uint16_t ultrasonic_sensor_measurement = 0;
 
 #define ULTRASONIC_TIMER_STAT 5
+
+robokit_distance_cm_t robokit_ultrasonic_get_distance(void) {
+	return ultrasonic_sensor_measurement;
+}
 
 ROBOKIT_MODULE_INIT() {
 	hc_sr04_init();
@@ -41,12 +46,12 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_ULTRASONIC, _S_command_US *cmd, uint8_t
 
 ROBOKIT_MODULE_SENSOR_LOOP() {
 	static uint8_t intern_timer = ULTRASONIC_TIMER_STAT;
-	if(ultrasonic_status) {
-		if(intern_timer-- < 1) {
-			intern_timer = ULTRASONIC_TIMER_STAT;
-			float distance = hc_sr04_read_distance_cm();
 
-			if(distance < ultrasonic_distance) {
+	if(intern_timer-- < 1) {
+		intern_timer = ULTRASONIC_TIMER_STAT;
+		ultrasonic_sensor_measurement = hc_sr04_read_distance_cm();
+		if(ultrasonic_status) {
+			if(ultrasonic_sensor_measurement < ultrasonic_distance) {
 				S_command cmd;
 				robokit_make_drive_command_fwd(&cmd, 0);
 				robokit_push_command(&cmd, 0);
