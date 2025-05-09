@@ -71,4 +71,8 @@ robokit_voltage_mV_t robokit_battery_get_voltage(void);
 uint8_t robokit_battery_get_charge_percent(void);
 uint8_t robokit_battery_get_status(void);
 
+
+typedef uint16_t robokit_distance_cm_t;
+
+robokit_distance_cm_t robokit_ultrasonic_get_distance(void);
 #endif /* values_h */

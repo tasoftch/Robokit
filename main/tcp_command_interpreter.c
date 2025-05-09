@@ -13,6 +13,7 @@
 
 enum {
 	E_STATUS_READ_DRIVE_VECTOR				= 0xF0,
+	E_STATUS_READ_DISTANCE					= 0xF1,
 	E_STATUS_MOTOR_CONFIG					= 0xF3,
 	E_STATUS_READ_IMU						= 0xF4,
 	E_STATUS_READ_BATTERY_VOLTAGE			= 0xF5
@@ -87,6 +88,11 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 				S_vector vec = robokit_get_current_vector();
 				buffer[0] = vec.angle;
 				buffer[1] = vec.speed;
+				return 2;
+			case E_STATUS_READ_DISTANCE:
+				robokit_distance_cm_t dist = robokit_ultrasonic_get_distance();
+				buffer[0] = dist>>8&0xFF;
+				buffer[1] = dist & 0xff;
 				return 2;
 			default:
 		}

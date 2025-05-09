@@ -3,7 +3,6 @@
 //
 #include "values.h"
 #include "hal/imu.h"
-#include "hal/voltage_sensor.h"
 
 // Forwarded in drive_command.c
 // S_vector robokit_get_current_vector(void)
@@ -20,3 +19,5 @@ robokit_degree16_dev_t robokit_imu_get_deviation(void) {
 }
 
 // Voltage measurements are directly in voltage_sensor.c
+
+// Distance getters forwarded to ultrasonic_commands.c

@@ -84,6 +84,9 @@ def perform_command(cmd, args):
         elif cmd == 'vec':
             vec = Robokit.status_drive_vector()
             print(vec)
+        elif cmd == 'abs':
+            d = Robokit.status_distance()
+            print(d)
     except Exception as e:
         print(e)
 

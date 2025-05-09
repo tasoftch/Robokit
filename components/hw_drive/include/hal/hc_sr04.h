@@ -5,7 +5,9 @@
 #ifndef HC_SR04_H
 #define HC_SR04_H
 
+#include <stdint.h>
+
 void hc_sr04_init();
-float hc_sr04_read_distance_cm();
+uint16_t hc_sr04_read_distance_cm();
 
 #endif //HC_SR04_H
