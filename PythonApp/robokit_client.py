@@ -27,6 +27,7 @@ def print_help():
     print("dist <cm>   | Stopps if distance to any object is below specification")
 
     print("bat         | Reads the battery status.")
+    print("vec         | Fetches the drive vector. Angle in degrees (0 straight, -... left +... right), speed in %.")
 
 def perform_command(cmd, args):
     global old_speed, Robokit
