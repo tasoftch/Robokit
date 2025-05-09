@@ -10,24 +10,54 @@ old_speed = 0
 def print_help():
     print("Command     | Description")
     print("------------|---------------------------------------------")
+    print("            | DRIVE COMMANDS")
     print("fwd <speed> | Drive forward with specified speed <speed>")
     print("bwd <speed> | Drive backwards with specified speed <speed>")
     print("crv <angle> | Makes a curve maintaining speed before")
     print("            | <angle> in degrees of 3° from -180 to 180")
-    print("imu <speed> | Drive straight forward using the IMU")
-    print("imur        | Reads IMU's current position, orientation and deviation.")
-    print("imud <deg_u>| Adjusts the fixed imu orientation by deg_u * 16 degrees.")
-    print("imu-        | Completly disables the IMU.")
-
     print("stop        | Stops the drive immediately")
+    print("            | ")
+    print("            | IMU DRIVE COMMANDS")
+    print("imu <speed> | Drive straight forward using the IMU")
+    print("imud <deg_u>| Adjusts the fixed imu orientation by deg_u * 16 degrees.")
+    print("            | ")
+    print("            | LED AND MULTIMEDIA COMMANDS")
     print("led <n> <cl>| n is the selected led and cl the color as 0xRGB")
     print("flush       | Flushes the LED setting to the drive")
     print("clear       | Clears the LED.")
-    print("buz <freq>  | Launches the buzzer with given frequency. All < 250Hz will disable.")
-    print("dist <cm>   | Stopps if distance to any object is below specification")
+    print("buz <freq>  | Launches the buzzer with given frequency. ")
+    print("            | All < 250Hz will disable.")
+    print("            | ")
+    print("            | CONDITIONAL COMMANDS")
+    print("falcal      | Starts calibration. The device must pass the calibration sheet.")
+    print("falok       | Reads the calibration status. Returns 1 when calibration succeeded.")
+    print("            | 0 in case of a failure and -1 if no calibration is running.")
+    print("fal <speed> | Start driving straight on. If a line is detected, it will follow.")
 
+    print("            | ")
+    print("            | CONDITIONAL COMMANDS")
+    print("dist <cm>   | Stopps if distance to any object is below given distance.")
+    print("            | Example: fwd 50;dist 130")
+    print("            | ")
+    print("            | FETCH ACTUAL VALUES")
+    print("info        | Reads device version, firmware and serial number.")
     print("bat         | Reads the battery status.")
-    print("vec         | Fetches the drive vector. Angle in degrees (0 straight, -... left +... right), speed in %.")
+    print("imur        | Reads IMU's current position, orientation and deviation.")
+    print("vec         | Fetches the drive vector. Angle in degrees ")
+    print("            | (0 straight, -... left +... right), speed in %.")
+    print("abs         | Reads the current distance [cm] in front of Roboter")
+    print("            | to the next obstacle. (Scattering +/- 30°")
+
+
+def print_formatted_fal_colors(color_set):
+    print(f"Sensor |  RD  |  GN  |  BL  |")
+    print(f"-------|------|------|------|")
+    print(f"LEFT   | %04d | %04d | %04d |" % (color_set["left"]["red"], color_set["left"]["green"], color_set["left"]["blue"]))
+    print(f"MLEFT  | %04d | %04d | %04d |" % (color_set["mleft"]["red"], color_set["mleft"]["green"], color_set["mleft"]["blue"]))
+    print(f"MIDDLE | %04d | %04d | %04d |" % (color_set["middle"]["red"], color_set["middle"]["green"], color_set["middle"]["blue"]))
+    print(f"MRIGHT | %04d | %04d | %04d |" % (color_set["mright"]["red"], color_set["mright"]["green"], color_set["mright"]["blue"]))
+    print(f"RIGHT  | %04d | %04d | %04d |" % (color_set["right"]["red"], color_set["right"]["green"], color_set["right"]["blue"]))
+
 
 def perform_command(cmd, args):
     global old_speed, Robokit
@@ -87,6 +117,16 @@ def perform_command(cmd, args):
         elif cmd == 'abs':
             d = Robokit.status_distance()
             print(d)
+        elif cmd == 'falcal':
+            Robokit.fal_calibrate()
+        elif cmd == 'fal':
+            num = int(args[0])
+            Robokit.fal_start(num)
+        elif cmd == 'falshot':
+            c = Robokit.fal_one_shot()
+            print_formatted_fal_colors(c)
+        else:
+            print("Unknown command: "+cmd)
     except Exception as e:
         print(e)
 
@@ -96,6 +136,7 @@ try:
     Robokit.connect()
     print("Welcome to Robokit control unit!")
     print("Please enter commands to send to the roboter.")
+    print("Commands can be joined using ; eg: fwd 50;crv 30")
     print("Type help to see available commands.")
 
 

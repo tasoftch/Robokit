@@ -80,7 +80,7 @@ uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(ui
  * @param cmd A Pointer to the command structure to be initialized.
  * @return Returns 1 if the command was successfully configured, 0 if the input pointer was null.
  */
-uint8_t robokit_make_command_fal_enable(S_command *cmd);
+uint8_t robokit_make_command_fal_enable(S_command *cmd, T_Speed speed);
 
 /**
  * @brief Constructs a stop immediately command disabling the follow a line (FAL) sensor.
@@ -92,6 +92,12 @@ uint8_t robokit_make_command_fal_enable(S_command *cmd);
  * @return Returns 1 if the command was successfully configured, 0 if the input pointer was null.
  */
 uint8_t robokit_make_command_fal_disable(S_command *cmd);
+
+/**
+* Makes
+*/
+uint8_t robokit_make_command_fal_one_shot(S_command *cmd, void(*complete_handler)(void));
+
 
 /**
  * @brief Sets the line result interpreter function.

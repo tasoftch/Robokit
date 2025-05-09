@@ -2,6 +2,7 @@
 
 import socket
 import struct
+import time
 
 # IP und Port des ESP32
 ESP32_IP = "192.168.4.1"
@@ -43,6 +44,7 @@ class Robokit(object):
         except Exception as e:
             print(f" sending failed: {e}")
 
+# Fahren
     def drive_forward(self, speed):
         if 0 <= speed <= 100:
             self.__send_raw(bytes([1, 0, speed, 0, 0, 0, 0, 0]))
@@ -88,6 +90,50 @@ class Robokit(object):
             "deviation": struct.unpack('>h', bytes([info[4], info[5]]))[0] / 16.0,
         }
 
+# Follow A Line
+    def fal_calibrate(self):
+        self.__send_raw(bytes([4, 0x1, 0, 0, 0, 0, 0, 0]))
+
+    def fal_start(self, speed):
+        self.__send_raw(bytes([4, 0x2, speed % 101, 0, 0, 0, 0, 0]))
+
+    def fal_one_shot(self):
+        self.__send_raw(bytes([4, 0x3, 0, 0, 0, 0, 0, 0]))
+
+        for e in range(4):
+            time.sleep(0.1)
+            info = self.__send_raw(bytes([0xF6, 0, 0, 0, 0, 0, 0, 0]))
+            if info[0] == 0x02:
+                return {
+                    "left": {
+                        "red":   info[1] << 8 | info[2],
+                        "green": info[3] << 8 | info[4],
+                        "blue":  info[5] << 8 | info[6],
+                    },
+                    "mleft": {
+                        "red":   info[7] << 8 | info[8],
+                        "green": info[9] << 8 | info[10],
+                        "blue":  info[11] << 8 | info[12],
+                    },
+                    "middle": {
+                        "red":   info[13] << 8 | info[14],
+                        "green": info[15] << 8 | info[16],
+                        "blue":  info[17] << 8 | info[18],
+                    },
+                    "mright": {
+                        "red":   info[19] << 8 | info[20],
+                        "green": info[21] << 8 | info[22],
+                        "blue":  info[23] << 8 | info[24],
+                    },
+                    "right": {
+                        "red":   info[25] << 8 | info[26],
+                        "green": info[27] << 8 | info[28],
+                        "blue":  info[29] << 8 | info[30],
+                    },
+                }
+        return False
+
+# LEDS
     def led_setup(self, led_number, red, green, blue):
         if 0 <= led_number <= 31:
             self.leds_setup([led_number], red, green, blue)
@@ -105,15 +151,19 @@ class Robokit(object):
     def led_clear(self):
         self.__send_raw(bytes([3, 1, 0, 0, 0, 0, 0, 0]))
 
+# Buzzer, Hupe und Töne
     def buzzer(self, frequency):
         self.__send_raw(bytes([6, 0, 0, 0, frequency & 0xFF, frequency >> 8 & 0xFF, 0, 0]))
 
+# Ultraschall Sensor
     def approximate(self, distance_in_cm):
         if distance_in_cm > 400:
             distance_in_cm = 400
         if distance_in_cm < 5:
             distance_in_cm = 5
         self.__send_raw(bytes([7, 0, distance_in_cm & 0xFF, distance_in_cm >> 8 & 0xFF, 0, 0, 0, 0]))
+
+
 
     def status_battery(self):
         info = self.__send_raw(bytes([0xF5, 0, 0, 0, 0, 0, 0, 0]))

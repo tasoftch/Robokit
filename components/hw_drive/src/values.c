@@ -21,3 +21,5 @@ robokit_degree16_dev_t robokit_imu_get_deviation(void) {
 // Voltage measurements are directly in voltage_sensor.c
 
 // Distance getters forwarded to ultrasonic_commands.c
+
+// FAL values forwarded to fal.c

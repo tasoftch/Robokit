@@ -59,7 +59,7 @@ typedef struct {
 typedef struct {
 	T_cmd cmd;
 	uint8_t flags;
-	uint8_t reserved2;
+	T_Speed speed;
 	uint8_t reserved3;
 	void *callback;
 } _S_Command_Fal;

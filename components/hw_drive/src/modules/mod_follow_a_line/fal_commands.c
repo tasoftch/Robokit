@@ -31,7 +31,7 @@ ROBOKIT_CHECK_COMMAND_STRUCT(_S_Command_Fal);
 /**
  * @inheritDoc
  */
-uint8_t robokit_make_command_fal_enable(S_command *cmd) {
+uint8_t robokit_make_command_fal_enable(S_command *cmd, T_Speed speed) {
 	if(!cmd)
 		return 0;
 
@@ -39,6 +39,7 @@ uint8_t robokit_make_command_fal_enable(S_command *cmd) {
 	_S_Command_Fal *fal_cmd = ROBOKIT_CMD_CAST(_S_Command_Fal *, cmd);
 	fal_cmd->cmd = E_COMMAND_FAL;
 	fal_cmd->flags = E_FAL_OPTION_ENABLE;
+	fal_cmd->speed = speed;
 
 	return 1;
 }
@@ -71,5 +72,17 @@ uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(ui
 	fal_cmd->flags = E_FAL_OPTION_CALIBRATE;
 	fal_cmd->callback = calibrated;
 
+	return 1;
+}
+
+uint8_t robokit_make_command_fal_one_shot(S_command *cmd, void(*complete_handler)(void)) {
+	if(!cmd)
+		return 0;
+
+	ROBOKIT_COMMAND_RESET_P(cmd);
+	_S_Command_Fal *fal_cmd = ROBOKIT_CMD_CAST(_S_Command_Fal *, cmd);
+	fal_cmd->cmd = E_COMMAND_FAL;
+	fal_cmd->flags = E_FAL_OPTION_SHOT;
+	fal_cmd->callback = complete_handler;
 	return 1;
 }

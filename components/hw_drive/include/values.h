@@ -73,6 +73,30 @@ uint8_t robokit_battery_get_status(void);
 
 
 typedef uint16_t robokit_distance_cm_t;
-
 robokit_distance_cm_t robokit_ultrasonic_get_distance(void);
+
+enum {
+	E_CALIBRATION_STATUS_UNCALIBRATED = 0,
+	E_CALIBRATION_STATUS_CALIBRATING,
+	E_CALIBRATION_STATUS_CALIBRATION_DONE,
+	E_CALIBRATION_STATUS_CALIBRATION_FAILED = 0xFF
+};
+
+typedef struct {
+	uint16_t red;
+	uint16_t green;
+	uint16_t blue;
+} S_color;
+
+uint8_t robokit_fal_get_calibration_status(void);
+
+uint8_t robokit_fal_is_running(void);
+
+uint8_t robokit_fal_is_one_shot_complete(void);
+S_color robokit_fal_get_color_left(void);
+S_color robokit_fal_get_color_middle_left(void);
+S_color robokit_fal_get_color_middle(void);
+S_color robokit_fal_get_color_middle_right(void);
+S_color robokit_fal_get_color_right(void);
+
 #endif /* values_h */

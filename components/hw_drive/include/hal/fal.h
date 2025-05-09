@@ -25,11 +25,12 @@
 #ifndef FAL_H
 #define FAL_H
 
-#define GPIO_RED   10  // GPIO_10 Output for red LED
-#define GPIO_GREEN 11  // GPIO_11 Output for green LED
-#define GPIO_BLUE  12  // GPIO_12 Output for blue LED
+#define GPIO_RED   13  // GPIO_10 Output for red LED
+#define GPIO_GREEN 10  // GPIO_11 Output for green LED
+#define GPIO_BLUE  11  // GPIO_12 Output for blue LED
 
 #include <stdint.h>
+#include <values.h>
 
 /**
  * The internal flags for fal commands
@@ -38,7 +39,8 @@
 enum {
 	   E_FAL_OPTION_DISABLE = 0,
 	   E_FAL_OPTION_CALIBRATE,
-	   E_FAL_OPTION_ENABLE
+	   E_FAL_OPTION_ENABLE,
+    E_FAL_OPTION_SHOT
 };
 
 

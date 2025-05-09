@@ -31,6 +31,7 @@
 #include <driver/adc.h>
 
 #include <modules/robokit_module.h>
+#include <values.h>
 
 #define ROBOKIT_FB_LEFT ADC_CHANNEL_0
 #define ROBOKIT_FB_MIDDLE_LEFT ADC_CHANNEL_1
@@ -41,29 +42,29 @@
 #define ROBOKIT_READ_INTERVAL_US 1000
 #define ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS 500
 
-typedef struct {
-	uint16_t red;
-	uint16_t green;
-	uint16_t blue;
-} S_color;
 
 static S_color my_colors[5];
 static volatile S_color my_color_minimums[5] = {0};
 static volatile S_color my_color_maximums[5] = {0};
 
 static void (*my_fal_callback_calibration)(uint8_t);
+static void (*my_fal_callback_one_shot)(void);
 static void (*my_fal_line_interpreter)(S_Fal_Result *) = fal_default_line_result_interpreter;
 
 // Marks the FAL system as running.
 // The sensor loop will be active and reads the cells.
 static uint8_t is_running=0;
 
+// Triggers exactly one measurement of all sensors.
+// Reports when done.
+static uint8_t is_one_shot=0;
+
 // Marks the FAL system as calibrated.
 // That means, the threshold is set and the system is ready to
 // proj3E: distinguish between black and white
 // proj4E: distinguish between black, white, red, green and blue.
 //         If possible also combinations yellow, magenta and cyan.
-static uint8_t is_calibrated=0;
+static uint8_t calibration_status = E_CALIBRATION_STATUS_UNCALIBRATED;
 
 // Task separation.
 // The command handler must only set configurations, it is not allowed to
@@ -76,9 +77,31 @@ static uint16_t drive_counter=0;
 /**
  * @inheritDoc
  */
-uint8_t fal_is_calibrated(void) {
-	return is_calibrated;
+uint8_t robokit_fal_get_calibration_status(void) {
+	return calibration_status;
 }
+
+uint8_t fal_is_calibrated(void) {
+	return calibration_status == E_CALIBRATION_STATUS_CALIBRATION_DONE ? 1 : 0;
+}
+
+uint8_t robokit_fal_is_running(void) {
+	return is_running;
+}
+
+uint8_t robokit_fal_is_one_shot_complete(void) {
+	if(is_one_shot == 2) {
+		is_one_shot = 0;
+		return 1;
+	}
+	return 0;
+}
+
+S_color robokit_fal_get_color_left(void) { return my_colors[0]; }
+S_color robokit_fal_get_color_middle_left(void) { return my_colors[1]; }
+S_color robokit_fal_get_color_middle(void) { return my_colors[2]; }
+S_color robokit_fal_get_color_middle_right(void) { return my_colors[3]; }
+S_color robokit_fal_get_color_right(void) { return my_colors[4]; }
 
 /**
  * @inheritDoc
@@ -154,7 +177,7 @@ static void _fal_reset_calibration(void) {
 			.blue = 0xFFFF
 		};
 	}
-	is_calibrated = 0;
+	calibration_status = E_CALIBRATION_STATUS_UNCALIBRATED;
 }
 
 /**
@@ -164,7 +187,6 @@ static void _fal_reset_calibration(void) {
  * for the FAL sensors.
  */
 ROBOKIT_MODULE_INIT() {
-	return;
 	gpio_config_t io_conf;
 	io_conf.intr_type = GPIO_INTR_DISABLE;          // Keine Interrupts
 	io_conf.mode = GPIO_MODE_OUTPUT;                // Als Output konfigurieren
@@ -282,7 +304,7 @@ static void _fal_calibration_done(void) {
 		my_color_minimums[e].blue = (my_color_minimums[e].blue + my_color_maximums[e].blue) / 2;
 	}
 
-	is_calibrated = 1;
+	calibration_status = E_CALIBRATION_STATUS_CALIBRATION_DONE;
 	is_running = 0;
 	make_drive_command = 2;
 
@@ -301,7 +323,7 @@ static void _fal_calibration_init(void) {
 		print_fal(my_color_minimums);
 		print_fal(my_color_maximums);
 #endif
-		is_calibrated = 0;
+		calibration_status = E_CALIBRATION_STATUS_CALIBRATION_FAILED;
 		is_running = 0;
 		make_drive_command = 2;
 		if(my_fal_callback_calibration)
@@ -334,7 +356,6 @@ static void _fal_calibration_init(void) {
 }
 
 ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode, uint8_t *flags) {
-	return;
 	if (mode == E_SCHEDULE_MODE_PRECHECK) {
 		if(cmd->flags == E_FAL_OPTION_ENABLE) {
 			if(!fal_is_calibrated()) {
@@ -352,6 +373,7 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode,
 			make_drive_command = 1;
 			drive_counter = ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS;
 			is_running = 1;
+			calibration_status = E_CALIBRATION_STATUS_CALIBRATING;
 			my_fal_callback_calibration = cmd->callback;
 		} else if(cmd->flags == E_FAL_OPTION_ENABLE) {
 			is_running = 1;
@@ -361,6 +383,10 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode,
 			S_command dcmd;
 			robokit_make_drive_command_fwd(&dcmd, 0);
 			robokit_push_command(&dcmd, 0);
+		} else if(cmd->flags == E_FAL_OPTION_SHOT) {
+			my_fal_callback_one_shot = cmd->callback;
+			is_running = 1;
+			is_one_shot = 1;
 		}
 	}
 }
@@ -396,7 +422,12 @@ static void _fal_calculate_result(void) {
  * @brief Helper function to handle the end of sensor cell readings.
  */
 static void fal_render_result(void) {
-	if(!is_calibrated) {
+	if(is_one_shot) {
+		is_running = 0;
+		is_one_shot = 2;
+		if(my_fal_callback_one_shot)
+			my_fal_callback_one_shot();
+	} else if(calibration_status == E_CALIBRATION_STATUS_CALIBRATING) {
 		_fal_calibration_init();
 	} else {
 		_fal_calculate_result();
@@ -412,13 +443,14 @@ static void fal_render_result(void) {
  * and renders the result once the cycle is complete.
  */
 ROBOKIT_MODULE_SENSOR_LOOP() {
-	return;
+	static uint8_t old_running = 0;
+
 	// The command handler must not push commands itself.
 	// It is only allowed to make configurations.
 	if(make_drive_command == 1) {
 		make_drive_command = 0;
 		S_command cmd;
-		robokit_make_drive_command_fwd(&cmd, 50);
+		robokit_make_drive_command_fwd(&cmd, 30);
 		robokit_push_command(&cmd, 0);
 	}
 
@@ -429,13 +461,24 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 		robokit_push_command(&cmd, 0);
 	}
 
-	if(!is_running)
+	if(!is_running) {
+		old_running = 0;
 		return;
+	}
 
 	// 100Hz interval:
 	// 1 cycle to read red and green,
 	// next cycle to read blue and calculate the next commands.
 	static uint8_t status = 0;
+
+
+
+	if(old_running != is_running) {
+		// Make sure that on a start it will begin by status 0
+		old_running = is_running;
+		status = 0;
+	}
+
 	switch (status) {
 		case 0:
 			status = 1;
