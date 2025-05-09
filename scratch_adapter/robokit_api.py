@@ -83,7 +83,14 @@ class DrivecircleRequest(BaseModel):
     angle: int
     power: int
     duration: float
-    direction: str # left  and Right 
+    turn: str # left  and Right 
+    direction: bool # Vorwärts und Rückwärts
+    
+class DrivecircleRequest_notime(BaseModel):
+    angle: int
+    power: int
+    turn: str # left  and Right 
+    direction: bool # Vorwärts und Rückwärts
     
 class distanceRequest(BaseModel):
     distance: int
@@ -248,44 +255,83 @@ def driving_stop(drive_stop: DrivestopRequest):
 @app.post("/drivecircle")
 def post_drivecurve(req: DrivecircleRequest):
     
+    winkl = req.angle
+    if req.direction == False:
+        winkl = 180 - req.angle
+    
+    
     #robot.drive_forward(req.power,)
-    if req.direction == "Rechts":
+    if req.turn == "Rechts":
         if req.power >= 50 and req.power <= 100:
             duration_differenz = req.duration
             for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
-                robot.drive_curve(req.angle, i) # Fahre mit der aktuellen Leistung
+                robot.drive_curve(winkl, i) # Fahre mit der aktuellen Leistung
                 time.sleep(0.02)
                 duration_differenz-= 0.02 
             time.sleep(duration_differenz)
             robot.drive_stop()
                  
         else: 
-            robot.drive_curve(req.angle, req.power)
+            robot.drive_curve(winkl, req.power)
             time.sleep(req.duration)
             robot.drive_stop()
             
             
             
-    if req.direction == "Links":
+    if req.turn == "Links":
         if req.power >= 50 and req.power <= 100:
-  
+            duration_differenz = req.duration
             for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
-                robot.drive_curve(req.angle, i) # Fahre mit der aktuellen Leistung
+                robot.drive_curve(-winkl, i) # Fahre mit der aktuellen Leistung
                 time.sleep(0.02)
                 duration_differenz-= 0.02 
             time.sleep(duration_differenz)
             robot.drive_stop()
                 
         else: 
-            robot.drive_curve(-req.angle, req.power)
+            robot.drive_curve(-winkl, req.power)
             time.sleep(req.duration)
             robot.drive_stop()
       
-       
-  
     
-    return {"status": "ok", "angle": req.angle, "power": req.power, "time": req.duration, "direction": req.direction}
-       
+    return {"status": "ok", "angle": winkl, "power": req.power, "time": req.duration, "direction": req.direction}
+      
+
+@app.post("/drivecircle_notime")
+def post_drivecurve(req: DrivecircleRequest_notime):
+    
+    winkl = req.angle
+    if req.direction == False:
+        winkl = 180 - req.angle
+    
+    #robot.drive_forward(req.power,)
+    if req.turn == "Rechts":
+        if req.power >= 50 and req.power <= 100:
+            
+            for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+                robot.drive_curve(winkl, i) # Fahre mit der aktuellen Leistung
+                time.sleep(0.02)
+    
+                 
+        else: 
+            robot.drive_curve(winkl, req.power)
+
+            
+            
+            
+    if req.turn == "Links":
+        if req.power >= 50 and req.power <= 100:
+  
+            for i in range(50, req.power + 1, 20):  # Beginne bei 50, erhöhe in Schritten von 20, aber überschreite req.power nicht
+                robot.drive_curve(-winkl, i) # Fahre mit der aktuellen Leistung
+                time.sleep(0.02)
+                
+        else: 
+            robot.drive_curve(-winkl, req.power)
+
+      
+    
+    return {"status": "ok", "angle": winkl, "power": req.power, "direction": req.direction} 
 
 @app.post("/leds_manuelle")
 def leds(req: LEDRequest):
