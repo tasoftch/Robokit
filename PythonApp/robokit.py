@@ -16,17 +16,14 @@ class Robokit(object):
         self.test_signal = False
 
     def connect(self):
-        try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.connect((self.ip, self.port))
-            print(f"Connected to {self.ip}:{self.port}")
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(1.0)
+        self.sock.connect((self.ip, self.port))
+        print(f"Connected to {self.ip}:{self.port}")
 
-            info = self.__send_raw(b"\xF3\x00\x00\x00\x00\x00\x00\x00")
-            if info[0] != 0xF3:
-                print(f" Illegal Connection. Header missmatch: {info}")
-                self.sock = None
-        except Exception as e:
-            print(f" Connection failed: {e}")
+        info = self.__send_raw(b"\xF3\x00\x00\x00\x00\x00\x00\x00")
+        if info[0] != 0xF3:
+            print(f" Illegal Connection. Header missmatch: {info}")
             self.sock = None
 
     def __send_raw(self, data: bytes):
