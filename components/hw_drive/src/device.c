@@ -67,9 +67,14 @@ static void read_serial_number() {
 
 	if (part != NULL) {
 		esp_partition_read(part, 0, serial_number, sizeof(serial_number) - 1);
+		if(strlen(serial_number) != 6) {
+			strcpy(serial_number, "XXXXXX");
+		}
 	} else {
 		strcpy(serial_number, "??????");
 	}
+
+	ROBOKIT_LOGI("Serial number: %s", serial_number);
 }
 
 

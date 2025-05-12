@@ -34,15 +34,17 @@ void wifi_init_softap(void) {
 	char buffer_ssid[32] = {0x0};
 	sprintf(buffer_ssid, "%s%s", WIFI_SSID, robokit_device_get_serial());
 
+	printf("SSID (%d):%s\n", strlen(buffer_ssid), buffer_ssid);
+
 	wifi_config_t wifi_config = {
 		.ap = {
-			.ssid = {buffer_ssid},
 			.ssid_len = strlen(buffer_ssid),
 			.password = WIFI_PASS,
 			.max_connection = MAX_STA_CONN,
 			.authmode = WIFI_AUTH_WPA_WPA2_PSK
 		},
 	};
+	strcpy((char *)wifi_config.ap.ssid, buffer_ssid);
 
 	if (strlen(WIFI_PASS) == 0) {
 		wifi_config.ap.authmode = WIFI_AUTH_OPEN;
@@ -52,5 +54,5 @@ void wifi_init_softap(void) {
 	ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
 	ESP_ERROR_CHECK(esp_wifi_start());
 
-	ESP_LOGI(TAG, "Access Point gestartet: SSID=%s, PASS=%s", WIFI_SSID, WIFI_PASS);
+	ESP_LOGI(TAG, "Access Point gestartet: SSID=%s, PASS=%s", buffer_ssid, WIFI_PASS);
 }
