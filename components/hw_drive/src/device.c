@@ -25,14 +25,18 @@
 #include "device.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <private/robokit_log.h>
-
+#include <modules/robokit_module.h>
+#include "esp_partition.h"
 
 extern void _scheduler_init(void);
 extern void myval(void);
 
 static void(*_callbacks[ ROBOKIT_MAX_SCHEDULED_COMMANDS ])(void);
 static uint8_t _callback_count = 0;
+
+static char serial_number[7] = {0};
 
 // Init function from modules macro ROBOKIT_MODULE_INIT
 void __robokit_register_init_callback(void(*cb)(void)) {
@@ -53,4 +57,28 @@ void device_init(void) {
 	}
 
 	_scheduler_init();
+}
+
+
+
+static void read_serial_number() {
+	const esp_partition_t* part = esp_partition_find_first(
+		ESP_PARTITION_TYPE_DATA, 0x40, "serial");
+
+	if (part != NULL) {
+		esp_partition_read(part, 0, serial_number, sizeof(serial_number) - 1);
+	} else {
+		strcpy(serial_number, "??????");
+	}
+}
+
+
+const char *device_serial(void) {
+	return serial_number;
+}
+
+
+
+ROBOKIT_MODULE_INIT() {
+	read_serial_number();
 }

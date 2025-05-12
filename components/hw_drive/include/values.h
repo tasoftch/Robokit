@@ -32,6 +32,8 @@
 #define ROBOKIT_DIRECTION_FORWARD (1)
 #define ROBOKIT_DIRECTION_BACKWARD (0)
 
+const char *robokit_device_get_serial(void);
+
 // Returns the current vector that the drive is running now.
 S_vector robokit_get_current_vector(void);
 

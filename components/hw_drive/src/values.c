@@ -23,3 +23,9 @@ robokit_degree16_dev_t robokit_imu_get_deviation(void) {
 // Distance getters forwarded to ultrasonic_commands.c
 
 // FAL values forwarded to fal.c
+
+extern const char *device_serial(void);
+
+const char *robokit_device_get_serial(void) {
+	return device_serial();
+}
