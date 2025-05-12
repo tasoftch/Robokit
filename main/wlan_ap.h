@@ -5,7 +5,7 @@
 #ifndef WLAN_AP_H
 #define WLAN_AP_H
 
-#define WIFI_SSID "Robokit FHNW Dev12345"
+#define WIFI_SSID "Robokit FHNW Dev"
 #define WIFI_PASS "robokit-fhnw"
 #define MAX_STA_CONN 4
 
