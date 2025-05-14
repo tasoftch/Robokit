@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from typing import Dict, List
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,12 +7,13 @@ import sys
 import os
 import time  # Importiere das Modul für die Wartezeit
 import logging
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'PythonApp')))
 from robokit import Robokit
 
-logging.basicConfig(level=logging.debug, format='%(asctime)s - %(levelname)s - %(message)s')
 
 ESP32_IP = "192.168.4.1"
 ESP32_PORT = 8080
@@ -44,10 +45,11 @@ class BuzzerRequest(BaseModel):
     frequency: int
 
 class LEDRequest(BaseModel):
-    leds: list[int]  # Liste von LEDs 
+    ledstring: str  # Liste von LEDs 
     blue: int; # 0-255
     green: int; # 0-255
     red: int; # 0-255
+    
     
     
 class ledclearRequest(BaseModel):
@@ -337,13 +339,19 @@ def post_drivecurve(req: DrivecircleRequest_notime):
 
 @app.post("/leds_manuelle")
 def leds(req: LEDRequest):
-    #string to int list
+    # Convert string to int list
+    leds = list(map(int, req.ledstring.split(",")))
     red = round((req.red / 100) * 60)  # Dreisatz: 0% = 0, 100% = 60, gerundet
     blue = round((req.blue / 100) * 60)
-    green = round((req.green / 100) * 600)
-    robot.leds_setup(req.leds, red, green, blue)
+    green = round((req.green / 100) * 60)
+    print(red, green, blue)
+    print(leds)
+
+    robot.leds_setup(leds, red, green, blue)
     robot.led_flush()
+
     return {"status": "ok", "leds": leds, "red": red, "green": green, "blue": blue}
+
 
 
 
@@ -351,9 +359,14 @@ def leds(req: LEDRequest):
 @app.post("/leds_manu")
 def leds(req: LEDRequest):
     #string to int list
-    leds = list(map(int, req.leds.split(",")))
-    
-    robot.leds_setup(leds, req.red, req.green, req.blue)
+    leds = list(map(int, req.ledstring.split(",")))
+    red = round((req.red / 100) * 60)  # Dreisatz: 0% = 0, 100% = 60, gerundet
+    blue = round((req.blue / 100) * 60)
+    green = round((req.green / 100) * 60)
+    print(red, green, blue)
+    print(leds)
+
+    robot.leds_setup(leds, red, green, blue)
     robot.led_flush()
     return {"status": "ok", "leds": leds, "red": req.red, "green": req.green, "blue": req.blue}
 
@@ -382,11 +395,20 @@ def approximate(req: distanceRequest,):
 def ping():
     return {"status": "alive"}
 
-
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    body = await request.body()
+    logging.error(f"Validation error: {exc.errors()} - Body: {body.decode('utf-8')}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
 
 # Nur lokal starten, nicht im Produktionsumfeld
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=9000)
+
+
 
 
 
