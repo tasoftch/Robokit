@@ -12,6 +12,8 @@ import logging
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'PythonApp')))
 from robokit import Robokit
 
+logging.basicConfig(level=logging.debug, format='%(asctime)s - %(levelname)s - %(message)s')
+
 ESP32_IP = "192.168.4.1"
 ESP32_PORT = 8080
 
@@ -34,7 +36,7 @@ app.add_middleware(
 
 robot = Robokit(ESP32_IP, ESP32_PORT)
 #robot = Robokit(TEST_IP, TEST_PORT)
-robot.connect()
+#robot.connect()
 
 
 class BuzzerRequest(BaseModel):
@@ -339,7 +341,7 @@ def leds(req: LEDRequest):
     red = round((req.red / 100) * 60)  # Dreisatz: 0% = 0, 100% = 60, gerundet
     blue = round((req.blue / 100) * 60)
     green = round((req.green / 100) * 600)
-    robot.leds_setup(leds, red, green, blue)
+    robot.leds_setup(req.leds, red, green, blue)
     robot.led_flush()
     return {"status": "ok", "leds": leds, "red": red, "green": green, "blue": blue}
 
