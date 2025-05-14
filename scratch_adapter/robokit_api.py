@@ -37,7 +37,7 @@ app.add_middleware(
 
 robot = Robokit(ESP32_IP, ESP32_PORT)
 #robot = Robokit(TEST_IP, TEST_PORT)
-#robot.connect()
+robot.connect()
 
 
 class BuzzerRequest(BaseModel):
@@ -46,9 +46,13 @@ class BuzzerRequest(BaseModel):
 
 class LEDRequest(BaseModel):
     ledstring: str  # Liste von LEDs 
-    blue: int; # 0-255
-    green: int; # 0-255
-    red: int; # 0-255
+    blue: int # 0-255
+    green: int# 0-255
+    red: int # 0-255
+    
+class LEDMenuRequest(BaseModel):
+     ledstring: str  # Liste von LEDs 
+     color : str
     
     
     
@@ -357,18 +361,35 @@ def leds(req: LEDRequest):
 
 
 @app.post("/leds_manu")
-def leds(req: LEDRequest):
+def leds(req: LEDMenuRequest):
     #string to int list
     leds = list(map(int, req.ledstring.split(",")))
-    red = round((req.red / 100) * 60)  # Dreisatz: 0% = 0, 100% = 60, gerundet
-    blue = round((req.blue / 100) * 60)
-    green = round((req.green / 100) * 60)
+    
+    # Map color names to RGB values (0-100 scale)
+    color_map = {
+        'Rot':    (100, 0, 0),
+        'Grün':   (0, 100, 0),
+        'Blau':   (0, 0, 100),
+        'Weiß':   (100, 100, 100),
+        'Lila':   (100, 0, 100),
+        'Türkis': (50, 100, 50),
+        'Orange': (100, 50, 0),
+        'Pink':   (100, 0, 50),
+        'hellblau': (100, 50, 50),
+        'Aus':    (0, 0, 0),
+    }
+    color = req.color
+    red, green, blue = color_map.get(color, (0, 0, 0))
+    red = round((red / 100) * 60)  # Dreisatz: 0% = 0, 100% = 60, gerundet
+    blue = round((blue / 100) * 60)
+    green = round((green / 100) * 60)
+    
     print(red, green, blue)
     print(leds)
 
     robot.leds_setup(leds, red, green, blue)
     robot.led_flush()
-    return {"status": "ok", "leds": leds, "red": req.red, "green": req.green, "blue": req.blue}
+    return {"status": "ok", "leds": leds, "red": red, "green": green, "blue": blue}
 
 
 
