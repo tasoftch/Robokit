@@ -42,6 +42,8 @@
 #define ROBOKIT_READ_INTERVAL_US 1000
 #define ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS 500
 
+static portMUX_TYPE lock_10_us = portMUX_INITIALIZER_UNLOCKED;
+
 
 static S_color my_colors[5];
 static volatile S_color my_color_minimums[5] = {0};
@@ -223,6 +225,7 @@ static void fal_read_sensor_cells(uint8_t color, uint16_t *data_field_1, uint16_
 	gpio_set_level(GPIO_GREEN, color & ROBOKIT_FAL_GREEN ? 1 : 0);
 	gpio_set_level(GPIO_BLUE, color & ROBOKIT_FAL_BLUE ? 1 : 0);
 
+	portENTER_CRITICAL(&lock_10_us);
 	esp_rom_delay_us(ROBOKIT_READ_INTERVAL_US);
 
 	*data_field_1 = fal_get_sensor_left();
@@ -230,6 +233,8 @@ static void fal_read_sensor_cells(uint8_t color, uint16_t *data_field_1, uint16_
 	*data_field_3 = fal_get_sensor_middle();
 	*data_field_4 = fal_get_sensor_middle_right();
 	*data_field_5 = fal_get_sensor_right();
+	*data_field_1 = fal_get_sensor_left();
+	portEXIT_CRITICAL(&lock_10_us);
 
 	gpio_set_level(GPIO_RED, 0);
 	gpio_set_level(GPIO_GREEN, 0);
@@ -483,7 +488,7 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 		case 0:
 			status = 1;
 			fal_read_red();
-		// It must pass.
+		break;
 		case 1:
 			status = 2;
 			fal_read_green();
@@ -491,7 +496,11 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 		case 2:
 			status = 3;
 			fal_read_blue();
+		break;
+		case 3:
 			fal_render_result();
+			status = 0;
+		break;
 		// It must pass.
 		default:
 			status = 0;
