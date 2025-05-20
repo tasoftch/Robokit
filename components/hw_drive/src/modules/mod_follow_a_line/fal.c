@@ -32,6 +32,7 @@
 
 #include <modules/robokit_module.h>
 #include <values.h>
+#include "private/median.h"
 
 #define ROBOKIT_FB_LEFT ADC_CHANNEL_0
 #define ROBOKIT_FB_MIDDLE_LEFT ADC_CHANNEL_1
@@ -42,6 +43,11 @@
 #define ROBOKIT_READ_INTERVAL_US 1000
 #define ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS 500
 
+#define ROBOKIT_FAL_USE_MEDIAN 0
+
+#if ROBOKIT_FAL_USE_MEDIAN
+static S_robokit_median_filter_t median_filters[5];
+#endif
 static portMUX_TYPE lock_10_us = portMUX_INITIALIZER_UNLOCKED;
 
 
@@ -233,8 +239,17 @@ static void fal_read_sensor_cells(uint8_t color, uint16_t *data_field_1, uint16_
 	*data_field_3 = fal_get_sensor_middle();
 	*data_field_4 = fal_get_sensor_middle_right();
 	*data_field_5 = fal_get_sensor_right();
-	*data_field_1 = fal_get_sensor_left();
+	*data_field_1 = fal_get_sensor_left();		// Better measurements when repeating first again.
+
 	portEXIT_CRITICAL(&lock_10_us);
+
+#if ROBOKIT_FAL_USE_MEDIAN
+	*data_field_1 = robokit_median_filter_shift(&median_filters[0], *data_field_1);
+	*data_field_2 = robokit_median_filter_shift(&median_filters[1], *data_field_2);
+	*data_field_3 = robokit_median_filter_shift(&median_filters[2], *data_field_3);
+	*data_field_4 = robokit_median_filter_shift(&median_filters[3], *data_field_4);
+	*data_field_5 = robokit_median_filter_shift(&median_filters[4], *data_field_5);
+#endif
 
 	gpio_set_level(GPIO_RED, 0);
 	gpio_set_level(GPIO_GREEN, 0);
