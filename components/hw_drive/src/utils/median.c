@@ -37,3 +37,8 @@ uint16_t robokit_median_filter_get(S_robokit_median_filter_t *filter) {
 	robokit_median_filter_sort_copy(filter->buffer, sorted, filter->count);
 	return sorted[filter->count / 2];
 }
+
+uint16_t robokit_median_filter_shift(S_robokit_median_filter_t *filter, uint16_t value) {
+	robokit_median_filter_add(filter, value);
+	return robokit_median_filter_get(filter);
+}

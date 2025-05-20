@@ -19,5 +19,6 @@ void robokit_median_filter_init(S_robokit_median_filter_t *filter);
 
 void robokit_median_filter_add(S_robokit_median_filter_t *filter, uint16_t value);
 uint16_t robokit_median_filter_get(S_robokit_median_filter_t *filter);
+uint16_t robokit_median_filter_shift(S_robokit_median_filter_t *filter, uint16_t value);
 
 #endif //MEDIAN_H
