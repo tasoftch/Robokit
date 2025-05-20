@@ -26,7 +26,7 @@
 #include "test_unit.h"
 #include "vector.h"
 #include "motor_logic.h"
-#include "private/filter.h"
+#include "private/median.h"
 
 TEST_SUITE("Vectors Test") {
     S_vector vector = robokit_make_vector(0, 100);
@@ -129,86 +129,31 @@ TEST_SUITE("Motor Controller") {
     TAAssertMotorForward(motor_right, 25);
 }
 
-TEST_SUITE("Filter tests") {
-	S_filter filter;
-	filter_angle_init(&filter, 5, 5);
+TEST_SUITE("Median tests") {
+	S_robokit_median_filter_t median_filter = {0};
+	robokit_median_filter_init(&median_filter);
 
-	filter_angle_put_value(&filter, 1);
-	TAAssertEqual(filter_angle_get_value(&filter), 1);
+	TAAssertEqual(0, median_filter.index);
+	TAAssertEqual(0, median_filter.count);
+	TAAssertEqual(0, median_filter.buffer[0]);
 
-	filter_angle_put_value(&filter, 2);
-	TAAssertEqual(filter_angle_get_value(&filter), 2);
+	robokit_median_filter_add(&median_filter, 5);
+	TAAssertEqual(5, robokit_median_filter_get(&median_filter));
 
-	filter_angle_put_value(&filter, 4);
-	TAAssertEqual(filter_angle_get_value(&filter), 4);
+	robokit_median_filter_add(&median_filter, 2);
+	TAAssertEqual(5, robokit_median_filter_get(&median_filter));
 
-	filter_angle_put_value(&filter, 8);
-	TAAssertEqual(filter_angle_get_value(&filter), 8);
+	robokit_median_filter_add(&median_filter, 8);
+	TAAssertEqual(5, robokit_median_filter_get(&median_filter));
 
-	filter_angle_put_value(&filter, 2);
-	TAAssertEqual(filter_angle_get_value(&filter), 8);
+	robokit_median_filter_add(&median_filter, 3);
+	TAAssertEqual(5, robokit_median_filter_get(&median_filter));
 
-	filter_angle_put_value(&filter, 2);
-	TAAssertEqual(filter_angle_get_value(&filter), 8);
+	robokit_median_filter_add(&median_filter, 6);
+	TAAssertEqual(5, robokit_median_filter_get(&median_filter));
 
-	filter_angle_put_value(&filter, 9);
-	TAAssertEqual(filter_angle_get_value(&filter), 9);
-
-	filter_angle_put_value(&filter, 3);
-	TAAssertEqual(filter_angle_get_value(&filter), 9);
-
-	filter_angle_put_value(&filter, 3);
-	TAAssertEqual(filter_angle_get_value(&filter), 9);
-
-	filter_angle_put_value(&filter, 3);
-	TAAssertEqual(filter_angle_get_value(&filter), 9);
-
-	filter_angle_put_value(&filter, 3);
-	TAAssertEqual(filter_angle_get_value(&filter), 9);
-
-	filter_angle_put_value(&filter, 3);
-	TAAssertEqual(filter_angle_get_value(&filter), 3);
-
-	filter_angle_put_value(&filter, -3);
-	TAAssertEqual(filter_angle_get_value(&filter), 3);
-
-	filter_angle_put_value(&filter, -3);
-	TAAssertEqual(filter_angle_get_value(&filter), 3);
-
-	filter_angle_put_value(&filter, -3);
-	TAAssertEqual(filter_angle_get_value(&filter), 3);
-
-	filter_angle_put_value(&filter, -3);
-	TAAssertEqual(filter_angle_get_value(&filter), 3);
-
-	filter_angle_put_value(&filter, -3);
-	TAAssertEqual(filter_angle_get_value(&filter), -3);
-
-	filter_angle_put_reference(&filter);
-
-	filter_angle_put_value(&filter, -3);
-	TAAssertEqual(filter_angle_get_value(&filter), 0);
-
-	filter_angle_put_value(&filter, -1);
-	TAAssertEqual(filter_angle_get_value(&filter), 2);
-
-	filter_angle_put_value(&filter, 1);
-	TAAssertEqual(filter_angle_get_value(&filter), 4);
-
-	filter_angle_put_value(&filter, -5);
-	TAAssertEqual(filter_angle_get_value(&filter), 4);
-
-	filter_angle_put_value(&filter, -5);
-	TAAssertEqual(filter_angle_get_value(&filter), 4);
-
-	filter_angle_put_value(&filter, -5);
-	TAAssertEqual(filter_angle_get_value(&filter), 4);
-
-	filter_angle_put_value(&filter, -5);
-	TAAssertEqual(filter_angle_get_value(&filter), 4);
-
-	filter_angle_put_value(&filter, -5);
-	TAAssertEqual(filter_angle_get_value(&filter), -2);
+	robokit_median_filter_add(&median_filter, 20);
+	TAAssertEqual(6, robokit_median_filter_get(&median_filter));
 }
 
 int main() {
