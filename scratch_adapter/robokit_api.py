@@ -102,6 +102,10 @@ class DrivecircleRequest_notime(BaseModel):
     
 class distanceRequest(BaseModel):
     distance: int
+    
+class MeldoyRequest(BaseModel):
+    melody: str
+
 
 @app.post("/buzzer")
 def buzzer(req: BuzzerRequest):
@@ -398,17 +402,80 @@ def ledclear(req: ledclearRequest):
     robot.led_clear()
     return {"status": "ok"} 
 
+@app.post("/melody")
+def ledclear(req: MeldoyRequest):
+    notes = [
+        (0,0)
+    ]
+    
+    if req.melody == 'Alle meine Entschen':
+        notes = [
+            (280, 0.4), (312, 0.4), (348, 0.4), (367, 0.4), (410, 0.4), (410, 0.4), (410, 0.8),
+            (458, 0.4), (458, 0.4), (458, 0.8),
+            (410, 0.4), (410, 0.4), (410, 0.8),
+            (348, 0.4), (348, 0.4), (348, 0.8),
+            (280, 0.4), (312, 0.4), (348, 0.4), (367, 0.4), (410, 0.4), (410, 0.4), (410, 0.8),
+            (458, 0.4), (458, 0.4), (458, 0.8),
+            (410, 0.4), (348, 0.4), (280, 0.8)
+        ]
+
+    elif req.melody == 'Happy Birthday':
+        # Happy Birthday Melodie (angepasste Frequenzen, tiefste ca. 280 Hz)
+        notes = [
+            (348, 0.3), (348, 0.3), (392, 0.5), (348, 0.5), (466, 0.5), (440, 1.0),
+            (348, 0.3), (348, 0.3), (392, 0.5), (348, 0.5), (523, 0.5), (466, 1.0),
+            (348, 0.3), (348, 0.3), (698, 0.5), (587, 0.5), (466, 0.5), (440, 0.5), (392, 0.5),
+            (587, 0.3), (587, 0.3), (523, 0.5), (466, 0.5), (523, 0.5), (466, 1.0)
+        ]
+    for freq, dur in notes:
+        intfreq = int(freq)
+        robot.buzzer(intfreq)
+        time.sleep(dur)
+        robot.buzzer(0)
+        time.sleep(0.05)
+    return {"status": "ok", "Melody": req.melody} 
+
+
 
 
 @app.post("/approximate")
 def approximate(req: distanceRequest,):
-  
-  robot.approximate(req.distance)
-  
-  return {"status": "ok", "distance": req.distance}
+    status = "NOT MOVING"
+    if robot.status_drive_vector()["speed"] > 0:
+        status = "ok"
+        robot.approximate(req.distance)
+        
+    return {"status": status , "distance": req.distance}
+
+
+@app.get("/distance")
+def get_distance():
+    distance = robot.status_distance()
+    return {"status": "ok", "distance": distance}
+
+@app.get("/battery")
+def get_battery():
+    battery = robot.status_battery()
+    return {"status": "ok", "battery": battery}
+
+@app.get("/drive_angle")
+def get_drive_vector():
+    drive_vector = robot.status_drive_vector()
+    return {"status": "ok", "angle": drive_vector["angle"]}
+
+@app.get("/drive_speed")
+def get_speed():
+    drive_vector = robot.status_drive_vector()
+    return {"status": "ok", "speed": drive_vector["speed"]} 
+
+@app.get("/drive_vector")
+def get_drive_vector():
+    drive_vector = robot.status_drive_vector()
+    return {"status": "ok", "drive_vector": drive_vector}
 
 
 
+    
 
 
 
