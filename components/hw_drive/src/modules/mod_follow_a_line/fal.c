@@ -43,10 +43,10 @@
 #define ROBOKIT_READ_INTERVAL_US 1000
 #define ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS 500
 
-#define ROBOKIT_FAL_USE_MEDIAN 0
+#define ROBOKIT_FAL_USE_MEDIAN 1
 
 #if ROBOKIT_FAL_USE_MEDIAN
-static S_robokit_median_filter_t median_filters[5];
+static S_robokit_median_filter_t median_filters[15] = {0};
 #endif
 static portMUX_TYPE lock_10_us = portMUX_INITIALIZER_UNLOCKED;
 
@@ -240,21 +240,18 @@ static void fal_read_sensor_cells(uint8_t color, uint16_t *data_field_1, uint16_
 	*data_field_4 = fal_get_sensor_middle_right();
 	*data_field_5 = fal_get_sensor_right();
 	*data_field_1 = fal_get_sensor_left();		// Better measurements when repeating first again.
-
 	portEXIT_CRITICAL(&lock_10_us);
-
-#if ROBOKIT_FAL_USE_MEDIAN
-	*data_field_1 = robokit_median_filter_shift(&median_filters[0], *data_field_1);
-	*data_field_2 = robokit_median_filter_shift(&median_filters[1], *data_field_2);
-	*data_field_3 = robokit_median_filter_shift(&median_filters[2], *data_field_3);
-	*data_field_4 = robokit_median_filter_shift(&median_filters[3], *data_field_4);
-	*data_field_5 = robokit_median_filter_shift(&median_filters[4], *data_field_5);
-#endif
 
 	gpio_set_level(GPIO_RED, 0);
 	gpio_set_level(GPIO_GREEN, 0);
 	gpio_set_level(GPIO_BLUE, 0);
 }
+
+#if ROBOKIT_FAL_USE_MEDIAN
+static void fal_filter_results_with_median(S_robokit_median_filter_t *filter, uint16_t *median) {
+	*median = robokit_median_filter_shift(filter, *median);
+}
+#endif
 
 /**
  * @brief Capture values of all sensor cells for Red color
@@ -267,6 +264,13 @@ static void fal_read_red(void) {
 		&my_colors[3].red,
 		&my_colors[4].red
 	);
+#if ROBOKIT_FAL_USE_MEDIAN
+	fal_filter_results_with_median(&median_filters[0], &my_colors[0].red);
+	fal_filter_results_with_median(&median_filters[1], &my_colors[1].red);
+	fal_filter_results_with_median(&median_filters[2], &my_colors[2].red);
+	fal_filter_results_with_median(&median_filters[3], &my_colors[3].red);
+	fal_filter_results_with_median(&median_filters[4], &my_colors[4].red);
+#endif
 }
 
 /**
@@ -280,6 +284,13 @@ static void fal_read_green(void) {
 		&my_colors[3].green,
 		&my_colors[4].green
 	);
+#if ROBOKIT_FAL_USE_MEDIAN
+	fal_filter_results_with_median(&median_filters[5], &my_colors[0].green);
+	fal_filter_results_with_median(&median_filters[6], &my_colors[1].green);
+	fal_filter_results_with_median(&median_filters[7], &my_colors[2].green);
+	fal_filter_results_with_median(&median_filters[8], &my_colors[3].green);
+	fal_filter_results_with_median(&median_filters[9], &my_colors[4].green);
+#endif
 }
 
 /**
@@ -293,6 +304,13 @@ static void fal_read_blue(void) {
 		&my_colors[3].blue,
 		&my_colors[4].blue
 	);
+#if ROBOKIT_FAL_USE_MEDIAN
+	fal_filter_results_with_median(&median_filters[10], &my_colors[0].blue);
+	fal_filter_results_with_median(&median_filters[11], &my_colors[1].blue);
+	fal_filter_results_with_median(&median_filters[12], &my_colors[2].blue);
+	fal_filter_results_with_median(&median_filters[13], &my_colors[3].blue);
+	fal_filter_results_with_median(&median_filters[14], &my_colors[4].blue);
+#endif
 }
 
 #if ROBOKIT_DEBUG
