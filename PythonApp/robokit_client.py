@@ -28,11 +28,11 @@ def print_help():
     print("buz <freq>  | Launches the buzzer with given frequency. ")
     print("            | All < 250Hz will disable.")
     print("            | ")
-    print("            | CONDITIONAL COMMANDS")
-    print("falcal      | Starts calibration. The device must pass the calibration sheet.")
-    print("falok       | Reads the calibration status. Returns 1 when calibration succeeded.")
-    print("            | 0 in case of a failure and -1 if no calibration is running.")
-    print("fal <speed> | Start driving straight on. If a line is detected, it will follow.")
+    print("            | FOLLOW A LINE COMMANDS")
+    print("falc <speed>| Starts calibration. The device must pass the calibration sheet.")
+    print("fal <speed> | Start driving straight on for 5s. If a line is detected, it will follow.")
+    print("falr        | Reads current background. Only available after calibration.")
+    print("            | All five sensors read one bit colors: RGB (0b000)")
 
     print("            | ")
     print("            | CONDITIONAL COMMANDS")
@@ -117,11 +117,15 @@ def perform_command(cmd, args):
         elif cmd == 'abs':
             d = Robokit.status_distance()
             print(d)
-        elif cmd == 'falcal':
-            Robokit.fal_calibrate()
+        elif cmd == 'falc':
+            num = int(args[0])
+            Robokit.fal_calibrate(num, 5000)
         elif cmd == 'fal':
             num = int(args[0])
-            Robokit.fal_start(num)
+            Robokit.fal_drive(num, 5000)
+        elif cmd == 'falr':
+            result = Robokit.fal_read_current_result()
+            print(result)
         elif cmd == 'falshot':
             c = Robokit.fal_one_shot()
             print_formatted_fal_colors(c)

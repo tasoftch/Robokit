@@ -88,11 +88,41 @@ class Robokit(object):
         }
 
 # Follow A Line
-    def fal_calibrate(self):
-        self.__send_raw(bytes([4, 0x1, 0, 0, 0, 0, 0, 0]))
+    def fal_calibrate(self, speed, timeout):
+        if not ( 20 <= speed <= 80):
+            print(f"Illegal speed {speed}. Must be between 20 and 80.")
+            return
+        if not ( 80 <= timeout <= 10000):
+            print(f"Illegal timeout {timeout}. Must be between 80 and 10000.")
+            return
+        self.__send_raw(bytes([4, 0x1, speed, int(timeout/40), 0, 0, 0, 0]))
 
-    def fal_start(self, speed):
-        self.__send_raw(bytes([4, 0x2, speed % 101, 0, 0, 0, 0, 0]))
+
+    def fal_drive(self, speed, timeout):
+        if not ( 20 <= speed <= 80):
+            print(f"Illegal speed {speed}. Must be between 20 and 80.")
+            return
+        if not ( 80 <= timeout <= 10000):
+            print(f"Illegal timeout {timeout}. Must be between 80 and 10000.")
+            return
+        self.__send_raw(bytes([4, 0x2, speed, int(timeout / 40), 0, 0, 0, 0]))
+
+    def fal_read_current_result(self):
+        data = self.__send_raw(bytes([0xF7, 0, 0, 0, 0, 0, 0, 0]))
+        print(data)
+        value, = struct.unpack('<H', data[:2])
+        is_valid = bool(value & (1 << 15))
+
+        if is_valid:
+            return {
+                'left':          (value >> 0) & 0b111,
+                'mleft':   (value >> 3) & 0b111,
+                'middle':        (value >> 6) & 0b111,
+                'mright':  (value >> 9) & 0b111,
+                'right':         (value >> 12) & 0b111,
+            }
+        else:
+            return False
 
     def fal_one_shot(self):
         self.__send_raw(bytes([4, 0x3, 0, 0, 0, 0, 0, 0]))
