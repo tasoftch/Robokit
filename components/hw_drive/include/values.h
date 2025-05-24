@@ -92,6 +92,15 @@ typedef struct {
 } S_color;
 
 uint8_t robokit_fal_get_calibration_status(void);
+/**
+ * @brief Checks if the calibration process is completed.
+ *
+ * This function returns the current calibration status of the system,
+ * indicating whether the calibration has been successfully finished or not.
+ *
+ * @return uint8_t Non-zero if calibrated, zero if not calibrated.
+ */
+uint8_t robokit_fal_is_calibrated(void);
 
 uint8_t robokit_fal_is_running(void);
 
