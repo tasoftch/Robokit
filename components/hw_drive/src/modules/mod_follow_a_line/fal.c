@@ -450,8 +450,8 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode,
 // Helper macro to assign color values to the FAL_Result
 #define _ROBOKIT_FAL_WRITE_CELL_RESULT(CELL, COLOR_ID) \
 CELL |= my_colors[COLOR_ID].red > my_color_minimums[COLOR_ID].red ? ROBOKIT_FAL_RED : 0;\
-CELL |= my_colors[COLOR_ID].green > my_color_minimums[COLOR_ID].green ? ROBOKIT_FAL_RED : 0;\
-CELL |= my_colors[COLOR_ID].blue > my_color_minimums[COLOR_ID].blue ? ROBOKIT_FAL_RED : 0
+CELL |= my_colors[COLOR_ID].green > my_color_minimums[COLOR_ID].green ? ROBOKIT_FAL_GREEN : 0;\
+CELL |= my_colors[COLOR_ID].blue > my_color_minimums[COLOR_ID].blue ? ROBOKIT_FAL_BLUE : 0
 
 /**
  * @brief Helper function to assign color values to a FAL result.

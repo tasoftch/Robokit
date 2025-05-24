@@ -58,6 +58,12 @@ def print_formatted_fal_colors(color_set):
     print(f"MRIGHT | %04d | %04d | %04d |" % (color_set["mright"]["red"], color_set["mright"]["green"], color_set["mright"]["blue"]))
     print(f"RIGHT  | %04d | %04d | %04d |" % (color_set["right"]["red"], color_set["right"]["green"], color_set["right"]["blue"]))
 
+def print_formatted_fal_result(result):
+    mapping = ['SW', 'BL', 'GR', 'CY', 'RD', 'MA', 'YE', 'WE']
+    if(result):
+        print(f"FAL: {mapping[ result['left'] ]} {mapping[ result['mleft'] ]} {mapping[ result['middle'] ]} {mapping[ result['mright'] ]} {mapping[ result['right'] ]}")
+    else:
+        print(result)
 
 def perform_command(cmd, args):
     global old_speed, Robokit
@@ -127,7 +133,7 @@ def perform_command(cmd, args):
             Robokit.fal_enable()
         elif cmd == 'falr':
             result = Robokit.fal_read_current_result()
-            print(result)
+            print_formatted_fal_result(result)
         elif cmd == 'falshot':
             c = Robokit.fal_read_colors()
             print_formatted_fal_colors(c)

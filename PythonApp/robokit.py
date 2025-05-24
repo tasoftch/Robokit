@@ -117,11 +117,11 @@ class Robokit(object):
 
         if is_valid:
             return {
-                'left':          (value >> 0) & 0b111,
-                'mleft':   (value >> 3) & 0b111,
+                'right':          (value >> 0) & 0b111,
+                'mright':   (value >> 3) & 0b111,
                 'middle':        (value >> 6) & 0b111,
-                'mright':  (value >> 9) & 0b111,
-                'right':         (value >> 12) & 0b111,
+                'mleft':  (value >> 9) & 0b111,
+                'left':         (value >> 12) & 0b111,
             }
         else:
             return False
