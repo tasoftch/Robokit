@@ -120,14 +120,16 @@ def perform_command(cmd, args):
         elif cmd == 'falc':
             num = int(args[0])
             Robokit.fal_calibrate(num, 5000)
-        elif cmd == 'fal':
+        elif cmd == 'fald':
             num = int(args[0])
             Robokit.fal_drive(num, 5000)
+        elif cmd == 'fal':
+            Robokit.fal_enable()
         elif cmd == 'falr':
             result = Robokit.fal_read_current_result()
             print(result)
         elif cmd == 'falshot':
-            c = Robokit.fal_one_shot()
+            c = Robokit.fal_read_colors()
             print_formatted_fal_colors(c)
         else:
             print("Unknown command: "+cmd)

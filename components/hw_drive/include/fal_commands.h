@@ -96,7 +96,12 @@ uint8_t robokit_make_command_fal_calibrate(S_command *cmd, T_Speed speed, uint16
  * @param timeout A timeout in ms. Please note that the accuracy of timeout is only 40ms. Max 10s!
  * @return Returns 1 if the command was successfully configured, 0 if the input pointer was null.
  */
-uint8_t robokit_make_command_fal_enable(S_command *cmd, T_Speed speed, uint16_t timeout);
+uint8_t robokit_make_command_fal_drive(S_command *cmd, T_Speed speed, uint16_t timeout);
+
+/**
+* Just enables the follow a line sensor to obtain background color information.
+*/
+uint8_t robokit_make_command_fal_enable(S_command *cmd);
 
 /**
  * @brief Constructs a stop immediately command disabling the follow a line (FAL) sensor.

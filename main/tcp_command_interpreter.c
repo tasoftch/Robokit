@@ -113,14 +113,7 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 			buffer[0] = cal & 0xff;
 			return 1;
 			case E_STATUS_READ_FAL_COLORS:
-				if(robokit_fal_is_running()) {
-					buffer[0] = 0x1;
-					return 1;
-				}
-
-			if(robokit_fal_is_one_shot_complete()) {
 				buffer[0] = 0x2;
-			}
 				S_color col = robokit_fal_get_color_left();
 				_ROBOKIT_MAP_COLOR_TO_BUFFER(1, col);
 
@@ -142,7 +135,6 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 				if(robokit_fal_is_running()) {
 					buffer[1] |= 0x80;
 				}
-				printf("FAL: %02X %02X\n", buffer[0], buffer[1]);
 				return 2;
 			default:
 		}

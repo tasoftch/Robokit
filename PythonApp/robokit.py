@@ -99,17 +99,19 @@ class Robokit(object):
 
 
     def fal_drive(self, speed, timeout):
-        if not ( 20 <= speed <= 80):
+        if not ( 0 <= speed <= 80):
             print(f"Illegal speed {speed}. Must be between 20 and 80.")
             return
         if not ( 80 <= timeout <= 10000):
             print(f"Illegal timeout {timeout}. Must be between 80 and 10000.")
             return
-        self.__send_raw(bytes([4, 0x2, speed, int(timeout / 40), 0, 0, 0, 0]))
+        self.__send_raw(bytes([4, 0x3, speed, int(timeout / 40), 0, 0, 0, 0]))
+
+    def fal_enable(self):
+        self.__send_raw(bytes([4, 0x2, 0,0, 0, 0, 0, 0]))
 
     def fal_read_current_result(self):
         data = self.__send_raw(bytes([0xF7, 0, 0, 0, 0, 0, 0, 0]))
-        print(data)
         value, = struct.unpack('<H', data[:2])
         is_valid = bool(value & (1 << 15))
 
@@ -124,40 +126,37 @@ class Robokit(object):
         else:
             return False
 
-    def fal_one_shot(self):
-        self.__send_raw(bytes([4, 0x3, 0, 0, 0, 0, 0, 0]))
+    def fal_read_colors(self):
+        info = self.__send_raw(bytes([0xF6, 0, 0, 0, 0, 0, 0, 0]))
 
-        for e in range(4):
-            time.sleep(0.1)
-            info = self.__send_raw(bytes([0xF6, 0, 0, 0, 0, 0, 0, 0]))
-            if info[0] == 0x02:
-                return {
-                    "left": {
-                        "red":   info[1] << 8 | info[2],
-                        "green": info[3] << 8 | info[4],
-                        "blue":  info[5] << 8 | info[6],
-                    },
-                    "mleft": {
-                        "red":   info[7] << 8 | info[8],
-                        "green": info[9] << 8 | info[10],
-                        "blue":  info[11] << 8 | info[12],
-                    },
-                    "middle": {
-                        "red":   info[13] << 8 | info[14],
-                        "green": info[15] << 8 | info[16],
-                        "blue":  info[17] << 8 | info[18],
-                    },
-                    "mright": {
-                        "red":   info[19] << 8 | info[20],
-                        "green": info[21] << 8 | info[22],
-                        "blue":  info[23] << 8 | info[24],
-                    },
-                    "right": {
-                        "red":   info[25] << 8 | info[26],
-                        "green": info[27] << 8 | info[28],
-                        "blue":  info[29] << 8 | info[30],
-                    },
-                }
+        if info[0] & 2:
+            return {
+                "left": {
+                    "red":   info[1] << 8 | info[2],
+                    "green": info[3] << 8 | info[4],
+                    "blue":  info[5] << 8 | info[6],
+                },
+                "mleft": {
+                    "red":   info[7] << 8 | info[8],
+                    "green": info[9] << 8 | info[10],
+                    "blue":  info[11] << 8 | info[12],
+                },
+                "middle": {
+                    "red":   info[13] << 8 | info[14],
+                    "green": info[15] << 8 | info[16],
+                    "blue":  info[17] << 8 | info[18],
+                },
+                "mright": {
+                    "red":   info[19] << 8 | info[20],
+                    "green": info[21] << 8 | info[22],
+                    "blue":  info[23] << 8 | info[24],
+                },
+                "right": {
+                    "red":   info[25] << 8 | info[26],
+                    "green": info[27] << 8 | info[28],
+                    "blue":  info[29] << 8 | info[30],
+                },
+            }
         return False
 
 # LEDS

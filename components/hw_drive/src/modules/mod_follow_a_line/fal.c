@@ -430,10 +430,12 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode,
 			is_running = 1;
 			calibration_status = E_CALIBRATION_STATUS_CALIBRATING;
 			my_fal_callback_calibration = cmd->callback;
-		} else if(cmd->flags == E_FAL_OPTION_ENABLE) {
+		} else if(cmd->flags == E_FAL_OPTION_ENABLE_DRIVE) {
 			is_running = 1;
 			specified_drive_speed = cmd->speed;
 			my_drive_timeout_counter = drive_counter = cmd->timeout;
+		} else if(cmd->flags == E_FAL_OPTION_ENABLE) {
+			is_running = 2;
 		} else if(cmd->flags == E_FAL_OPTION_DISABLE) {
 			is_running = 0;
 			make_drive_command = 2;
@@ -457,7 +459,7 @@ CELL |= my_colors[COLOR_ID].blue > my_color_minimums[COLOR_ID].blue ? ROBOKIT_FA
  * This function also calls the result interpreter if available to transform
  * the follow a line sensor results into Robokit commands.
  */
-static void _fal_calculate_result(void) {
+static void _fal_calculate_result(uint8_t perform_handler) {
 	if(!my_fal_line_interpreter)
 		return;
 
@@ -469,7 +471,11 @@ static void _fal_calculate_result(void) {
 	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_4_middle_right, 3);
 	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_5_right,	4);
 
-	robokit_fal_interpreter_result_t result = my_fal_line_interpreter(&my_fal_result, specified_drive_speed);
+	robokit_fal_interpreter_result_t result = 1;
+
+	if(perform_handler) {
+		result = my_fal_line_interpreter(&my_fal_result, specified_drive_speed);
+	}
 
 	if(!result) {
 		if(--my_drive_timeout_counter < 1) {
@@ -491,10 +497,16 @@ static void fal_render_result(void) {
 		is_one_shot = 2;
 		if(my_fal_callback_one_shot)
 			my_fal_callback_one_shot();
+		_fal_calculate_result(0);
 	} else if(calibration_status == E_CALIBRATION_STATUS_CALIBRATING) {
 		_fal_calibration_init();
 	} else {
-		_fal_calculate_result();
+		if(is_running == 2) {
+			// Only enabled, not to drive
+			_fal_calculate_result(0);
+		} else {
+			_fal_calculate_result(1);
+		}
 	}
 }
 
