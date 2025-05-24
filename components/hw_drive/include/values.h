@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "vector.h"
+#include "fal_commands.h"
 
 
 #define ROBOKIT_DIRECTION_FORWARD (1)
@@ -100,5 +101,7 @@ S_color robokit_fal_get_color_middle_left(void);
 S_color robokit_fal_get_color_middle(void);
 S_color robokit_fal_get_color_middle_right(void);
 S_color robokit_fal_get_color_right(void);
+
+S_Fal_Result robokit_fal_get_last_result(void);
 
 #endif /* values_h */

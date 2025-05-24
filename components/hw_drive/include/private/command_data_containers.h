@@ -60,7 +60,7 @@ typedef struct {
 	T_cmd cmd;
 	uint8_t flags;
 	T_Speed speed;
-	uint8_t reserved3;
+	uint8_t timeout; // Timeout in 10ms steps: 0 - 2.55 seconds (used for calibration)
 	void *callback;
 } _S_Command_Fal;
 

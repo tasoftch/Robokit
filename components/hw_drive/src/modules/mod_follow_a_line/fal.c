@@ -41,7 +41,6 @@
 #define ROBOKIT_FB_RIGHT ADC_CHANNEL_4
 
 #define ROBOKIT_READ_INTERVAL_US 1000
-#define ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS 500
 
 #define ROBOKIT_FAL_USE_MEDIAN 1
 
@@ -57,7 +56,9 @@ static volatile S_color my_color_maximums[5] = {0};
 
 static void (*my_fal_callback_calibration)(uint8_t);
 static void (*my_fal_callback_one_shot)(void);
-static void (*my_fal_line_interpreter)(S_Fal_Result *) = fal_default_line_result_interpreter;
+static robokit_fal_interpreter_result_t (*my_fal_line_interpreter)(S_Fal_Result *, T_Speed) = fal_default_line_result_interpreter;
+
+static S_Fal_Result my_global_fal_result;
 
 // Marks the FAL system as running.
 // The sensor loop will be active and reads the cells.
@@ -78,7 +79,8 @@ static uint8_t calibration_status = E_CALIBRATION_STATUS_UNCALIBRATED;
 // The command handler must only set configurations, it is not allowed to
 // push commands into the system.
 static uint8_t make_drive_command=0;
-
+static T_Speed specified_drive_speed=0;
+static uint8_t my_drive_timeout_counter = 0;
 // Calibration counter for 500ms.
 static uint16_t drive_counter=0;
 
@@ -110,11 +112,21 @@ S_color robokit_fal_get_color_middle_left(void) { return my_colors[1]; }
 S_color robokit_fal_get_color_middle(void) { return my_colors[2]; }
 S_color robokit_fal_get_color_middle_right(void) { return my_colors[3]; }
 S_color robokit_fal_get_color_right(void) { return my_colors[4]; }
+S_Fal_Result robokit_fal_get_last_result(void) {
+	ROBOKIT_LOGI("FAL [1..5] %c %c %c %c %c",
+			fal_name_of_color( my_global_fal_result.fb_1_left ) ,
+			fal_name_of_color( my_global_fal_result.fb_2_middle_left ) ,
+			fal_name_of_color( my_global_fal_result.fb_3_middle ) ,
+			fal_name_of_color( my_global_fal_result.fb_4_middle_right ) ,
+			fal_name_of_color( my_global_fal_result.fb_5_right )
+			);
+	return my_global_fal_result;
+}
 
 /**
  * @inheritDoc
  */
-void fal_set_line_result_interpreter(void (*interpreter) (S_Fal_Result *)) {
+void fal_set_line_result_interpreter(uint8_t (*interpreter) (S_Fal_Result *, T_Speed)) {
 	my_fal_line_interpreter = interpreter;
 }
 
@@ -336,6 +348,10 @@ static void print_fal(S_color *the_colors) {
  * It does also call the callback to the software with success flag.
  */
 static void _fal_calibration_done(void) {
+#if ROBOKIT_DEBUG
+	print_fal(my_color_minimums);
+	print_fal(my_color_maximums);
+#endif
 	for(int e=0;e<5;e++) {
 		my_color_minimums[e].red = (my_color_minimums[e].red + my_color_maximums[e].red) / 2;
 		my_color_minimums[e].green = (my_color_minimums[e].green + my_color_maximums[e].green) / 2;
@@ -408,19 +424,19 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode,
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
 		if(cmd->flags == E_FAL_OPTION_CALIBRATE) {
 			_fal_reset_calibration();
+			specified_drive_speed = cmd->speed;
 			make_drive_command = 1;
-			drive_counter = ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS;
+			drive_counter = cmd->timeout;
 			is_running = 1;
 			calibration_status = E_CALIBRATION_STATUS_CALIBRATING;
 			my_fal_callback_calibration = cmd->callback;
 		} else if(cmd->flags == E_FAL_OPTION_ENABLE) {
 			is_running = 1;
+			specified_drive_speed = cmd->speed;
+			my_drive_timeout_counter = drive_counter = cmd->timeout;
 		} else if(cmd->flags == E_FAL_OPTION_DISABLE) {
 			is_running = 0;
-
-			S_command dcmd;
-			robokit_make_drive_command_fwd(&dcmd, 0);
-			robokit_push_command(&dcmd, 0);
+			make_drive_command = 2;
 		} else if(cmd->flags == E_FAL_OPTION_SHOT) {
 			my_fal_callback_one_shot = cmd->callback;
 			is_running = 1;
@@ -453,7 +469,17 @@ static void _fal_calculate_result(void) {
 	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_4_middle_right, 3);
 	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_5_right,	4);
 
-	my_fal_line_interpreter(&my_fal_result);
+	robokit_fal_interpreter_result_t result = my_fal_line_interpreter(&my_fal_result, specified_drive_speed);
+
+	if(!result) {
+		if(--my_drive_timeout_counter < 1) {
+			make_drive_command = 2;
+			is_running = 0;
+		}
+	} else {
+		my_global_fal_result = my_fal_result;
+		my_drive_timeout_counter = drive_counter;
+	}
 }
 
 /**
@@ -486,9 +512,9 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 	// The command handler must not push commands itself.
 	// It is only allowed to make configurations.
 	if(make_drive_command == 1) {
-		make_drive_command = 0;
 		S_command cmd;
-		robokit_make_drive_command_fwd(&cmd, 30);
+		robokit_make_drive_command_fwd(&cmd, specified_drive_speed);
+		make_drive_command = 0;
 		robokit_push_command(&cmd, 0);
 	}
 

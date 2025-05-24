@@ -31,7 +31,7 @@ ROBOKIT_CHECK_COMMAND_STRUCT(_S_Command_Fal);
 /**
  * @inheritDoc
  */
-uint8_t robokit_make_command_fal_enable(S_command *cmd, T_Speed speed) {
+uint8_t robokit_make_command_fal_enable(S_command *cmd, T_Speed speed, uint16_t timeout) {
 	if(!cmd)
 		return 0;
 
@@ -40,6 +40,7 @@ uint8_t robokit_make_command_fal_enable(S_command *cmd, T_Speed speed) {
 	fal_cmd->cmd = E_COMMAND_FAL;
 	fal_cmd->flags = E_FAL_OPTION_ENABLE;
 	fal_cmd->speed = speed;
+	fal_cmd->timeout = timeout / 40;
 
 	return 1;
 }
@@ -62,7 +63,7 @@ uint8_t robokit_make_command_fal_disable(S_command *cmd) {
 /**
  * @inheritDoc
  */
-uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(uint8_t)) {
+uint8_t robokit_make_command_fal_calibrate(S_command *cmd, T_Speed speed, uint16_t timeout, void (*calibrated)(uint8_t)) {
 	if(!cmd)
 		return 0;
 
@@ -71,7 +72,10 @@ uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(ui
 	fal_cmd->cmd = E_COMMAND_FAL;
 	fal_cmd->flags = E_FAL_OPTION_CALIBRATE;
 	fal_cmd->callback = calibrated;
-
+	fal_cmd->speed = speed;
+	if(timeout > 10000)
+		timeout = 10000;
+	fal_cmd->timeout = timeout / 40;
 	return 1;
 }
 

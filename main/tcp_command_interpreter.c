@@ -19,6 +19,7 @@ enum {
 	E_STATUS_READ_IMU						= 0xF4,
 	E_STATUS_READ_BATTERY_VOLTAGE			= 0xF5,
 	E_STATUS_READ_FAL_COLORS				= 0xF6,
+	E_STATUS_READ_FAL_COLOR_REPS			= 0xF7,
 };
 
 #define _ROBOKIT_MAP_COLOR_TO_BUFFER(POS, COLOR) \
@@ -43,6 +44,8 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 				robokit_make_drive_command_fwd(&command, 0);
 				robokit_push_command(&command, 0);
 				robokit_make_command_imu_disable(&command);
+				robokit_push_command(&command, 0);
+				robokit_make_command_fal_disable(&command);
 				robokit_push_command(&command, 0);
 			} else {
 				robokit_make_drive_command_vector(&command, vec);
@@ -133,6 +136,14 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 			col = robokit_fal_get_color_right();
 			_ROBOKIT_MAP_COLOR_TO_BUFFER(25, col);
 			return 31;
+			case E_STATUS_READ_FAL_COLOR_REPS:
+				S_Fal_Result result = robokit_fal_get_last_result();
+				memcpy(buffer, &result, 2);
+				if(robokit_fal_is_running()) {
+					buffer[1] |= 0x80;
+				}
+				printf("FAL: %02X %02X\n", buffer[0], buffer[1]);
+				return 2;
 			default:
 		}
 	}
