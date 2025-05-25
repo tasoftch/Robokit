@@ -7,7 +7,7 @@ ESP32_PORT = 8080
 Robokit = RK.Robokit(ESP32_IP, ESP32_PORT)
 Robokit.connect()
 
-if Robokit.fal_calibration_status() != 2:
+if Robokit.fal_calibration_status()[0] != 2:
     Robokit.fal_calibrate(20, 5000)
     time.sleep(2)
     Robokit.drive_backwards(30)
