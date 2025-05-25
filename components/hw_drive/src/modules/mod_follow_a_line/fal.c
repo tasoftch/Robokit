@@ -428,6 +428,7 @@ static void _fal_calibration_init(void) {
 		if(my_color_maximums[3].red - my_colors[3].red < 50) {
 			_fal_calibration_done();
 			status = 0;
+			return;
 		}
 	}
 
