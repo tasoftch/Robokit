@@ -10,8 +10,14 @@
 #include <string.h>
 #include <private/robokit_log.h>
 #include <values.h>
+#include <private/parameters.h>
+
+extern uint32_t _robokit_internal_get_parameter(robokit_parameter_name_t name);
+extern void _robokit_internal_set_parameter(robokit_parameter_name_t name, robokit_parameter_type_t type, uint32_t value);
 
 enum {
+	E_STATUS_READ_PARAMETER					= 0xA0,
+	E_STATUS_WRITE_PARAMETER				= 0xB0,
 	E_STATUS_READ_DRIVE_VECTOR				= 0xF0,
 	E_STATUS_READ_DISTANCE					= 0xF1,
 	E_STATUS_READ_FAL_CALIBRATION			= 0xF2,
@@ -62,8 +68,28 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 		}
 		return 0;
 	} else {
-		ROBOKIT_LOGI("Status command %02X", cmd);
 		switch (cmd) {
+			case E_STATUS_READ_PARAMETER:
+				uint8_t param_name = buffer[1];
+				if(param_name < ROBOKIT_MAX_PARAMETERS_COUNT) {
+					buffer[0] = 0x1;
+					buffer[1] = robokit_parameter_type(param_name);
+					uint32_t param_value = _robokit_internal_get_parameter(param_name);
+					memcpy(buffer + 2, &param_value, sizeof(uint32_t));
+					return sizeof(uint32_t) + 2;
+				}
+				buffer[0] = 0x0;
+				return 1;
+			case E_STATUS_WRITE_PARAMETER:
+				param_name = buffer[1];
+				buffer[0] = 0x0;
+				if(param_name < ROBOKIT_MAX_PARAMETERS_COUNT) {
+					uint32_t param_value = 0;
+					memcpy(&param_value, buffer + 3, sizeof(uint32_t));
+					_robokit_internal_set_parameter(param_name, buffer[2], param_value);
+					buffer[0] = 0x1;
+				}
+			return 1;
 			case E_STATUS_MOTOR_CONFIG:
 				uint32_t info = 0x257;
 
