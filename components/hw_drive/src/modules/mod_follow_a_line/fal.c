@@ -33,6 +33,7 @@
 #include <modules/robokit_module.h>
 #include <values.h>
 #include "private/median.h"
+#include "private/parameters.h"
 
 #define ROBOKIT_FB_LEFT ADC_CHANNEL_0
 #define ROBOKIT_FB_MIDDLE_LEFT ADC_CHANNEL_1
@@ -43,8 +44,6 @@
 #define ROBOKIT_READ_INTERVAL_US 1000
 
 #define ROBOKIT_FAL_USE_MEDIAN 1
-
-#define ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR 40 / 100
 
 #if ROBOKIT_FAL_USE_MEDIAN
 static S_robokit_median_filter_t median_filters[15] = {0};
@@ -253,6 +252,11 @@ ROBOKIT_MODULE_INIT() {
 	adc1_config_channel_atten(ROBOKIT_FB_MIDDLE, ADC_ATTEN_DB_0);
 	adc1_config_channel_atten(ROBOKIT_FB_MIDDLE_RIGHT, ADC_ATTEN_DB_0);
 	adc1_config_channel_atten(ROBOKIT_FB_RIGHT, ADC_ATTEN_DB_0);
+
+	robokit_parameter_set_uint8(E_ROBOKIT_PARAM_FAL_THRESHOLD, 50);
+	robokit_parameter_set_int16(2, 0x1234);
+	robokit_parameter_set_int32(3, -9000);
+	robokit_parameter_set_uint32(4, 700000);
 }
 
 
@@ -377,14 +381,16 @@ static void print_fal(S_color *the_colors) {
  * It does also call the callback to the software with success flag.
  */
 static void _fal_calibration_done(void) {
+	uint8_t percents = robokit_parameter_get_uint8(E_ROBOKIT_PARAM_FAL_THRESHOLD);
+
 #if ROBOKIT_DEBUG
 	print_fal(my_color_minimums);
 	print_fal(my_color_maximums);
 #endif
 	for(int e=0;e<5;e++) {
-		my_color_minimums[e].red = my_color_minimums[e].red + (my_color_maximums[e].red - my_color_minimums[e].red) *  ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR;
-		my_color_minimums[e].green = my_color_minimums[e].green + (my_color_maximums[e].green - my_color_minimums[e].green) *  ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR;
-		my_color_minimums[e].blue = my_color_minimums[e].blue + (my_color_maximums[e].blue - my_color_minimums[e].blue) *  ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR;
+		my_color_minimums[e].red = my_color_minimums[e].red + (my_color_maximums[e].red - my_color_minimums[e].red) *  percents / 100;
+		my_color_minimums[e].green = my_color_minimums[e].green + (my_color_maximums[e].green - my_color_minimums[e].green) *  percents / 100;
+		my_color_minimums[e].blue = my_color_minimums[e].blue + (my_color_maximums[e].blue - my_color_minimums[e].blue) *  percents / 100;
 	}
 
 	calibration_status = E_CALIBRATION_STATUS_CALIBRATION_DONE;
