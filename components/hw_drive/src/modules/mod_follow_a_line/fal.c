@@ -44,7 +44,7 @@
 
 #define ROBOKIT_FAL_USE_MEDIAN 1
 
-#define ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR 0.6
+#define ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR 40 / 100
 
 #if ROBOKIT_FAL_USE_MEDIAN
 static S_robokit_median_filter_t median_filters[15] = {0};
@@ -382,9 +382,9 @@ static void _fal_calibration_done(void) {
 	print_fal(my_color_maximums);
 #endif
 	for(int e=0;e<5;e++) {
-		my_color_minimums[e].red = (my_color_minimums[e].red + my_color_maximums[e].red) *  ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR;
-		my_color_minimums[e].green = (my_color_minimums[e].green + my_color_maximums[e].green) * ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR;
-		my_color_minimums[e].blue = (my_color_minimums[e].blue + my_color_maximums[e].blue) * ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR;
+		my_color_minimums[e].red = my_color_minimums[e].red + (my_color_maximums[e].red - my_color_minimums[e].red) *  ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR;
+		my_color_minimums[e].green = my_color_minimums[e].green + (my_color_maximums[e].green - my_color_minimums[e].green) *  ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR;
+		my_color_minimums[e].blue = my_color_minimums[e].blue + (my_color_maximums[e].blue - my_color_minimums[e].blue) *  ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR;
 	}
 
 	calibration_status = E_CALIBRATION_STATUS_CALIBRATION_DONE;
