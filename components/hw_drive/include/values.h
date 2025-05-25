@@ -113,4 +113,10 @@ S_color robokit_fal_get_color_right(void);
 
 S_Fal_Result robokit_fal_get_last_result(void);
 
+S_color robokit_fal_get_calibrated_threshold_color_left(void);
+S_color robokit_fal_get_calibrated_threshold_color_middle_left(void);
+S_color robokit_fal_get_calibrated_threshold_color_middle(void);
+S_color robokit_fal_get_calibrated_threshold_color_middle_right(void);
+S_color robokit_fal_get_calibrated_threshold_color_right(void);
+
 #endif /* values_h */

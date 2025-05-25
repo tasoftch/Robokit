@@ -111,6 +111,23 @@ uint8_t tcp_command_interpreter(uint8_t *buffer, uint8_t length) {
 			case E_STATUS_READ_FAL_CALIBRATION:
 				uint8_t cal = robokit_fal_get_calibration_status();
 			buffer[0] = cal & 0xff;
+			if(cal & E_CALIBRATION_STATUS_CALIBRATION_DONE) {
+				S_color cal_col = robokit_fal_get_calibrated_threshold_color_left();
+				_ROBOKIT_MAP_COLOR_TO_BUFFER(1, cal_col);
+
+				cal_col = robokit_fal_get_calibrated_threshold_color_middle_left();
+				_ROBOKIT_MAP_COLOR_TO_BUFFER(7, cal_col);
+
+				cal_col = robokit_fal_get_calibrated_threshold_color_middle();
+				_ROBOKIT_MAP_COLOR_TO_BUFFER(13, cal_col);
+
+				cal_col = robokit_fal_get_calibrated_threshold_color_middle_right();
+				_ROBOKIT_MAP_COLOR_TO_BUFFER(19, cal_col);
+
+				cal_col = robokit_fal_get_calibrated_threshold_color_right();
+				_ROBOKIT_MAP_COLOR_TO_BUFFER(25, cal_col);
+				return 31;
+			}
 			return 1;
 			case E_STATUS_READ_FAL_COLORS:
 				buffer[0] = 0x2;

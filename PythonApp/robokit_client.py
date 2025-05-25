@@ -137,6 +137,17 @@ def perform_command(cmd, args):
         elif cmd == 'falshot':
             c = Robokit.fal_read_colors()
             print_formatted_fal_colors(c)
+        elif cmd == 'falstat':
+            s, calibration = Robokit.fal_calibration_status()
+            if s == 0:
+                print("0, no calibration.")
+            elif s == 1:
+                print("1, calibration is running.")
+            elif s == 2:
+                print("2, calibration completed and successful.")
+                print_formatted_fal_colors(calibration)
+            else:
+                print(f"{s}, calibration failed.")
         else:
             print("Unknown command: "+cmd)
     except Exception as e:
