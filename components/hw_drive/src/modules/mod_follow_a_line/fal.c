@@ -44,6 +44,8 @@
 
 #define ROBOKIT_FAL_USE_MEDIAN 1
 
+#define ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR 2
+
 #if ROBOKIT_FAL_USE_MEDIAN
 static S_robokit_median_filter_t median_filters[15] = {0};
 #endif
@@ -107,11 +109,22 @@ uint8_t robokit_fal_is_one_shot_complete(void) {
 	return 0;
 }
 
-S_color robokit_fal_get_color_left(void) { return my_colors[0]; }
-S_color robokit_fal_get_color_middle_left(void) { return my_colors[1]; }
-S_color robokit_fal_get_color_middle(void) { return my_colors[2]; }
-S_color robokit_fal_get_color_middle_right(void) { return my_colors[3]; }
-S_color robokit_fal_get_color_right(void) { return my_colors[4]; }
+S_color robokit_fal_get_color_left(void) {
+	return my_colors[0];
+}
+S_color robokit_fal_get_color_middle_left(void) {
+	return my_colors[1];
+}
+S_color robokit_fal_get_color_middle(void) {
+	return my_colors[2];
+}
+S_color robokit_fal_get_color_middle_right(void) {
+	return my_colors[3];
+}
+S_color robokit_fal_get_color_right(void) {
+	return my_colors[4];
+}
+
 S_Fal_Result robokit_fal_get_last_result(void) {
 	ROBOKIT_LOGI("FAL [1..5] %c %c %c %c %c",
 			fal_name_of_color( my_global_fal_result.fb_1_left ) ,
@@ -121,6 +134,22 @@ S_Fal_Result robokit_fal_get_last_result(void) {
 			fal_name_of_color( my_global_fal_result.fb_5_right )
 			);
 	return my_global_fal_result;
+}
+
+S_color robokit_fal_get_calibrated_threshold_color_left(void) {
+	return my_color_minimums[0];
+}
+S_color robokit_fal_get_calibrated_threshold_color_middle_left(void) {
+	return my_color_minimums[1];
+}
+S_color robokit_fal_get_calibrated_threshold_color_middle(void) {
+	return my_color_minimums[2];
+}
+S_color robokit_fal_get_calibrated_threshold_color_middle_right(void) {
+	return my_color_minimums[3];
+}
+S_color robokit_fal_get_calibrated_threshold_color_right(void) {
+	return my_color_minimums[4];
 }
 
 /**
@@ -353,9 +382,9 @@ static void _fal_calibration_done(void) {
 	print_fal(my_color_maximums);
 #endif
 	for(int e=0;e<5;e++) {
-		my_color_minimums[e].red = (my_color_minimums[e].red + my_color_maximums[e].red) / 2;
-		my_color_minimums[e].green = (my_color_minimums[e].green + my_color_maximums[e].green) / 2;
-		my_color_minimums[e].blue = (my_color_minimums[e].blue + my_color_maximums[e].blue) / 2;
+		my_color_minimums[e].red = (my_color_minimums[e].red + my_color_maximums[e].red) * ( ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR );
+		my_color_minimums[e].green = (my_color_minimums[e].green + my_color_maximums[e].green) * ( ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR );
+		my_color_minimums[e].blue = (my_color_minimums[e].blue + my_color_maximums[e].blue) * ( ROBOKIT_FAL_THRESHOLD_MIN_MAX_NOMINATOR );
 	}
 
 	calibration_status = E_CALIBRATION_STATUS_CALIBRATION_DONE;
@@ -537,19 +566,20 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 		robokit_push_command(&cmd, 0);
 	}
 
+	// Concept: Always restart correctly, no matter where sensor stopped.
 	if(!is_running) {
 		old_running = 0;
 		return;
 	}
 
 	// 100Hz interval:
-	// 1 cycle to read red and green,
-	// next cycle to read blue and calculate the next commands.
+	// 1 cycle to read red, green,
+	// blue and calculate the next commands.
 	static uint8_t status = 0;
 
 
-
 	if(old_running != is_running) {
+		// Concept: Always restart correctly, no matter where sensor stopped.
 		// Make sure that on a start it will begin by status 0
 		old_running = is_running;
 		status = 0;
@@ -572,7 +602,6 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 			fal_render_result();
 			status = 0;
 		break;
-		// It must pass.
 		default:
 			status = 0;
 	}
