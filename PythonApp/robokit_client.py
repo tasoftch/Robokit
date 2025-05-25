@@ -148,6 +148,12 @@ def perform_command(cmd, args):
                 print_formatted_fal_colors(calibration)
             else:
                 print(f"{s}, calibration failed.")
+        elif cmd == 'pr':
+            type, val = Robokit.param_get(int(args[0]))
+            print(type, val)
+        elif cmd == 'ps':
+            ack = Robokit.param_set(int(args[0]), int(args[1]))
+            print(ack)
         else:
             print("Unknown command: "+cmd)
     except Exception as e:

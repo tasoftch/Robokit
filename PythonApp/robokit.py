@@ -41,6 +41,41 @@ class Robokit(object):
         except Exception as e:
             print(f" sending failed: {e}")
 
+# PARAMETER LESEN UND SCHREIBEN
+    def param_get(self, parameter):
+        info = self.__send_raw(bytes([0xA0, parameter, 0, 0, 0, 0, 0, 0]))
+        if info[0]:
+            type = info[1]
+            if type & 128:
+                type = type & ~128
+                value = info[2] | info[3] << 8 | info[4] << 16 | info[5] << 24
+                if value >= 0x80000000:
+                    value -= 0x100000000
+            else:
+                value = info[2] | info[3] << 8 | info[4] << 16 | info[5] << 24
+            return type, value
+        else:
+            return False
+
+    def param_set(self, param_name, param_value):
+        value = param_value & 0xFFFFFFFF
+
+        if value <= 0xFF:
+            param_type = 1
+        elif value <= 0xFFFF:
+            param_type = 2
+        else:
+            param_type = 4
+
+        if param_value < 0:
+            param_type |= 0x80
+
+        value_bytes = value.to_bytes(4, byteorder='little')
+        data = bytes([0xB0, param_name, param_type]) + value_bytes[:4] + bytes(1)
+        info = self.__send_raw(data)
+        return info[0] > 0
+
+
 # Fahren
     def drive_forward(self, speed):
         if 0 <= speed <= 100:
@@ -95,7 +130,7 @@ class Robokit(object):
             calibration = self._parse_colors_from_data(info)
         return info[0], calibration
 
-    def fal_calibrate(self, speed, timeout):
+    def fal_calibrate(self, speed, timeout, block=False):
         if not ( 20 <= speed <= 80):
             print(f"Illegal speed {speed}. Must be between 20 and 80.")
             return
@@ -103,6 +138,14 @@ class Robokit(object):
             print(f"Illegal timeout {timeout}. Must be between 80 and 10000.")
             return
         self.__send_raw(bytes([4, 0x1, speed, int(timeout/40), 0, 0, 0, 0]))
+        if block:
+            for e in range(20):
+                time.sleep(0.1)
+                stat, _ = self.fal_calibration_status()
+                if stat == 2:
+                    return True
+            return False
+        return None
 
 
     def fal_drive(self, speed, timeout):
