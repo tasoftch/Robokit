@@ -3,9 +3,8 @@
 //
 
 #include "private/parameters.h"
-#include <stddef.h>
-
-#include "../../../../../esp-idf/components/esp_wifi/include/esp_wifi.h"
+#include <esp_wifi.h>
+#include <modules/robokit_module.h>
 
 static struct {
 	uint8_t flags;
@@ -19,6 +18,13 @@ static struct {
 		void *ptr;
 	} value;
 } internal_parameters[ ROBOKIT_MAX_PARAMETERS_COUNT ] = {0};
+
+ROBOKIT_MODULE_INIT() {
+	int8_t pwr=0;
+	esp_wifi_get_max_tx_power(&pwr);
+	internal_parameters[ E_ROBOKIT_PARAM_WLAN_TX_POWER ].value.u8 = pwr;
+	internal_parameters[ E_ROBOKIT_PARAM_WLAN_TX_POWER ].flags = E_ROBOKIT_PARAM_TYPE_INTEGER_8 | E_ROBOKIT_PARAM_TYPE_SIGNED;
+}
 
 void _robokit_internal_set_parameter(robokit_parameter_name_t name, robokit_parameter_type_t type, uint32_t value) {
 	internal_parameters[name].flags = type;
