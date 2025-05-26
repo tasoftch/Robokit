@@ -4,11 +4,14 @@
 #include "hal/voltage_sensor.h"
 #include <driver/adc.h>
 #include "modules/robokit_module.h"
+#include "private/median.h"
 
 #define ROBOKIT_VOLTAGE_SENSOR ADC_CHANNEL_5
 #define ROBOKIT_VOLTAGE_SENSOR_TIMER_INTERVAL 10
 
-static volatile uint16_t voltage = 0;
+#define ROBOKIT_VOLTAGE_SENSOR_DENOMINATION 5002 / 2289
+
+static S_robokit_median_filter_t median_filter;
 
 
 ROBOKIT_MODULE_INIT() {
@@ -21,15 +24,16 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 
 	if(timer-- < 1) {
 		timer = ROBOKIT_VOLTAGE_SENSOR_TIMER_INTERVAL;
-		uint32_t value = adc1_get_raw(ROBOKIT_VOLTAGE_SENSOR);
-		value *= 5002;
-		voltage += value / 2289;
-		voltage /= 2;
+		int value = adc1_get_raw(ROBOKIT_VOLTAGE_SENSOR);
+		if(value > 0) {
+			value *= ROBOKIT_VOLTAGE_SENSOR_DENOMINATION;
+			robokit_median_filter_add(&median_filter, value);
+		}
 	}
 }
 
 robokit_voltage_mV_t robokit_battery_get_voltage(void) {
-	return voltage;
+	return robokit_median_filter_get(&median_filter);
 }
 
 uint8_t robokit_battery_get_charge_percent(void) {
