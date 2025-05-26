@@ -12,8 +12,10 @@
 #include <nvs_flash.h>
 #include <string.h>
 #include <values.h>
+#include <private/parameters.h>
 
 static const char *TAG = "wifi_ap";
+extern void _robokit_internal_set_parameter(robokit_parameter_name_t name, robokit_parameter_type_t type, uint32_t value);
 
 void wifi_init_softap(void) {
 	esp_err_t ret = nvs_flash_init();
@@ -55,4 +57,13 @@ void wifi_init_softap(void) {
 	ESP_ERROR_CHECK(esp_wifi_start());
 
 	ESP_LOGI(TAG, "Access Point gestartet: SSID=%s, PASS=%s", buffer_ssid, WIFI_PASS);
+
+	int8_t pwr=0;
+	esp_wifi_get_max_tx_power(&pwr);
+
+	_robokit_internal_set_parameter(
+	E_ROBOKIT_PARAM_WLAN_TX_POWER,
+		E_ROBOKIT_PARAM_TYPE_INTEGER_8 | E_ROBOKIT_PARAM_TYPE_SIGNED,
+		pwr
+	);
 }
