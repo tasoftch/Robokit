@@ -25,6 +25,7 @@ enum {
 typedef uint8_t robokit_parameter_type_t;
 
 enum {
+	E_ROBOKIT_PARAM_WLAN_TX_POWER			= 0x00,
 	E_ROBOKIT_PARAM_FAL_THRESHOLD			= 0x01
 };
 typedef uint8_t robokit_parameter_name_t;

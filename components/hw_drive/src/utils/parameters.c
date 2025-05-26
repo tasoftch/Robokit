@@ -5,6 +5,8 @@
 #include "private/parameters.h"
 #include <stddef.h>
 
+#include "../../../../../esp-idf/components/esp_wifi/include/esp_wifi.h"
+
 static struct {
 	uint8_t flags;
 	union {
@@ -65,6 +67,10 @@ uint8_t robokit_parameter_get_uint8(robokit_parameter_name_t name) {
 void robokit_parameter_set_int8(robokit_parameter_name_t name, int8_t value) {
 	internal_parameters[name].value.i8 = value;
 	internal_parameters[name].flags = E_ROBOKIT_PARAM_TYPE_INTEGER_8 | E_ROBOKIT_PARAM_TYPE_SIGNED;
+
+	if(name == E_ROBOKIT_PARAM_WLAN_TX_POWER) {
+		esp_wifi_set_max_tx_power(value);
+	}
 }
 int8_t robokit_parameter_get_int8(robokit_parameter_name_t name) {
 	if(internal_parameters[name].flags & E_ROBOKIT_PARAM_TYPE_INTEGER_8 && (internal_parameters[name].flags & E_ROBOKIT_PARAM_TYPE_SIGNED)) {
