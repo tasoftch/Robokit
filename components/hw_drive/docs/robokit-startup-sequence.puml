@@ -1,0 +1,22 @@
+@startuml
+skinparam defaultTextAlignment center
+
+|Firmware|
+start
+:Einschalten;
+:Boot System;
+:Start FreeRTOS;
+
+if (Ist Konfig-Modus aktiv?) then (JA)
+    |Firmware|
+    :Starte WLAN AP;
+    :Starte TCP Server;
+    :Warte auf Kommandos;
+    stop
+else(NEIN)
+    |Software|
+    :Eigenes Programm;
+    stop
+endif
+
+@enduml
