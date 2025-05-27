@@ -33,6 +33,7 @@
 #include <modules/robokit_module.h>
 #include <values.h>
 #include "private/median.h"
+#include "private/parameters.h"
 
 #define ROBOKIT_FB_LEFT ADC_CHANNEL_0
 #define ROBOKIT_FB_MIDDLE_LEFT ADC_CHANNEL_1
@@ -41,12 +42,11 @@
 #define ROBOKIT_FB_RIGHT ADC_CHANNEL_4
 
 #define ROBOKIT_READ_INTERVAL_US 1000
-#define ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS 500
 
-#define ROBOKIT_FAL_USE_MEDIAN 0
+#define ROBOKIT_FAL_USE_MEDIAN 1
 
 #if ROBOKIT_FAL_USE_MEDIAN
-static S_robokit_median_filter_t median_filters[5];
+static S_robokit_median_filter_t median_filters[15] = {0};
 #endif
 static portMUX_TYPE lock_10_us = portMUX_INITIALIZER_UNLOCKED;
 
@@ -57,7 +57,9 @@ static volatile S_color my_color_maximums[5] = {0};
 
 static void (*my_fal_callback_calibration)(uint8_t);
 static void (*my_fal_callback_one_shot)(void);
-static void (*my_fal_line_interpreter)(S_Fal_Result *) = fal_default_line_result_interpreter;
+static robokit_fal_interpreter_result_t (*my_fal_line_interpreter)(S_Fal_Result *, T_Speed) = fal_default_line_result_interpreter;
+
+static S_Fal_Result my_global_fal_result;
 
 // Marks the FAL system as running.
 // The sensor loop will be active and reads the cells.
@@ -78,7 +80,8 @@ static uint8_t calibration_status = E_CALIBRATION_STATUS_UNCALIBRATED;
 // The command handler must only set configurations, it is not allowed to
 // push commands into the system.
 static uint8_t make_drive_command=0;
-
+static T_Speed specified_drive_speed=0;
+static uint8_t my_drive_timeout_counter = 0;
 // Calibration counter for 500ms.
 static uint16_t drive_counter=0;
 
@@ -89,7 +92,7 @@ uint8_t robokit_fal_get_calibration_status(void) {
 	return calibration_status;
 }
 
-uint8_t fal_is_calibrated(void) {
+uint8_t robokit_fal_is_calibrated(void) {
 	return calibration_status == E_CALIBRATION_STATUS_CALIBRATION_DONE ? 1 : 0;
 }
 
@@ -105,16 +108,53 @@ uint8_t robokit_fal_is_one_shot_complete(void) {
 	return 0;
 }
 
-S_color robokit_fal_get_color_left(void) { return my_colors[0]; }
-S_color robokit_fal_get_color_middle_left(void) { return my_colors[1]; }
-S_color robokit_fal_get_color_middle(void) { return my_colors[2]; }
-S_color robokit_fal_get_color_middle_right(void) { return my_colors[3]; }
-S_color robokit_fal_get_color_right(void) { return my_colors[4]; }
+S_color robokit_fal_get_color_left(void) {
+	return my_colors[0];
+}
+S_color robokit_fal_get_color_middle_left(void) {
+	return my_colors[1];
+}
+S_color robokit_fal_get_color_middle(void) {
+	return my_colors[2];
+}
+S_color robokit_fal_get_color_middle_right(void) {
+	return my_colors[3];
+}
+S_color robokit_fal_get_color_right(void) {
+	return my_colors[4];
+}
+
+S_Fal_Result robokit_fal_get_last_result(void) {
+	ROBOKIT_LOGI("FAL [1..5] %c %c %c %c %c",
+			fal_name_of_color( my_global_fal_result.fb_1_left ) ,
+			fal_name_of_color( my_global_fal_result.fb_2_middle_left ) ,
+			fal_name_of_color( my_global_fal_result.fb_3_middle ) ,
+			fal_name_of_color( my_global_fal_result.fb_4_middle_right ) ,
+			fal_name_of_color( my_global_fal_result.fb_5_right )
+			);
+	return my_global_fal_result;
+}
+
+S_color robokit_fal_get_calibrated_threshold_color_left(void) {
+	return my_color_minimums[0];
+}
+S_color robokit_fal_get_calibrated_threshold_color_middle_left(void) {
+	return my_color_minimums[1];
+}
+S_color robokit_fal_get_calibrated_threshold_color_middle(void) {
+	return my_color_minimums[2];
+}
+S_color robokit_fal_get_calibrated_threshold_color_middle_right(void) {
+	return my_color_minimums[3];
+}
+S_color robokit_fal_get_calibrated_threshold_color_right(void) {
+	return my_color_minimums[4];
+}
 
 /**
  * @inheritDoc
  */
-void fal_set_line_result_interpreter(void (*interpreter) (S_Fal_Result *)) {
+void fal_set_line_result_interpreter(uint8_t (*interpreter) (S_Fal_Result *, T_Speed)) {
 	my_fal_line_interpreter = interpreter;
 }
 
@@ -212,6 +252,11 @@ ROBOKIT_MODULE_INIT() {
 	adc1_config_channel_atten(ROBOKIT_FB_MIDDLE, ADC_ATTEN_DB_0);
 	adc1_config_channel_atten(ROBOKIT_FB_MIDDLE_RIGHT, ADC_ATTEN_DB_0);
 	adc1_config_channel_atten(ROBOKIT_FB_RIGHT, ADC_ATTEN_DB_0);
+
+	robokit_parameter_set_uint8(E_ROBOKIT_PARAM_FAL_THRESHOLD, 50);
+	robokit_parameter_set_int16(2, 0x1234);
+	robokit_parameter_set_int32(3, -9000);
+	robokit_parameter_set_uint32(4, 700000);
 }
 
 
@@ -240,21 +285,18 @@ static void fal_read_sensor_cells(uint8_t color, uint16_t *data_field_1, uint16_
 	*data_field_4 = fal_get_sensor_middle_right();
 	*data_field_5 = fal_get_sensor_right();
 	*data_field_1 = fal_get_sensor_left();		// Better measurements when repeating first again.
-
 	portEXIT_CRITICAL(&lock_10_us);
-
-#if ROBOKIT_FAL_USE_MEDIAN
-	*data_field_1 = robokit_median_filter_shift(&median_filters[0], *data_field_1);
-	*data_field_2 = robokit_median_filter_shift(&median_filters[1], *data_field_2);
-	*data_field_3 = robokit_median_filter_shift(&median_filters[2], *data_field_3);
-	*data_field_4 = robokit_median_filter_shift(&median_filters[3], *data_field_4);
-	*data_field_5 = robokit_median_filter_shift(&median_filters[4], *data_field_5);
-#endif
 
 	gpio_set_level(GPIO_RED, 0);
 	gpio_set_level(GPIO_GREEN, 0);
 	gpio_set_level(GPIO_BLUE, 0);
 }
+
+#if ROBOKIT_FAL_USE_MEDIAN
+static void fal_filter_results_with_median(S_robokit_median_filter_t *filter, uint16_t *median) {
+	*median = robokit_median_filter_shift(filter, *median);
+}
+#endif
 
 /**
  * @brief Capture values of all sensor cells for Red color
@@ -267,6 +309,13 @@ static void fal_read_red(void) {
 		&my_colors[3].red,
 		&my_colors[4].red
 	);
+#if ROBOKIT_FAL_USE_MEDIAN
+	fal_filter_results_with_median(&median_filters[0], &my_colors[0].red);
+	fal_filter_results_with_median(&median_filters[1], &my_colors[1].red);
+	fal_filter_results_with_median(&median_filters[2], &my_colors[2].red);
+	fal_filter_results_with_median(&median_filters[3], &my_colors[3].red);
+	fal_filter_results_with_median(&median_filters[4], &my_colors[4].red);
+#endif
 }
 
 /**
@@ -280,6 +329,13 @@ static void fal_read_green(void) {
 		&my_colors[3].green,
 		&my_colors[4].green
 	);
+#if ROBOKIT_FAL_USE_MEDIAN
+	fal_filter_results_with_median(&median_filters[5], &my_colors[0].green);
+	fal_filter_results_with_median(&median_filters[6], &my_colors[1].green);
+	fal_filter_results_with_median(&median_filters[7], &my_colors[2].green);
+	fal_filter_results_with_median(&median_filters[8], &my_colors[3].green);
+	fal_filter_results_with_median(&median_filters[9], &my_colors[4].green);
+#endif
 }
 
 /**
@@ -293,6 +349,13 @@ static void fal_read_blue(void) {
 		&my_colors[3].blue,
 		&my_colors[4].blue
 	);
+#if ROBOKIT_FAL_USE_MEDIAN
+	fal_filter_results_with_median(&median_filters[10], &my_colors[0].blue);
+	fal_filter_results_with_median(&median_filters[11], &my_colors[1].blue);
+	fal_filter_results_with_median(&median_filters[12], &my_colors[2].blue);
+	fal_filter_results_with_median(&median_filters[13], &my_colors[3].blue);
+	fal_filter_results_with_median(&median_filters[14], &my_colors[4].blue);
+#endif
 }
 
 #if ROBOKIT_DEBUG
@@ -318,10 +381,16 @@ static void print_fal(S_color *the_colors) {
  * It does also call the callback to the software with success flag.
  */
 static void _fal_calibration_done(void) {
+	uint8_t percents = robokit_parameter_get_uint8(E_ROBOKIT_PARAM_FAL_THRESHOLD);
+
+#if ROBOKIT_DEBUG
+	print_fal(my_color_minimums);
+	print_fal(my_color_maximums);
+#endif
 	for(int e=0;e<5;e++) {
-		my_color_minimums[e].red = (my_color_minimums[e].red + my_color_maximums[e].red) / 2;
-		my_color_minimums[e].green = (my_color_minimums[e].green + my_color_maximums[e].green) / 2;
-		my_color_minimums[e].blue = (my_color_minimums[e].blue + my_color_maximums[e].blue) / 2;
+		my_color_minimums[e].red = my_color_minimums[e].red + (my_color_maximums[e].red - my_color_minimums[e].red) *  percents / 100;
+		my_color_minimums[e].green = my_color_minimums[e].green + (my_color_maximums[e].green - my_color_minimums[e].green) *  percents / 100;
+		my_color_minimums[e].blue = my_color_minimums[e].blue + (my_color_maximums[e].blue - my_color_minimums[e].blue) *  percents / 100;
 	}
 
 	calibration_status = E_CALIBRATION_STATUS_CALIBRATION_DONE;
@@ -365,6 +434,7 @@ static void _fal_calibration_init(void) {
 		if(my_color_maximums[3].red - my_colors[3].red < 50) {
 			_fal_calibration_done();
 			status = 0;
+			return;
 		}
 	}
 
@@ -378,7 +448,7 @@ static void _fal_calibration_init(void) {
 ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode, uint8_t *flags) {
 	if (mode == E_SCHEDULE_MODE_PRECHECK) {
 		if(cmd->flags == E_FAL_OPTION_ENABLE) {
-			if(!fal_is_calibrated()) {
+			if(!robokit_fal_is_calibrated()) {
 				ROBOKIT_LOGE("Calibration not yet done.");
 				*flags = 0xFF;
 				return;
@@ -390,19 +460,21 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode,
 	if(mode == E_SCHEDULE_MODE_PERFORM) {
 		if(cmd->flags == E_FAL_OPTION_CALIBRATE) {
 			_fal_reset_calibration();
+			specified_drive_speed = cmd->speed;
 			make_drive_command = 1;
-			drive_counter = ROBOKIT_FAL_CALIBRATION_MAXIMUM_INTERVAL_MS;
+			drive_counter = cmd->timeout;
 			is_running = 1;
 			calibration_status = E_CALIBRATION_STATUS_CALIBRATING;
 			my_fal_callback_calibration = cmd->callback;
-		} else if(cmd->flags == E_FAL_OPTION_ENABLE) {
+		} else if(cmd->flags == E_FAL_OPTION_ENABLE_DRIVE) {
 			is_running = 1;
+			specified_drive_speed = cmd->speed;
+			my_drive_timeout_counter = drive_counter = cmd->timeout;
+		} else if(cmd->flags == E_FAL_OPTION_ENABLE) {
+			is_running = 2;
 		} else if(cmd->flags == E_FAL_OPTION_DISABLE) {
 			is_running = 0;
-
-			S_command dcmd;
-			robokit_make_drive_command_fwd(&dcmd, 0);
-			robokit_push_command(&dcmd, 0);
+			make_drive_command = 2;
 		} else if(cmd->flags == E_FAL_OPTION_SHOT) {
 			my_fal_callback_one_shot = cmd->callback;
 			is_running = 1;
@@ -414,8 +486,8 @@ ROBOKIT_MODULE_COMMAND_HANDLER(E_COMMAND_FAL, _S_Command_Fal *cmd, uint8_t mode,
 // Helper macro to assign color values to the FAL_Result
 #define _ROBOKIT_FAL_WRITE_CELL_RESULT(CELL, COLOR_ID) \
 CELL |= my_colors[COLOR_ID].red > my_color_minimums[COLOR_ID].red ? ROBOKIT_FAL_RED : 0;\
-CELL |= my_colors[COLOR_ID].green > my_color_minimums[COLOR_ID].green ? ROBOKIT_FAL_RED : 0;\
-CELL |= my_colors[COLOR_ID].blue > my_color_minimums[COLOR_ID].blue ? ROBOKIT_FAL_RED : 0
+CELL |= my_colors[COLOR_ID].green > my_color_minimums[COLOR_ID].green ? ROBOKIT_FAL_GREEN : 0;\
+CELL |= my_colors[COLOR_ID].blue > my_color_minimums[COLOR_ID].blue ? ROBOKIT_FAL_BLUE : 0
 
 /**
  * @brief Helper function to assign color values to a FAL result.
@@ -423,7 +495,7 @@ CELL |= my_colors[COLOR_ID].blue > my_color_minimums[COLOR_ID].blue ? ROBOKIT_FA
  * This function also calls the result interpreter if available to transform
  * the follow a line sensor results into Robokit commands.
  */
-static void _fal_calculate_result(void) {
+static void _fal_calculate_result(uint8_t perform_handler) {
 	if(!my_fal_line_interpreter)
 		return;
 
@@ -435,7 +507,21 @@ static void _fal_calculate_result(void) {
 	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_4_middle_right, 3);
 	_ROBOKIT_FAL_WRITE_CELL_RESULT(my_fal_result.fb_5_right,	4);
 
-	my_fal_line_interpreter(&my_fal_result);
+	robokit_fal_interpreter_result_t result = 1;
+
+	if(perform_handler) {
+		result = my_fal_line_interpreter(&my_fal_result, specified_drive_speed);
+	}
+
+	if(!result) {
+		if(--my_drive_timeout_counter < 1) {
+			make_drive_command = 2;
+			is_running = 0;
+		}
+	} else {
+		my_global_fal_result = my_fal_result;
+		my_drive_timeout_counter = drive_counter;
+	}
 }
 
 /**
@@ -447,10 +533,16 @@ static void fal_render_result(void) {
 		is_one_shot = 2;
 		if(my_fal_callback_one_shot)
 			my_fal_callback_one_shot();
+		_fal_calculate_result(0);
 	} else if(calibration_status == E_CALIBRATION_STATUS_CALIBRATING) {
 		_fal_calibration_init();
 	} else {
-		_fal_calculate_result();
+		if(is_running == 2) {
+			// Only enabled, not to drive
+			_fal_calculate_result(0);
+		} else {
+			_fal_calculate_result(1);
+		}
 	}
 }
 
@@ -468,9 +560,9 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 	// The command handler must not push commands itself.
 	// It is only allowed to make configurations.
 	if(make_drive_command == 1) {
-		make_drive_command = 0;
 		S_command cmd;
-		robokit_make_drive_command_fwd(&cmd, 30);
+		robokit_make_drive_command_fwd(&cmd, specified_drive_speed);
+		make_drive_command = 0;
 		robokit_push_command(&cmd, 0);
 	}
 
@@ -481,19 +573,20 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 		robokit_push_command(&cmd, 0);
 	}
 
+	// Concept: Always restart correctly, no matter where sensor stopped.
 	if(!is_running) {
 		old_running = 0;
 		return;
 	}
 
 	// 100Hz interval:
-	// 1 cycle to read red and green,
-	// next cycle to read blue and calculate the next commands.
+	// 1 cycle to read red, green,
+	// blue and calculate the next commands.
 	static uint8_t status = 0;
 
 
-
 	if(old_running != is_running) {
+		// Concept: Always restart correctly, no matter where sensor stopped.
 		// Make sure that on a start it will begin by status 0
 		old_running = is_running;
 		status = 0;
@@ -516,7 +609,6 @@ ROBOKIT_MODULE_SENSOR_LOOP() {
 			fal_render_result();
 			status = 0;
 		break;
-		// It must pass.
 		default:
 			status = 0;
 	}

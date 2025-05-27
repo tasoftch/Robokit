@@ -41,6 +41,41 @@ class Robokit(object):
         except Exception as e:
             print(f" sending failed: {e}")
 
+# PARAMETER LESEN UND SCHREIBEN
+    def param_get(self, parameter):
+        info = self.__send_raw(bytes([0xA0, parameter, 0, 0, 0, 0, 0, 0]))
+        if info[0]:
+            type = info[1]
+            if type & 128:
+                type = type & ~128
+                value = info[2] | info[3] << 8 | info[4] << 16 | info[5] << 24
+                if value >= 0x80000000:
+                    value -= 0x100000000
+            else:
+                value = info[2] | info[3] << 8 | info[4] << 16 | info[5] << 24
+            return type, value
+        else:
+            return False
+
+    def param_set(self, param_name, param_value):
+        value = param_value & 0xFFFFFFFF
+
+        if value <= 0xFF:
+            param_type = 1
+        elif value <= 0xFFFF:
+            param_type = 2
+        else:
+            param_type = 4
+
+        if param_value < 0:
+            param_type |= 0x80
+
+        value_bytes = value.to_bytes(4, byteorder='little')
+        data = bytes([0xB0, param_name, param_type]) + value_bytes[:4] + bytes(1)
+        info = self.__send_raw(data)
+        return info[0] > 0
+
+
 # Fahren
     def drive_forward(self, speed):
         if 0 <= speed <= 100:
@@ -88,46 +123,93 @@ class Robokit(object):
         }
 
 # Follow A Line
-    def fal_calibrate(self):
-        self.__send_raw(bytes([4, 0x1, 0, 0, 0, 0, 0, 0]))
+    def fal_calibration_status(self):
+        info = self.__send_raw(bytes([0xF2, 0, 0, 0, 0, 0, 0, 0]))
+        calibration = []
+        if info[0] == 2:
+            calibration = self._parse_colors_from_data(info)
+        return info[0], calibration
 
-    def fal_start(self, speed):
-        self.__send_raw(bytes([4, 0x2, speed % 101, 0, 0, 0, 0, 0]))
+    def fal_calibrate(self, speed, timeout, block=False):
+        if not ( 20 <= speed <= 80):
+            print(f"Illegal speed {speed}. Must be between 20 and 80.")
+            return
+        if not ( 80 <= timeout <= 10000):
+            print(f"Illegal timeout {timeout}. Must be between 80 and 10000.")
+            return
+        self.__send_raw(bytes([4, 0x1, speed, int(timeout/40), 0, 0, 0, 0]))
+        if block:
+            for e in range(20):
+                time.sleep(0.1)
+                stat, _ = self.fal_calibration_status()
+                if stat == 2:
+                    return True
+            return False
+        return None
 
-    def fal_one_shot(self):
-        self.__send_raw(bytes([4, 0x3, 0, 0, 0, 0, 0, 0]))
 
-        for e in range(4):
-            time.sleep(0.1)
-            info = self.__send_raw(bytes([0xF6, 0, 0, 0, 0, 0, 0, 0]))
-            if info[0] == 0x02:
-                return {
-                    "left": {
-                        "red":   info[1] << 8 | info[2],
-                        "green": info[3] << 8 | info[4],
-                        "blue":  info[5] << 8 | info[6],
-                    },
-                    "mleft": {
-                        "red":   info[7] << 8 | info[8],
-                        "green": info[9] << 8 | info[10],
-                        "blue":  info[11] << 8 | info[12],
-                    },
-                    "middle": {
-                        "red":   info[13] << 8 | info[14],
-                        "green": info[15] << 8 | info[16],
-                        "blue":  info[17] << 8 | info[18],
-                    },
-                    "mright": {
-                        "red":   info[19] << 8 | info[20],
-                        "green": info[21] << 8 | info[22],
-                        "blue":  info[23] << 8 | info[24],
-                    },
-                    "right": {
-                        "red":   info[25] << 8 | info[26],
-                        "green": info[27] << 8 | info[28],
-                        "blue":  info[29] << 8 | info[30],
-                    },
-                }
+    def fal_drive(self, speed, timeout):
+        if not ( 0 <= speed <= 80):
+            print(f"Illegal speed {speed}. Must be between 20 and 80.")
+            return
+        if not ( 80 <= timeout <= 10000):
+            print(f"Illegal timeout {timeout}. Must be between 80 and 10000.")
+            return
+        self.__send_raw(bytes([4, 0x3, speed, int(timeout / 40), 0, 0, 0, 0]))
+
+    def fal_enable(self):
+        self.__send_raw(bytes([4, 0x2, 0,0, 0, 0, 0, 0]))
+
+    def _parse_colors_from_data(self, info):
+        return {
+            "left": {
+                "red":   info[1] << 8 | info[2],
+                "green": info[3] << 8 | info[4],
+                "blue":  info[5] << 8 | info[6],
+            },
+            "mleft": {
+                "red":   info[7] << 8 | info[8],
+                "green": info[9] << 8 | info[10],
+                "blue":  info[11] << 8 | info[12],
+            },
+            "middle": {
+                "red":   info[13] << 8 | info[14],
+                "green": info[15] << 8 | info[16],
+                "blue":  info[17] << 8 | info[18],
+            },
+            "mright": {
+                "red":   info[19] << 8 | info[20],
+                "green": info[21] << 8 | info[22],
+                "blue":  info[23] << 8 | info[24],
+            },
+            "right": {
+                "red":   info[25] << 8 | info[26],
+                "green": info[27] << 8 | info[28],
+                "blue":  info[29] << 8 | info[30],
+            },
+        }
+
+    def fal_read_current_result(self):
+        data = self.__send_raw(bytes([0xF7, 0, 0, 0, 0, 0, 0, 0]))
+        value, = struct.unpack('<H', data[:2])
+        is_valid = bool(value & (1 << 15))
+
+        if is_valid:
+            return {
+                'right':          (value >> 0) & 0b111,
+                'mright':   (value >> 3) & 0b111,
+                'middle':        (value >> 6) & 0b111,
+                'mleft':  (value >> 9) & 0b111,
+                'left':         (value >> 12) & 0b111,
+            }
+        else:
+            return False
+
+    def fal_read_colors(self):
+        info = self.__send_raw(bytes([0xF6, 0, 0, 0, 0, 0, 0, 0]))
+
+        if info[0] & 2:
+            return self._parse_colors_from_data(info)
         return False
 
 # LEDS

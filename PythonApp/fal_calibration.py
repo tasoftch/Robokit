@@ -15,9 +15,9 @@ output_folder = "/Users/thomas/Library/CloudStorage/OneDrive-FHNW/Privat/pro4E/6
 os.makedirs(output_folder, exist_ok=True)
 
 for e in range(65):
-    #Robokit.drive_forward(20)
+    Robokit.drive_forward(20)
     time.sleep(0.1)
-    #Robokit.drive_stop()
+    Robokit.drive_stop()
     Farben = Robokit.fal_one_shot()
 
     # Zeitstempel für Dateinamen oder Index verwenden

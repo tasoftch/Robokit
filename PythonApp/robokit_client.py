@@ -28,11 +28,11 @@ def print_help():
     print("buz <freq>  | Launches the buzzer with given frequency. ")
     print("            | All < 250Hz will disable.")
     print("            | ")
-    print("            | CONDITIONAL COMMANDS")
-    print("falcal      | Starts calibration. The device must pass the calibration sheet.")
-    print("falok       | Reads the calibration status. Returns 1 when calibration succeeded.")
-    print("            | 0 in case of a failure and -1 if no calibration is running.")
-    print("fal <speed> | Start driving straight on. If a line is detected, it will follow.")
+    print("            | FOLLOW A LINE COMMANDS")
+    print("falc <speed>| Starts calibration. The device must pass the calibration sheet.")
+    print("fal <speed> | Start driving straight on for 5s. If a line is detected, it will follow.")
+    print("falr        | Reads current background. Only available after calibration.")
+    print("            | All five sensors read one bit colors: RGB (0b000)")
 
     print("            | ")
     print("            | CONDITIONAL COMMANDS")
@@ -58,6 +58,12 @@ def print_formatted_fal_colors(color_set):
     print(f"MRIGHT | %04d | %04d | %04d |" % (color_set["mright"]["red"], color_set["mright"]["green"], color_set["mright"]["blue"]))
     print(f"RIGHT  | %04d | %04d | %04d |" % (color_set["right"]["red"], color_set["right"]["green"], color_set["right"]["blue"]))
 
+def print_formatted_fal_result(result):
+    mapping = ['SW', 'BL', 'GR', 'CY', 'RD', 'MA', 'YE', 'WE']
+    if(result):
+        print(f"FAL: {mapping[ result['left'] ]} {mapping[ result['mleft'] ]} {mapping[ result['middle'] ]} {mapping[ result['mright'] ]} {mapping[ result['right'] ]}")
+    else:
+        print(result)
 
 def perform_command(cmd, args):
     global old_speed, Robokit
@@ -117,14 +123,37 @@ def perform_command(cmd, args):
         elif cmd == 'abs':
             d = Robokit.status_distance()
             print(d)
-        elif cmd == 'falcal':
-            Robokit.fal_calibrate()
-        elif cmd == 'fal':
+        elif cmd == 'falc':
             num = int(args[0])
-            Robokit.fal_start(num)
+            Robokit.fal_calibrate(num, 5000)
+        elif cmd == 'fald':
+            num = int(args[0])
+            Robokit.fal_drive(num, 5000)
+        elif cmd == 'fal':
+            Robokit.fal_enable()
+        elif cmd == 'falr':
+            result = Robokit.fal_read_current_result()
+            print_formatted_fal_result(result)
         elif cmd == 'falshot':
-            c = Robokit.fal_one_shot()
+            c = Robokit.fal_read_colors()
             print_formatted_fal_colors(c)
+        elif cmd == 'falstat':
+            s, calibration = Robokit.fal_calibration_status()
+            if s == 0:
+                print("0, no calibration.")
+            elif s == 1:
+                print("1, calibration is running.")
+            elif s == 2:
+                print("2, calibration completed and successful.")
+                print_formatted_fal_colors(calibration)
+            else:
+                print(f"{s}, calibration failed.")
+        elif cmd == 'pr':
+            type, val = Robokit.param_get(int(args[0]))
+            print(type, val)
+        elif cmd == 'ps':
+            ack = Robokit.param_set(int(args[0]), int(args[1]))
+            print(ack)
         else:
             print("Unknown command: "+cmd)
     except Exception as e:

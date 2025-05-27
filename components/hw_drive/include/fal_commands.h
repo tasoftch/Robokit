@@ -51,7 +51,19 @@ typedef struct {
 } S_Fal_Result;
 
 
-typedef void (*Fal_Interpreter_Callback)(S_Fal_Result *result);
+enum {
+ ROBOKIT_FAL_INTERPRETER_RESULT_DECLINED = 0,
+ ROBOKIT_FAL_INTERPRETER_RESULT_ACCEPTED = 1
+};
+typedef uint8_t robokit_fal_interpreter_result_t;
+
+// A follow a line interpreter function.
+// The function must interpret the results from follow a line sensor.
+// If the function accepts the result, it must return 1, otherwise 0.
+// The follow a line concept stops the drive if too long no result was interpreted.
+typedef robokit_fal_interpreter_result_t (*Fal_Interpreter_Callback)(S_Fal_Result *result, T_Speed speed);
+
+
 
 /**
  * @brief Constructs a FAL (Follow A Line) calibration command.
@@ -59,28 +71,37 @@ typedef void (*Fal_Interpreter_Callback)(S_Fal_Result *result);
  * The system assumes, that the drive will pass a black line that fully covers all sensor cells.
  *
  * For the calibration, the follow a line system will reset the current color references and enqueues
- * a forward drive command with 50%.
+ * a forward drive command with a given speed (shall be 50%).
  * It will capture the maximum and minimum values of each sensor cell for a maximum time of 1s.
  * As soon as there is a difference, it will calculate a threshold and sends a stop command.
- * Depending, if 1s passed or the threshold could be calculated it will call the callback function with 1
+ * Depending, if timeout passed or the threshold could be calculated it will call the callback function with 1
  * as parameter, if the calibration was successful or 0 otherwise.
  *
  * @param cmd A Pointer to the command structure to be initialized.
+ * @param speed A speed constant to specify the forward speed for calibration
+ * @param timeout A timeout in ms. Please note that the accuracy of timeout is only 40ms. Max 10s!
  * @param calibrated A Function pointer for the calibration callback.
  * @return Returns 1 if the command was successfully configured, 0 if the input pointer was null.
  */
-uint8_t robokit_make_command_fal_calibrate(S_command *cmd, void (*calibrated)(uint8_t));
+uint8_t robokit_make_command_fal_calibrate(S_command *cmd, T_Speed speed, uint16_t timeout, void (*calibrated)(uint8_t));
 
 /**
  * @brief Constructs a drive forward command using the follow a line (FAL) sensor.
  *
  * This function initializes the given command structure to prepare it
- * for enabling the follow a line sensor.
+ * for driving along a black line. If the sensor does not recognize a black line anymore,
+ * it will send a stop command.
  *
  * @param cmd A Pointer to the command structure to be initialized.
+ * @param timeout A timeout in ms. Please note that the accuracy of timeout is only 40ms. Max 10s!
  * @return Returns 1 if the command was successfully configured, 0 if the input pointer was null.
  */
-uint8_t robokit_make_command_fal_enable(S_command *cmd, T_Speed speed);
+uint8_t robokit_make_command_fal_drive(S_command *cmd, T_Speed speed, uint16_t timeout);
+
+/**
+* Just enables the follow a line sensor to obtain background color information.
+*/
+uint8_t robokit_make_command_fal_enable(S_command *cmd);
 
 /**
  * @brief Constructs a stop immediately command disabling the follow a line (FAL) sensor.
@@ -115,7 +136,7 @@ void fal_set_line_result_interpreter(Fal_Interpreter_Callback interpreter);
  *
  * @param result A Pointer to the sensor data structure containing readings from five sensors.
  */
-void fal_default_line_result_interpreter(S_Fal_Result *result);
+robokit_fal_interpreter_result_t fal_default_line_result_interpreter(S_Fal_Result *result, T_Speed speed);
 
 
 #endif //FAL_COMMANDS_H

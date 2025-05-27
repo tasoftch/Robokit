@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "vector.h"
+#include "fal_commands.h"
 
 
 #define ROBOKIT_DIRECTION_FORWARD (1)
@@ -91,6 +92,15 @@ typedef struct {
 } S_color;
 
 uint8_t robokit_fal_get_calibration_status(void);
+/**
+ * @brief Checks if the calibration process is completed.
+ *
+ * This function returns the current calibration status of the system,
+ * indicating whether the calibration has been successfully finished or not.
+ *
+ * @return uint8_t Non-zero if calibrated, zero if not calibrated.
+ */
+uint8_t robokit_fal_is_calibrated(void);
 
 uint8_t robokit_fal_is_running(void);
 
@@ -100,5 +110,13 @@ S_color robokit_fal_get_color_middle_left(void);
 S_color robokit_fal_get_color_middle(void);
 S_color robokit_fal_get_color_middle_right(void);
 S_color robokit_fal_get_color_right(void);
+
+S_Fal_Result robokit_fal_get_last_result(void);
+
+S_color robokit_fal_get_calibrated_threshold_color_left(void);
+S_color robokit_fal_get_calibrated_threshold_color_middle_left(void);
+S_color robokit_fal_get_calibrated_threshold_color_middle(void);
+S_color robokit_fal_get_calibrated_threshold_color_middle_right(void);
+S_color robokit_fal_get_calibrated_threshold_color_right(void);
 
 #endif /* values_h */

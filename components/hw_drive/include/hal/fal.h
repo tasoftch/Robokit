@@ -40,19 +40,9 @@ enum {
 	   E_FAL_OPTION_DISABLE = 0,
 	   E_FAL_OPTION_CALIBRATE,
 	   E_FAL_OPTION_ENABLE,
+	   E_FAL_OPTION_ENABLE_DRIVE,
     E_FAL_OPTION_SHOT
 };
-
-
-/**
- * @brief Checks if the calibration process is completed.
- *
- * This function returns the current calibration status of the system,
- * indicating whether the calibration has been successfully finished or not.
- *
- * @return uint8_t Non-zero if calibrated, zero if not calibrated.
- */
-uint8_t fal_is_calibrated(void);
 
 
 /**
