@@ -456,7 +456,19 @@ def get_distance():
 @app.get("/battery")
 def get_battery():
     battery = robot.status_battery()
-    return {"status": "ok", "battery": battery}
+    # Status:
+    # 0: Emergency (Roboter does not respond to anything.)
+    # 1: Critical
+    # 2: Warning
+    # 3: OK
+    status_map = {
+        0: "emergency",
+        1: "critical",
+        2: "warning",
+        3: "ok"
+    }
+    status_str= status_map.get(battery["status"], str(battery["status"]))
+    return {"status": "ok", "Voltag": battery["voltage"], "Batterie_status": status_str, "charge": battery["charge"]}
 
 @app.get("/drive_angle")
 def get_drive_vector():
@@ -470,8 +482,27 @@ def get_speed():
 
 @app.get("/drive_vector")
 def get_drive_vector():
-    drive_vector = robot.status_drive_vector()
+    drive_vector= robot.status_drive_vector()
     return {"status": "ok", "drive_vector": drive_vector}
+
+
+
+@app.get("/color_current")
+def get_color_curent():
+    color = robot.fal_read_current_result()
+    return {"status": "ok", "Farbe": color['middle']}
+
+@app.get("/color")
+def get_color():
+    color = robot.fal_read_colors()
+    return {"status": "ok", "Farbe": color}
+
+
+@app.get("/imu")
+def get_imu():
+    imu = robot.status_imu_read()
+    return {"status": "ok","position": imu["position"], "orientation": imu["orientation"],"deviation": imu["deviation"],}
+
 
 
 
