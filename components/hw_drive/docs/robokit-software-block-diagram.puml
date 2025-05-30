@@ -1,0 +1,55 @@
+@startuml
+skinparam rectangle {
+  BackgroundColor<<Graphical User Interface>> #EEEBDC
+  BackgroundColor<<Scheduler>> #DDEEFF
+  BackgroundColor<<Module>> #E6F2E6
+  BackgroundColor<<HAL>> #FDF6E3
+  BorderColor Black
+}
+
+rectangle "TCP-Client\n(z.B.)\nScratch App (Systemtechnik)\nPython: robokit.py robokit_client.py\n..." as Client
+rectangle "GUI-Task (niedrigste Priorität)\nTCP-Server und WiFi\nsocket_server.c wlan_ap.c" <<Graphical User Interface>> as TCPServer
+
+Client --> TCPServer : TCP-Verbindung\n(192.168.4.1:8080)
+
+
+rectangle "GUI-Task (niedrigste Priorität)\nTCP-Interpreter\n(tcp_command_interpreter.c)" <<Graphical User Interface>> as TCPInterpreter
+
+TCPServer --> TCPInterpreter : Datenstrom
+
+queue KommandoQueue as "MessageQueue\n(max. 8 Kommandos)"
+TCPInterpreter --> KommandoQueue : Kommandos erstellen / einschleusen\n(robokit_make_command_*)\nrobokit_push_command()
+
+rectangle "Scheduler-Task\n(hohe Priorität)" <<Scheduler>> as Scheduler
+KommandoQueue --> Scheduler
+
+
+rectangle "mod_imu\n(IMU Sensor)" <<Module>> as ModIMU
+rectangle "mod_ultrasonic\n(Ultraschall)" <<Module>> as ModUltra
+rectangle "mod_follow_a_line\n(Liniensensor)" <<Module>> as ModFAL
+rectangle "mod_drive\n(Antrieb)" <<Module>> as ModDrive
+rectangle "mod_led\n(LEDs)" <<Module>> as ModLED
+rectangle "mod_buzzer\n(Piezo Summer)" <<Module>> as ModBuz
+
+Scheduler --> ModDrive
+Scheduler --> ModLED
+Scheduler --> ModIMU
+Scheduler --> ModUltra
+Scheduler --> ModFAL
+Scheduler --> ModBuz
+
+rectangle "Sensor-Task\n(100Hz Loop)" <<Scheduler>> as SensorTask
+SensorTask ..> ModFAL
+SensorTask ..> ModIMU
+SensorTask ..> ModUltra
+
+rectangle "pwm_motors\n(Antrieb)" <<HAL>> as HALDrive
+rectangle "bno055\n(IMU)" <<HAL>> as HALIMU
+rectangle "hc_sr04\n(Ultraschall)" <<HAL>> as HALUltra
+rectangle "fal\n(Follow A Line)" <<HAL>> as HALFAL
+
+ModDrive --> HALDrive
+ModIMU --> HALIMU
+ModUltra --> HALUltra
+ModFAL --> HALFAL
+@enduml
