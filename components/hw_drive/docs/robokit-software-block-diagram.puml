@@ -1,21 +1,14 @@
 @startuml
 skinparam rectangle {
-  BackgroundColor<<Graphical User Interface>> #EEEBDC
+  BackgroundColor<<User Interface>> #EEEBDC
   BackgroundColor<<Scheduler>> #DDEEFF
   BackgroundColor<<Module>> #E6F2E6
   BackgroundColor<<HAL>> #FDF6E3
   BorderColor Black
 }
 
-rectangle "TCP-Client\n(z.B.)\nScratch App (Systemtechnik)\nPython: robokit.py robokit_client.py\n..." as Client
-rectangle "GUI-Task (niedrigste Priorität)\nTCP-Server und WiFi\nsocket_server.c wlan_ap.c" <<Graphical User Interface>> as TCPServer
 
-Client --> TCPServer : TCP-Verbindung\n(192.168.4.1:8080)
-
-
-rectangle "GUI-Task (niedrigste Priorität)\nTCP-Interpreter\n(tcp_command_interpreter.c)" <<Graphical User Interface>> as TCPInterpreter
-
-TCPServer --> TCPInterpreter : Datenstrom
+rectangle "GUI-Task (niedrigste Priorität)\nJe nach Modus (zurzeit nur Konfig)\nKonfig: WLAN und TCP Server mit Kommando Interpreter\nwlan_ap.c socket_server.c tcp_command_interpreter.c" <<User Interface>> as TCPInterpreter
 
 queue KommandoQueue as "MessageQueue\n(max. 8 Kommandos)"
 TCPInterpreter --> KommandoQueue : Kommandos erstellen / einschleusen\n(robokit_make_command_*)\nrobokit_push_command()
