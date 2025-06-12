@@ -19,7 +19,7 @@ def print_help():
     print("            | ")
     print("            | IMU DRIVE COMMANDS")
     print("imu <speed> | Drive straight forward using the IMU")
-    print("imud <deg_u>| Adjusts the fixed imu orientation by deg_u * 16 degrees.")
+    print("imud <deg_u>| Adjuststos the fixed imu orientation by deg_uimud * 16 degrees.")
     print("            | ")
     print("            | LED AND MULTIMEDIA COMMANDS")
     print("led <n> <cl>| n is the selected led and cl the color as 0xRGB")

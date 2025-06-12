@@ -106,6 +106,20 @@ class distanceRequest(BaseModel):
 class MeldoyRequest(BaseModel):
     melody: str
 
+# class imu_Drehen(BaseModel):
+#     angle: int
+
+class followLineRequest(BaseModel):
+    power:int
+   
+
+class imuGeradeausRequest(BaseModel):
+    power:int
+
+class imuGeradeausTimeRequest(BaseModel):
+    power:int
+    duration: float
+
 
 @app.post("/buzzer")
 def buzzer(req: BuzzerRequest):
@@ -403,7 +417,7 @@ def ledclear(req: ledclearRequest):
     return {"status": "ok"} 
 
 @app.post("/melody")
-def ledclear(req: MeldoyRequest):
+def medlody(req: MeldoyRequest):
     notes = [
         (0,0)
     ]
@@ -448,6 +462,38 @@ def approximate(req: distanceRequest,):
     return {"status": status , "distance": req.distance}
 
 
+@app.post("/FarbsensorConfig")
+def FarbsensorConfig():
+    robot.fal_calibrate(20,5000)
+    return{"status": "oK"},
+
+
+@app.post("/FollowLine")
+def followLine(req:followLineRequest):
+    status = "keine Kalibirirung"
+    if(robot.fal_calibration_status):
+        status = "ok"
+        robot.fal_drive(req.power,5000)
+    return{"status": status, "Speed": req.power},
+
+# @app.post("/imuDrehen")
+# def imuDrehen(req:imu_Drehen):
+#     #robot.drive_imu_reset_orientation()
+#     robot.drive_imu_orientation_deviate(req.angle)
+#     return{"status": "ok", "winkel": req.angle},
+
+@app.post("/imuGerade")
+def imuGerade(req:imuGeradeausRequest):
+    robot.drive_imu_straight_forward(req.power)
+    return{"status": "ok", "Speed": req.power},
+
+@app.post("/imuGeradeTime")
+def imuGeradetime (req:imuGeradeausTimeRequest):
+    robot.drive_imu_straight_forward(req.power)
+    time.sleep(req.duration)
+    robot.drive_stop()
+    return{"status": "ok", "Speed": req.power, "Time": req.duration},    
+
 @app.get("/distance")
 def get_distance():
     distance = robot.status_distance()
@@ -490,12 +536,16 @@ def get_drive_vector():
 @app.get("/color_current")
 def get_color_curent():
     color = robot.fal_read_current_result()
-    return {"status": "ok", "Farbe": color['middle']}
+    return {"status": "ok", "Farbe": color}
 
 @app.get("/color")
 def get_color():
-    color = robot.fal_read_colors()
-    return {"status": "ok", "Farbe": color}
+    status = "keine Kalibirirung"
+    color = "Keine Farbe"
+    if(robot.fal_calibration_status):
+        status = "ok"
+        color = robot.fal_read_colors()
+    return {"status": status , "Farbe": color}
 
 
 @app.get("/imu")
